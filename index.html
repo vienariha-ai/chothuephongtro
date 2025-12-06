@@ -505,13 +505,13 @@
         background 0.2s ease;
     }
 
-   .room-line {
-     display: flex;
-     justify-content: space-between;
-     align-items: center;
-     gap: 6px;
-     font-size: 0.78rem;
-   }
+    .room-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+    }
 
     .room-card::before {
       content: "";
@@ -567,76 +567,82 @@
       gap: 4px;
     }
 
-   .room-actions {
-     display: flex;
-     align-items: center;
-     gap: 4px;
-   }
+    .room-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
 
-   .rating {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin-right: 4px;
-    font-size: 0.78rem;
-   }
+    .rating {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-right: 4px;
+      font-size: 0.78rem;
+    }
 
-  .rating .star {
-    cursor: pointer;
-    color: #fbbf24; /* vàng */
-    opacity: 0.35;
-    transition: transform 0.12s ease, opacity 0.12s ease;
-  }
+    .rating .star {
+      cursor: pointer;
+      color: #fbbf24;
+      opacity: 0.35;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
 
-  .rating .star.active {
-    opacity: 1;
-  }
+    .rating .star.active {
+      opacity: 1;
+    }
 
-  .rating .star:hover {
-    transform: translateY(-1px) scale(1.05);
-    opacity: 1;
-  }
+    .rating .star:hover {
+      transform: translateY(-1px) scale(1.05);
+      opacity: 1;
+    }
 
-  .icon-btn {
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.7);
-    background: rgba(15, 23, 42, 0.95);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    cursor: pointer;
-    color: rgba(229, 231, 235, 0.95);
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.9);
-    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease,
-      background 0.16s ease, filter 0.16s ease;
-   }
+    .rating-text {
+      font-size: 0.7rem;
+      color: rgba(148, 163, 184, 0.95);
+      margin-left: 4px;
+    }
 
-  .icon-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.95);
-    border-color: rgba(56, 189, 248, 0.9);
-    filter: brightness(1.05);
-  }
+    .icon-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: rgba(229, 231, 235, 0.95);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.9);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease,
+        background 0.16s ease, filter 0.16s ease;
+    }
 
-  .icon-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
-  }
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.95);
+      border-color: rgba(56, 189, 248, 0.9);
+      filter: brightness(1.05);
+    }
 
-  .icon-btn.like-btn-liked {
-    background: #fb923c;
-    border-color: #fed7aa;
-    color: #0b1120;
-  }
+    .icon-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+    }
 
-  .like-count {
-    font-size: 0.7rem;
-    min-width: 18px;
-    text-align: right;
-  }
+    .icon-btn.like-btn-liked {
+      background: #fb923c;
+      border-color: #fed7aa;
+      color: #0b1120;
+    }
+
+    .like-count {
+      font-size: 0.7rem;
+      min-width: 18px;
+      text-align: right;
+    }
 
     .room-btn {
       font-size: 0.74rem;
@@ -1258,7 +1264,7 @@
     let ALL_ROOMS = [];
     let CONTACT_INFO = { zalo: "", email: "", messenger: "" };
 
-    // Lưu like theo từng phòng trong localStorage
+    // Lưu like & rating theo từng phòng trong localStorage
     const LIKE_STORAGE_KEY = "ytHomeRoomLikes";
     const RATING_STORAGE_KEY = "ytHomeRoomRatings";
 
@@ -1271,7 +1277,7 @@
         const raw = localStorage.getItem(LIKE_STORAGE_KEY);
         ROOM_LIKES = raw ? JSON.parse(raw) : {};
       } catch (e) {
-      ROOM_LIKES = {};
+        ROOM_LIKES = {};
       }
     }
 
@@ -1279,13 +1285,13 @@
       try {
         localStorage.setItem(LIKE_STORAGE_KEY, JSON.stringify(ROOM_LIKES));
       } catch (e) {
-      console.error("saveLikesToStorage error:", e);
+        console.error("saveLikesToStorage error:", e);
       }
     }
 
     function toggleLike(roomId) {
       if (!roomId) return;
-        const current = ROOM_LIKES[roomId] || { count: 0, liked: false };
+      const current = ROOM_LIKES[roomId] || { count: 0, liked: false };
       if (current.liked) {
         current.liked = false;
         current.count = Math.max(0, current.count - 1);
@@ -1295,31 +1301,27 @@
       }
       ROOM_LIKES[roomId] = current;
       saveLikesToStorage();
-    
-      // render lại với filter hiện tại
       renderRooms();
     }
 
     function copyRoomLink(encodedRoomId) {
       const id = decodeURIComponent(encodedRoomId || "");
       if (!id) return;
-      // Tạo link tới trang chi tiết phòng
       const base = window.location.origin + window.location.pathname.replace(/index\.html$/i, "");
       const url = base + "room.html?room=" + encodeURIComponent(id);
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url)
           .then(() => {
-          alert("Đã sao chép link phòng " + id + " vào clipboard.");
-        })
-        .catch(() => {
-           prompt("Không thể tự động sao chép, bạn copy link thủ công nhé:", url);
-         });
-       } else {
-         prompt("Không thể tự động sao chép, bạn copy link thủ công nhé:", url);
-       }
+            alert("Đã sao chép link phòng " + id + " vào clipboard.");
+          })
+          .catch(() => {
+            prompt("Không thể tự động sao chép, bạn copy link thủ công nhé:", url);
+          });
+      } else {
+        prompt("Không thể tự động sao chép, bạn copy link thủ công nhé:", url);
+      }
     }
-
 
     function formatVND(amount) {
       if (!amount || isNaN(amount)) return "--";
@@ -1378,96 +1380,96 @@
       modal.classList.remove("show");
     }
 
-   // ====== RENDER DANH SÁCH PHÒNG ======
-function renderRooms(filter) {
-  const grid = document.getElementById("roomsGrid");
-  const statusEl = document.getElementById("roomsStatus");
-  grid.innerHTML = "";
+    // ====== RENDER DANH SÁCH PHÒNG ======
+    function renderRooms(filter) {
+      const grid = document.getElementById("roomsGrid");
+      const statusEl = document.getElementById("roomsStatus");
+      grid.innerHTML = "";
 
-  if (typeof filter === "string") {
-    CURRENT_FILTER = filter;
-  } else {
-    filter = CURRENT_FILTER;
-  }
+      if (typeof filter === "string") {
+        CURRENT_FILTER = filter;
+      } else {
+        filter = CURRENT_FILTER;
+      }
 
-  const filtered = ALL_ROOMS.filter((room) => {
-    if (filter === "all") return true;
-    if (filter === "available") return room.trangThaiWebsite === "available";
-    return room.loaiPhong === filter;
-  });
+      const filtered = ALL_ROOMS.filter((room) => {
+        if (filter === "all") return true;
+        if (filter === "available") return room.trangThaiWebsite === "available";
+        return room.loaiPhong === filter;
+      });
 
-  statusEl.textContent = filtered.length
-    ? "Hiển thị " + filtered.length + " phòng."
-    : "Không có phòng phù hợp với bộ lọc hiện tại.";
+      statusEl.textContent = filtered.length
+        ? "Hiển thị " + filtered.length + " phòng."
+        : "Không có phòng phù hợp với bộ lọc hiện tại.";
 
-  filtered.forEach((room) => {
-    const card = document.createElement("div");
-    card.className = "room-card";
+      filtered.forEach((room) => {
+        const card = document.createElement("div");
+        card.className = "room-card";
 
-    const statusClass =
-      room.trangThaiWebsite === "available" ? "status-available" : "status-rented";
-    const statusText =
-      room.trangThaiWebsite === "available" ? "Còn trống" : "Đang thuê";
+        const statusClass =
+          room.trangThaiWebsite === "available" ? "status-available" : "status-rented";
+        const statusText =
+          room.trangThaiWebsite === "available" ? "Còn trống" : "Đang thuê";
 
-    const roomId = room.maPhong || "";
-    const detailIdEncoded = encodeURIComponent(roomId);
+        const roomId = room.maPhong || "";
+        const detailIdEncoded = encodeURIComponent(roomId);
 
-    const likeData = ROOM_LIKES[roomId] || { count: 0, liked: false };
-    const likeBtnExtraClass = likeData.liked ? " like-btn-liked" : "";
+        const likeData = ROOM_LIKES[roomId] || { count: 0, liked: false };
+        const likeBtnExtraClass = likeData.liked ? " like-btn-liked" : "";
 
-    const detailUrl = `room.html?room=${detailIdEncoded}`;
-    const starsHtml = buildStarsHtml(roomId);
+        const detailUrl = `room.html?room=${detailIdEncoded}`;
+        const starsHtml = buildStarsHtml(room);
 
-    const videoIconHtml = room.video
-      ? `<button class="icon-btn" title="Xem video"
-           onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
-      : "";
+        const videoIconHtml = room.video
+          ? `<button class="icon-btn" title="Xem video"
+               onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
+          : "";
 
-    card.innerHTML = `
-      <!-- Dòng 1: tên phòng + trạng thái -->
-      <div class="room-line">
-        <div>
-          ${roomId || ""}${room.loaiPhong ? " · " + room.loaiPhong : ""}
-        </div>
-        <span class="room-status-chip ${statusClass}">
-          ${statusText}
-        </span>
-      </div>
-      
-      <!-- Dòng 4: Tầng -->
-      <div class="room-line">
-        <span>${room.tang ? "Tầng " + room.tang : ""}</span>
-      </div>
-     
-      <!-- Dòng 2: giá thuê -->
-      <div class="room-line">
-        <span>
-          ${room.giaThue ? formatVND(room.giaThue) + " /tháng" : "-/tháng"}
-        </span>
-      </div>
+        card.innerHTML = `
+          <!-- Dòng 1: tên phòng + trạng thái -->
+          <div class="room-line">
+            <div>
+              ${roomId || ""}${room.loaiPhong ? " · " + room.loaiPhong : ""}
+            </div>
+            <span class="room-status-chip ${statusClass}">
+              ${statusText}
+            </span>
+          </div>
 
-      <!-- Dòng 3: ⭐⭐⭐⭐⭐ -->
-      <div class="room-line">
-        ${starsHtml}
-      </div>
+          <!-- Dòng 4: Tầng -->
+          <div class="room-line">
+            <span>${room.tang ? "Tầng " + room.tang : ""}</span>
+          </div>
 
-      <!-- Footer: like / link / xem -->
-      <div class="room-footer">
-        <div class="room-actions">
-          <button class="icon-btn${likeBtnExtraClass}"
-            onclick="toggleLike('${roomId}')">♥</button>
-          <button class="icon-btn"
-            onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-          ${videoIconHtml || ""}
-          <span class="like-count">${likeData.count || 0}</span>
-        </div>
-        <a class="room-btn" href="${detailUrl}">Xem</a>
-      </div>
-    `;   // <-- đóng template string + ;
+          <!-- Dòng 2: giá thuê -->
+          <div class="room-line">
+            <span>
+              ${room.giaThue ? formatVND(room.giaThue) + " /tháng" : "-/tháng"}
+            </span>
+          </div>
 
-    grid.appendChild(card);
-    });
-   }
+          <!-- Dòng 3: ⭐⭐⭐⭐⭐ + số lượt đánh giá -->
+          <div class="room-line">
+            ${starsHtml}
+          </div>
+
+          <!-- Footer: like / link / xem -->
+          <div class="room-footer">
+            <div class="room-actions">
+              <button class="icon-btn${likeBtnExtraClass}"
+                onclick="toggleLike('${roomId}')">♥</button>
+              <button class="icon-btn"
+                onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
+              ${videoIconHtml || ""}
+              <span class="like-count">${likeData.count || 0}</span>
+            </div>
+            <a class="room-btn" href="${detailUrl}">Xem</a>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
 
     // ====== HERO ROOMS ======
     function renderHeroRooms() {
@@ -1665,44 +1667,80 @@ function renderRooms(filter) {
       return data.rating || 0;
     }
 
-    function setRoomRating(roomId, rating) {
+    // Gửi đánh giá lên Apps Script + cập nhật RatingAvg & RatingCount
+    async function setRoomRating(roomId, rating) {
       if (!roomId) return;
       const r = Math.max(1, Math.min(5, rating)); // 1–5 sao
-      ROOM_RATINGS[roomId] = { rating: r };
-      saveRatingsToStorage();
-      // render lại list phòng với filter hiện tại
-      renderRooms();
+      const old = getRoomRating(roomId);          // rating cũ của user (0 nếu chưa đánh giá)
+
+      try {
+        const body = new URLSearchParams({
+          action: "rateRoom",
+          roomId: roomId,
+          rating: String(r),
+          oldRating: String(old || 0)
+        });
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body
+        });
+
+        const data = await res.json();
+        if (!data || !data.success) {
+          alert("Không thể gửi đánh giá. Vui lòng thử lại sau.");
+          return;
+        }
+
+        // Lưu rating của riêng user vào localStorage
+        ROOM_RATINGS[roomId] = { rating: r };
+        saveRatingsToStorage();
+
+        // Cập nhật lại RatingAvg & RatingCount trong ALL_ROOMS
+        const found = ALL_ROOMS.find((rm) => (rm.maPhong || "") === roomId);
+        if (found) {
+          found.ratingAvg = data.ratingAvg || r;
+          found.ratingCount = data.ratingCount != null ? data.ratingCount : (found.ratingCount || 0);
+        }
+
+        // Render lại danh sách phòng với filter hiện tại
+        renderRooms();
+      } catch (e) {
+        console.error("setRoomRating error:", e);
+        alert("Có lỗi khi gửi đánh giá. Vui lòng thử lại sau.");
+      }
     }
 
-    function buildStarsHtml(roomId) {
-      const current = getRoomRating(roomId);
+    function buildStarsHtml(room) {
+      const roomId = room.maPhong || "";
+      const userRating = getRoomRating(roomId);
+      const avg = Number(room.ratingAvg || 0);
+      const count = Number(room.ratingCount || 0);
+
       let html = `<div class="rating" data-room="${roomId}">`;
       for (let i = 1; i <= 5; i++) {
-        const active = i <= current ? "active" : "";
+        const active = i <= userRating ? "active" : "";
         html += `<span class="star ${active}" onclick="setRoomRating('${roomId}', ${i})">★</span>`;
       }
+      html += `<span class="rating-text">${avg ? avg.toFixed(1) : "--"} (${count || 0} đánh giá)</span>`;
       html += "</div>";
       return html;
     }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("year").textContent = new Date().getFullYear();
-    loadLikesFromStorage();
-    loadRatingsFromStorage();   // ⬅️ thêm dòng này
-    initFilters();
-    loadRoomsFromServer();
-    loadContactInfo();
-    document
-    .getElementById("contactForm")
-    .addEventListener("submit", handleSubmit);
-  });
-
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("year").textContent = new Date().getFullYear();
+      loadLikesFromStorage();
+      loadRatingsFromStorage();
+      initFilters();
+      loadRoomsFromServer();
+      loadContactInfo();
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", handleSubmit);
+    });
   </script>
 </body>
 </html>
-
-
-
-
-
-
