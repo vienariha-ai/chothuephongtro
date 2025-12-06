@@ -1433,7 +1433,12 @@ function renderRooms(filter) {
           ${statusText}
         </span>
       </div>
-
+      
+      <!-- Dòng 4: Tầng -->
+      <div class="room-line">
+        <span>${room.tang ? "Tầng " + room.tang : ""}</span>
+      </div>
+     
       <!-- Dòng 2: giá thuê -->
       <div class="room-line">
         <span>
@@ -1444,11 +1449,6 @@ function renderRooms(filter) {
       <!-- Dòng 3: ⭐⭐⭐⭐⭐ -->
       <div class="room-line">
         ${starsHtml}
-      </div>
-
-      <!-- Dòng 4: Tầng -->
-      <div class="room-line">
-        <span>${room.tang ? "Tầng " + room.tang : ""}</span>
       </div>
 
       <!-- Footer: like / link / xem -->
@@ -1700,6 +1700,7 @@ function renderRooms(filter) {
   </script>
 </body>
 </html>
+
 
 
 
