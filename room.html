@@ -133,6 +133,14 @@
       font-weight: 700;
       margin-bottom: 4px;
     }
+   
+    .room-title-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
 
     /* ⭐ Rating 5 sao */
     .rating {
@@ -766,18 +774,19 @@
       roomIdShort.textContent = maPhong;
 
       // Thêm container rating vào card
-      roomInfoCard.innerHTML = `
+     roomInfoCard.innerHTML = `
+      <div class="room-title-line">
         <div class="room-title">${maPhong}</div>
-        <div class="room-sub">${loaiPhong}</div>
-        <div class="price-row">
-          <div class="price">${gia}</div>
-          <span class="status-chip ${statusClass}">${statusText}</span>
-        </div>
-
         <div id="roomRatingContainer"></div>
+      </div>
+      <div class="room-sub">${loaiPhong}</div>
+      <div class="price-row">
+        <div class="price">${gia}</div>
+        <span class="status-chip ${statusClass}">${statusText}</span>
+      </div>
 
-        <div class="meta-grid">
-          <div class="meta-item">
+      <div class="meta-grid">
+           <div class="meta-item">
             <span class="meta-label">Tầng</span>
             <span class="meta-value">${tang}</span>
           </div>
@@ -1052,3 +1061,4 @@
   </script>
 </body>
 </html>
+
