@@ -573,6 +573,30 @@
      gap: 4px;
    }
 
+   .rating {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-right: 4px;
+    font-size: 0.78rem;
+   }
+
+  .rating .star {
+    cursor: pointer;
+    color: #fbbf24; /* vàng */
+    opacity: 0.35;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+
+  .rating .star.active {
+    opacity: 1;
+  }
+
+  .rating .star:hover {
+    transform: translateY(-1px) scale(1.05);
+    opacity: 1;
+  }
+
   .icon-btn {
     width: 26px;
     height: 26px;
@@ -1239,10 +1263,13 @@
 
     let ALL_ROOMS = [];
     let CONTACT_INFO = { zalo: "", email: "", messenger: "" };
-    
+
     // Lưu like theo từng phòng trong localStorage
     const LIKE_STORAGE_KEY = "ytHomeRoomLikes";
+    const RATING_STORAGE_KEY = "ytHomeRoomRatings";
+
     let ROOM_LIKES = {};
+    let ROOM_RATINGS = {};
     let CURRENT_FILTER = "all";
 
     function loadLikesFromStorage() {
@@ -1358,31 +1385,31 @@
     }
 
    // ====== RENDER DANH SÁCH PHÒNG ======
-   function renderRooms(filter) {
-      const grid = document.getElementById("roomsGrid");
-      const statusEl = document.getElementById("roomsStatus");
-      grid.innerHTML = "";
+function renderRooms(filter) {
+    const grid = document.getElementById("roomsGrid");
+    const statusEl = document.getElementById("roomsStatus");
+    grid.innerHTML = "";
 
-      // nếu có filter truyền vào thì cập nhật CURRENT_FILTER
-      if (typeof filter === "string") {
-        CURRENT_FILTER = filter;
-      } else {
-        filter = CURRENT_FILTER;
-      }
+    // nếu có filter truyền vào thì cập nhật CURRENT_FILTER
+    if (typeof filter === "string") {
+      CURRENT_FILTER = filter;
+    } else {
+      filter = CURRENT_FILTER;
+    }
 
-      const filtered = ALL_ROOMS.filter((room) => {
-        if (filter === "all") return true;
-        if (filter === "available") return room.trangThaiWebsite === "available";
-          return room.loaiPhong === filter;
-        });
+    const filtered = ALL_ROOMS.filter((room) => {
+      if (filter === "all") return true;
+      if (filter === "available") return room.trangThaiWebsite === "available";
+      return room.loaiPhong === filter;
+    });
 
-      statusEl.textContent = filtered.length
-        ? "Hiển thị " + filtered.length + " phòng."
-        : "Không có phòng phù hợp với bộ lọc hiện tại.";
+    statusEl.textContent = filtered.length
+      ? "Hiển thị " + filtered.length + " phòng."
+      : "Không có phòng phù hợp với bộ lọc hiện tại.";
 
-      filtered.forEach((room) => {
-        const card = document.createElement("div");
-        card.className = "room-card";
+    filtered.forEach((room) => {
+      const card = document.createElement("div");
+      card.className = "room-card";
 
       const statusClass =
         room.trangThaiWebsite === "available" ? "status-available" : "status-rented";
@@ -1397,11 +1424,11 @@
       const likeBtnExtraClass = likeData.liked ? " like-btn-liked" : "";
 
       const detailUrl = `room.html?room=${detailIdEncoded}`;
+      const starsHtml = buildStarsHtml(roomId);
 
-      // Nếu có video thì thêm nút icon (không bắt buộc)
       const videoIconHtml = room.video
         ? `<button class="icon-btn" title="Xem video"
-           onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
+             onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
         : "";
 
       card.innerHTML = `
@@ -1417,21 +1444,21 @@
             ${room.tang ? " · Tầng " + room.tang : ""}
           </span>
           <div class="room-actions">
-             <button class="icon-btn" title="Sao chép link"
-                  onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-               ${videoIconHtml}
+            ${starsHtml}
             <button class="icon-btn${likeBtnExtraClass}" title="Yêu thích"
-                  onclick="toggleLike('${roomId}')">❤</button>
+                    onclick="toggleLike('${roomId}')">❤</button>
             <span class="like-count">${likeData.count || 0}</span>
+            <button class="icon-btn" title="Sao chép link"
+                    onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
+            ${videoIconHtml}
             <a class="room-btn" href="${detailUrl}">Xem</a>
           </div>
         </div>
       `;
 
       grid.appendChild(card);
-     });
-   }
-
+    });
+  }
 
 
     // ====== HERO ROOMS ======
@@ -1607,16 +1634,62 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("year").textContent = new Date().getFullYear();
-      loadLikesFromStorage();      // ⬅️ thêm dòng này
-      initFilters();
-      loadRoomsFromServer();
-      loadContactInfo();
-      document
-        .getElementById("contactForm")
-        .addEventListener("submit", handleSubmit);
-    });
+    function loadRatingsFromStorage() {
+      try {
+        const raw = localStorage.getItem(RATING_STORAGE_KEY);
+        ROOM_RATINGS = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        ROOM_RATINGS = {};
+      }
+    }
+
+    function saveRatingsToStorage() {
+      try {
+        localStorage.setItem(RATING_STORAGE_KEY, JSON.stringify(ROOM_RATINGS));
+      } catch (e) {
+        console.error("saveRatingsToStorage error:", e);
+      }
+    }
+
+    function getRoomRating(roomId) {
+      if (!roomId) return 0;
+      const data = ROOM_RATINGS[roomId] || { rating: 0 };
+      return data.rating || 0;
+    }
+
+    function setRoomRating(roomId, rating) {
+      if (!roomId) return;
+      const r = Math.max(1, Math.min(5, rating)); // 1–5 sao
+      ROOM_RATINGS[roomId] = { rating: r };
+      saveRatingsToStorage();
+      // render lại list phòng với filter hiện tại
+      renderRooms();
+    }
+
+    function buildStarsHtml(roomId) {
+      const current = getRoomRating(roomId);
+      let html = `<div class="rating" data-room="${roomId}">`;
+      for (let i = 1; i <= 5; i++) {
+        const active = i <= current ? "active" : "";
+        html += `<span class="star ${active}" onclick="setRoomRating('${roomId}', ${i})">★</span>`;
+      }
+      html += "</div>";
+      return html;
+    }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("year").textContent = new Date().getFullYear();
+    loadLikesFromStorage();
+    loadRatingsFromStorage();   // ⬅️ thêm dòng này
+    initFilters();
+    loadRoomsFromServer();
+    loadContactInfo();
+    document
+    .getElementById("contactForm")
+    .addEventListener("submit", handleSubmit);
+  });
+
   </script>
 </body>
 </html>
+
