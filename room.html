@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chi tiết phòng – YT Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --primary: #2563eb;
+      --accent: #22c55e;
+      --bg: #0b1120;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 50%),
+        radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 55%),
+        radial-gradient(circle at bottom, rgba(45, 212, 191, 0.25), transparent 55%),
+        var(--bg);
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    header {
+      border-bottom: 1px solid rgba(148,163,184,0.5);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: conic-gradient(from 120deg, #38bdf8, #22c55e, #6366f1, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1120;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      background: radial-gradient(circle at top left, #38bdf8, #2563eb);
+      color: #f9fafb;
+      box-shadow: 0 10px 25px rgba(37,99,235,0.5);
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        filter 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px rgba(37,99,235,0.8);
+      filter: brightness(1.05);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 10px 25px rgba(15,23,42,0.9);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid rgba(148,163,184,0.8);
+      box-shadow: none;
+    }
+
+    .btn-outline:hover {
+      background: rgba(15,23,42,0.9);
+    }
+
+    main { padding-bottom: 24px; }
+
+    .breadcrumb {
+      font-size: 0.8rem;
+      color: rgba(148,163,184,0.9);
+      margin-bottom: 12px;
+    }
+
+    .breadcrumb a { text-decoration: underline; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: radial-gradient(circle at top, rgba(15,23,42,0.98), rgba(15,23,42,1));
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.7);
+      box-shadow: 0 18px 46px rgba(15,23,42,0.96);
+      padding: 14px;
+      font-size: 0.9rem;
+    }
+
+    .room-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .room-sub {
+      font-size: 0.85rem;
+      color: rgba(148,163,184,0.95);
+      margin-bottom: 8px;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .price {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .status-chip {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.9);
+      background: rgba(15,23,42,0.95);
+      white-space: nowrap;
+    }
+
+    .status-available {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #022c22;
+    }
+
+    .status-rented {
+      background: #4b5563;
+      border-color: #6b7280;
+      color: #e5e7eb;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+    }
+
+    .meta-item span {
+      display: block;
+    }
+
+    .meta-label {
+      color: rgba(148,163,184,0.95);
+    }
+
+    .meta-value {
+      font-weight: 600;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 10px 0 6px;
+    }
+
+    .room-desc {
+      font-size: 0.9rem;
+      color: rgba(209,213,219,0.98);
+    }
+
+    /* danh sách nội thất */
+    .asset-list {
+      padding-left: 18px;
+      margin-top: 4px;
+      font-size: 0.85rem;
+      color: rgba(209,213,219,0.98);
+    }
+    .asset-list li { margin-bottom: 2px; }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .gallery-main img,
+    .gallery-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    .gallery-thumb-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      height: 100%;
+    }
+
+    .gallery-placeholder {
+      font-size: 0.8rem;
+      color: rgba(148,163,184,0.95);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px dashed rgba(148,163,184,0.8);
+      text-align: center;
+    }
+
+    #videoContainer {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      margin-top: 8px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #videoContainer iframe,
+    #videoContainer video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .fee-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
+    .fee-table th,
+    .fee-table td {
+      border: 1px solid rgba(55,65,81,0.9);
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+
+    .fee-table th {
+      background: rgba(15,23,42,0.9);
+    }
+
+    .fee-table th:nth-child(1),
+    .fee-table td:nth-child(1) {
+      width: 38%;
+    }
+
+    .fee-table th:nth-child(2),
+    .fee-table td:nth-child(2) {
+      width: 27%;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .fee-table th:nth-child(3),
+    .fee-table td:nth-child(3) {
+      width: 35%;
+    }
+
+    .service-icon {
+      margin-right: 6px;
+      font-size: 1rem;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+
+    .fee-table tr:hover .service-icon {
+      transform: scale(1.1);
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .badge {
+      font-size: 0.78rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px dashed rgba(148,163,184,0.9);
+      background: rgba(15,23,42,0.95);
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .badge::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left,
+                  rgba(56,189,248,0.35),
+                  rgba(37,99,235,0.0));
+      opacity: 0;
+      transform: translateX(-20%);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+
+    .badge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(15,23,42,0.9);
+      border-color: rgba(56,189,248,0.9);
+      background: radial-gradient(circle at top,
+                  rgba(15,23,42,1),
+                  rgba(15,23,42,0.98));
+    }
+
+    .badge:hover::before {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .contact-box p {
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: rgba(209,213,219,0.98);
+    }
+
+    .form-group {
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 600;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.8);
+      background: rgba(15,23,42,0.96);
+      color: #e5e7eb;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: #38bdf8;
+    }
+
+    textarea.form-control { min-height: 80px; resize: vertical; }
+
+    #formStatus {
+      font-size: 0.8rem;
+      margin-top: 4px;
+      color: rgba(148,163,184,0.96);
+    }
+
+    .quick-links {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: rgba(148,163,184,0.96);
+    }
+
+    .quick-links-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .quick-links-row .btn-outline {
+      position: relative;
+      overflow: hidden;
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .quick-links-row .btn-outline::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left,
+                  rgba(56,189,248,0.4),
+                  rgba(37,99,235,0.0));
+      opacity: 0;
+      transform: translateX(-20%);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+
+    .quick-links-row .btn-outline:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56,189,248,0.95);
+      box-shadow: 0 16px 38px rgba(15,23,42,0.95);
+      background: radial-gradient(circle at top,
+                  rgba(15,23,42,1),
+                  rgba(15,23,42,0.98));
+    }
+
+    .quick-links-row .btn-outline:hover::before {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">YT</div>
+        <div>
+          <div>YT Home</div>
+          <div style="font-size:0.7rem; font-weight:500; color:rgba(148,163,184,0.9);">
+            Chi tiết phòng
+          </div>
+        </div>
+      </div>
+      <button class="btn-outline btn" onclick="window.location.href='index.html'">
+        ← Quay về danh sách
+      </button>
+    </header>
+
+    <main>
+      <div class="breadcrumb">
+        <a href="index.html">Danh sách phòng</a> ›
+        <span id="breadcrumbRoom">Đang tải...</span>
+      </div>
+
+      <div id="loadingText" style="font-size:0.9rem; color:rgba(148,163,184,0.96); margin-bottom:10px;">
+        Đang tải thông tin phòng...
+      </div>
+
+      <div id="detailLayout" class="layout" style="display:none;">
+        <!-- Cột trái: thông tin & hình ảnh -->
+        <div>
+          <div class="card" id="roomInfoCard"></div>
+
+          <div class="card" style="margin-top:12px;">
+            <div class="section-title">Hình ảnh & video phòng</div>
+            <div id="galleryContainer"></div>
+            <div id="videoContainer"></div>
+          </div>
+        </div>
+
+        <!-- Cột phải -->
+        <div>
+          <!-- 1. Chi phí dịch vụ -->
+          <div class="card" id="feeCard">
+            <div class="section-title">Chi phí dịch vụ tham khảo</div>
+            <p style="font-size:0.85rem;">Đang tải thông tin dịch vụ...</p>
+          </div>
+
+          <!-- 2. Lưu ý & chính sách -->
+          <div class="card" style="margin-top:12px;">
+            <div class="section-title">Lưu ý & chính sách</div>
+            <ul style="font-size:0.85rem; padding-left:18px; margin-top:4px;">
+              <li>Hợp đồng tối thiểu <strong>6–12 tháng</strong> (có thể linh hoạt theo từng phòng).</li>
+              <li>Cọc tối thiểu <strong>1–2 tháng tiền nhà</strong> tùy thời hạn thuê.</li>
+              <li>Giới hạn số người ở để đảm bảo không gian sống văn minh, yên tĩnh.</li>
+              <li>Hỗ trợ đăng ký tạm trú & khai báo cư trú theo quy định.</li>
+            </ul>
+          </div>
+
+          <!-- 3. Đặt lịch xem phòng (đưa xuống cuối cùng) -->
+          <div class="card" style="margin-top:12px;">
+            <div class="section-title">Đặt lịch xem phòng này</div>
+            <p style="font-size:0.85rem; margin-bottom:6px;">
+              Điền thông tin bên dưới, YT Home sẽ liên hệ để xác nhận lịch xem phòng
+              <strong id="roomIdShort"></strong>.
+            </p>
+            <form id="contactForm">
+              <div class="form-group">
+                <label for="name">Họ và tên</label>
+                <input id="name" class="form-control" type="text" required />
+              </div>
+              <div class="form-group">
+                <label for="phone">Số điện thoại/Zalo</label>
+                <input id="phone" class="form-control" type="tel" required />
+              </div>
+              <div class="form-group">
+                <label for="message">Nội dung</label>
+                <textarea id="message" class="form-control"></textarea>
+              </div>
+              <button type="submit" class="btn" style="width:100%;">Gửi yêu cầu xem phòng</button>
+              <p id="formStatus"></p>
+            </form>
+
+            <div class="quick-links">
+              Hoặc liên hệ nhanh:
+              <div class="quick-links-row">
+                <a id="zaloQuickLink" class="btn-outline btn" href="#" target="_blank" rel="noopener noreferrer" style="padding:6px 14px; font-size:0.78rem;">
+                  Nhắn Zalo
+                </a>
+                <a id="emailQuickLink" class="btn-outline btn" href="#" style="padding:6px 14px; font-size:0.78rem;">
+                  Gửi Email
+                </a>
+                <a id="messengerQuickLink" class="btn-outline btn" href="#" target="_blank" rel="noopener noreferrer" style="padding:6px 14px; font-size:0.78rem;">
+                  Chat Messenger
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbznppZfIltbXxOCnMAP88dD3hHhsPOGaAnDw9Yd6HBeI0Fpkk6KamQ8l8uYgmEZLsnYfw/exec";
+
+    let CONTACT_INFO = { zalo: "", email: "", messenger: "" };
+    let CURRENT_ROOM = null;
+    let SERVICES = [];
+
+    function formatVND(amount) {
+      if (amount === null || amount === undefined || amount === "") return "--";
+      const num = Number(String(amount).replace(/[^\d.-]/g, ""));
+      if (isNaN(num)) return String(amount);
+      return num.toLocaleString("vi-VN") + " đ";
+    }
+
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    function buildVideoEmbed(url) {
+      if (!url) return "";
+      const u = String(url).trim();
+
+      if (u.includes("youtube.com") || u.includes("youtu.be")) {
+        let videoId = "";
+        const shortMatch = u.match(/youtu\.be\/([^?&]+)/);
+        if (shortMatch) videoId = shortMatch[1];
+        const longMatch = u.match(/[?&]v=([^&]+)/);
+        if (longMatch) videoId = longMatch[1] || videoId;
+
+        if (!videoId) {
+          return `<iframe src="${u}" allowfullscreen></iframe>`;
+        }
+        const embedUrl = "https://www.youtube.com/embed/" + videoId;
+        return `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
+      }
+
+      return `
+        <video controls playsinline>
+          <source src="${u}">
+          Trình duyệt không hỗ trợ phát video.
+        </video>
+      `;
+    }
+
+    function collectImages(room) {
+      const keys = ["anh1","anh2","anh3","hinhAnh1","hinhAnh2","hinhAnh3","image1","image2","image3"];
+      const imgs = [];
+      keys.forEach(k => {
+        if (room[k]) imgs.push(room[k]);
+      });
+      return imgs;
+    }
+
+    function getPetAllowFlag(room) {
+      if (typeof room.thuCungAllowed === "boolean") {
+        return room.thuCungAllowed;
+      }
+      const raw = String(
+        room.thuCung || room.pet || room.allowPet || ""
+      ).trim().toLowerCase();
+      if (!raw) return null;
+
+      const yesKeywords = ["có", "yes", "y", "1", "true", "cho phép", "được"];
+      const noKeywords  = ["không", "ko", "no", "0", "false", "k cho", "không cho phép"];
+
+      if (yesKeywords.some(k => raw.includes(k))) return true;
+      if (noKeywords.some(k => raw.includes(k))) return false;
+      return null;
+    }
+
+    function renderRoomDetail(room) {
+      const loadingText = document.getElementById("loadingText");
+      const layout = document.getElementById("detailLayout");
+      const breadcrumbRoom = document.getElementById("breadcrumbRoom");
+      const roomInfoCard = document.getElementById("roomInfoCard");
+      const galleryContainer = document.getElementById("galleryContainer");
+      const videoContainer = document.getElementById("videoContainer");
+      const roomIdShort = document.getElementById("roomIdShort");
+
+      loadingText.style.display = "none";
+      layout.style.display = "grid";
+
+      const maPhong = room.maPhong || "Phòng";
+      const loaiPhong = room.loaiPhong || "Phòng cho thuê";
+      const gia = room.giaThue ? formatVND(room.giaThue) + "/tháng" : "Giá liên hệ";
+      const tang = room.tang || "–";
+      const coc = room.coc ? formatVND(room.coc) : "–";
+      const dienTich = room.dienTich || room.dientich || "Đang cập nhật";
+      const note = room.thongTinPhong || room.ghiChu || "";
+
+      const statusClass =
+        room.trangThaiWebsite === "available" ? "status-available" : "status-rented";
+      const statusText =
+        room.trangThaiWebsite === "available" ? "Còn trống" : "Đang thuê";
+
+      const assets = Array.isArray(room.assets) ? room.assets : [];
+
+      const allowFlag = getPetAllowFlag(room);
+      let petPolicyHTML = "";
+      if (allowFlag === true) {
+        petPolicyHTML = `
+          <div class="section-title">Chính sách thú cưng</div>
+          <ul class="asset-list">
+            <li>✅ Cho phép nuôi thú cưng</li>
+          </ul>
+        `;
+      } else if (allowFlag === false) {
+        petPolicyHTML = `
+          <div class="section-title">Chính sách thú cưng</div>
+          <ul class="asset-list">
+            <li>❌ Không cho phép nuôi thú cưng</li>
+          </ul>
+        `;
+      } else {
+        petPolicyHTML = `
+          <div class="section-title">Chính sách thú cưng</div>
+          <div class="room-desc" style="font-size:0.85rem;">
+            Vui lòng liên hệ để được tư vấn chi tiết về chính sách thú cưng cho phòng này.
+          </div>
+        `;
+      }
+
+      breadcrumbRoom.textContent = maPhong;
+      roomIdShort.textContent = maPhong;
+
+      roomInfoCard.innerHTML = `
+        <div class="room-title">${maPhong}</div>
+        <div class="room-sub">${loaiPhong}</div>
+        <div class="price-row">
+          <div class="price">${gia}</div>
+          <span class="status-chip ${statusClass}">${statusText}</span>
+        </div>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Tầng</span>
+            <span class="meta-value">${tang}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Diện tích</span>
+            <span class="meta-value">${dienTich}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Tiền cọc</span>
+            <span class="meta-value">${coc}</span>
+          </div>
+        </div>
+        <div class="section-title">Mô tả phòng</div>
+        <div class="room-desc">
+          ${note || "Chủ nhà đang cập nhật mô tả chi tiết cho phòng này."}
+        </div>
+
+        <div class="section-title">Nội thất & tiện nghi trong phòng</div>
+        ${
+          assets.length
+            ? `<ul class="asset-list">
+                ${assets
+                  .map(a => `<li>✅ ${a.tenTaiSan || a.ten || ""}</li>`)
+                  .join("")}
+               </ul>`
+            : `<div class="room-desc" style="font-size:0.85rem;">
+                Chủ nhà đang cập nhật danh sách nội thất chi tiết. Bạn có thể liên hệ để hỏi thêm.
+               </div>`
+        }
+
+        ${petPolicyHTML}
+      `;
+
+      const images = collectImages(room);
+      if (images.length) {
+        if (images.length === 1) {
+          galleryContainer.innerHTML = `
+            <div class="gallery">
+              <div class="gallery-main">
+                <img src="${images[0]}" alt="Hình phòng ${maPhong}">
+              </div>
+              <div class="gallery-thumb-grid"></div>
+            </div>
+          `;
+        } else {
+          const main = images[0];
+          const thumbs = images.slice(1, 3);
+          galleryContainer.innerHTML = `
+            <div class="gallery">
+              <div class="gallery-main">
+                <img src="${main}" alt="Hình phòng ${maPhong}">
+              </div>
+              <div class="gallery-thumb-grid">
+                ${thumbs
+                  .map(
+                    src => `
+                  <div class="gallery-thumb">
+                    <img src="${src}" alt="Hình phòng ${maPhong}">
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        galleryContainer.innerHTML = `
+          <div class="gallery-placeholder">
+            Hình ảnh chi tiết của phòng sẽ được cập nhật sớm. Bạn có thể xem video hoặc đặt lịch xem trực tiếp.
+          </div>
+        `;
+      }
+
+      if (room.video) {
+        videoContainer.innerHTML = buildVideoEmbed(room.video);
+      } else {
+        videoContainer.innerHTML = "";
+      }
+
+      const msgInput = document.getElementById("message");
+      msgInput.value = `Em quan tâm phòng ${maPhong} (${loaiPhong}), xin tư vấn thêm và đặt lịch xem phòng.`;
+    }
+
+    function renderFeeCard() {
+      const feeCard = document.getElementById("feeCard");
+      if (!feeCard) return;
+
+      if (!SERVICES.length) {
+        feeCard.innerHTML = `
+          <div class="section-title">Chi phí dịch vụ tham khảo</div>
+          <p style="font-size:0.85rem;">
+            Đang cập nhật danh sách dịch vụ. Vui lòng liên hệ để biết chi tiết.
+          </p>
+        `;
+        return;
+      }
+
+      const rowsHtml = SERVICES.map(s => {
+        const ten = s.nhomDichVu || s.maDV || "Dịch vụ";
+        const giaText = s.donGia ? formatVND(s.donGia) : "--";
+        let ghiChu = s.thongTinDichVu || "";
+        if (s.loai) {
+          ghiChu = ghiChu ? (ghiChu + " – " + s.loai) : s.loai;
+        }
+
+        let icon = "💼";
+        const keyword = ten.toLowerCase();
+        if (keyword.includes("nước")) icon = "💧";
+        else if (keyword.includes("điện")) icon = "⚡";
+        else if (keyword.includes("wifi") || keyword.includes("internet")) icon = "📶";
+        else if (keyword.includes("xe")) icon = "🛵";
+        else if (keyword.includes("rác") || keyword.includes("vệ sinh")) icon = "🗑️";
+        else if (keyword.includes("giặt")) icon = "🧺";
+        else if (keyword.includes("dịch vụ")) icon = "🔧";
+        else if (keyword.includes("cọc")) icon = "💰";
+
+        return `
+          <tr>
+            <td><span class="service-icon">${icon}</span>${ten}</td>
+            <td>${giaText}</td>
+            <td>${ghiChu}</td>
+          </tr>
+        `;
+      }).join("");
+
+      feeCard.innerHTML = `
+        <div class="section-title">Chi phí dịch vụ tham khảo</div>
+        <table class="fee-table">
+          <tr>
+            <th>Dịch vụ</th>
+            <th style="text-align:right;">Giá</th>
+            <th>Ghi chú</th>
+          </tr>
+          ${rowsHtml}
+        </table>
+        <div class="badge-row">
+          <div class="badge">Hợp đồng rõ ràng</div>
+          <div class="badge">Không phí môi giới</div>
+          <div class="badge">Ưu tiên ở lâu dài</div>
+        </div>
+      `;
+    }
+
+    async function loadRoomDetailFromServer() {
+      const roomId = getQueryParam("room");
+      const loadingText = document.getElementById("loadingText");
+
+      if (!roomId) {
+        loadingText.textContent = "Không tìm thấy mã phòng trên đường dẫn.";
+        return;
+      }
+
+      loadingText.textContent = "Đang tải thông tin phòng " + roomId + "...";
+
+      try {
+        const res = await fetch(
+          API_URL + "?action=roomDetail&room=" + encodeURIComponent(roomId)
+        );
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const room = data && data.room;
+
+        if (!room) {
+          loadingText.textContent =
+            "Không tìm thấy thông tin phòng " + roomId + " trong hệ thống.";
+          return;
+        }
+
+        CURRENT_ROOM = room;
+        renderRoomDetail(room);
+
+        if (SERVICES.length) {
+          renderFeeCard();
+        }
+      } catch (err) {
+        console.error(err);
+        loadingText.textContent =
+          "Có lỗi khi tải thông tin phòng. Vui lòng thử lại sau.";
+      }
+    }
+
+    async function loadServicesFromServer() {
+      try {
+        const res = await fetch(API_URL + "?action=services");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        SERVICES = (data && data.services) || [];
+
+        if (CURRENT_ROOM) {
+          renderFeeCard();
+        }
+      } catch (err) {
+        console.error("loadServicesFromServer error:", err);
+        renderFeeCard();
+      }
+    }
+
+    async function loadContactInfo() {
+      try {
+        const res = await fetch(API_URL + "?action=contactInfo");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        CONTACT_INFO = (data && data.contact) || CONTACT_INFO;
+
+        const zaloLink  = document.getElementById("zaloQuickLink");
+        const mailLink  = document.getElementById("emailQuickLink");
+        const msgLink   = document.getElementById("messengerQuickLink");
+
+        if (zaloLink && CONTACT_INFO.zalo) {
+          zaloLink.href = CONTACT_INFO.zalo;
+        }
+        if (mailLink && CONTACT_INFO.email) {
+          const subject = encodeURIComponent("Đặt lịch xem phòng tại YT Home");
+          mailLink.href = `mailto:${CONTACT_INFO.email}?subject=${subject}`;
+        }
+        if (msgLink && CONTACT_INFO.messenger) {
+          msgLink.href = CONTACT_INFO.messenger;
+        }
+      } catch (err) {
+        console.error("loadContactInfo error:", err);
+      }
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      const formStatus = document.getElementById("formStatus");
+      formStatus.textContent = "Đang gửi...";
+
+      const roomId = getQueryParam("room") || "";
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const message = document.getElementById("message").value.trim();
+
+      try {
+        const body = new URLSearchParams({
+          action: "contact",
+          name,
+          phone,
+          roomType: roomId ? ("Quan tâm phòng " + roomId) : "",
+          message
+        });
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body
+        });
+
+        const data = await res.json();
+        formStatus.textContent =
+          (data && data.message) ||
+          "Gửi thành công. Cảm ơn bạn đã liên hệ YT Home.";
+        document.getElementById("contactForm").reset();
+      } catch (err) {
+        console.error(err);
+        formStatus.textContent =
+          "Có lỗi khi gửi thông tin. Vui lòng thử lại sau.";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadRoomDetailFromServer();
+      loadServicesFromServer();
+      loadContactInfo();
+      document.getElementById("contactForm").addEventListener("submit", handleSubmit);
+    });
+  </script>
+</body>
+</html>
