@@ -1443,12 +1443,10 @@ function renderRooms(filter) {
           </span>
         </div>
 
-        <!-- Dòng 3: ⭐⭐⭐⭐⭐ -->
-        <div class="room-line">
-          <div class="rating" data-room-id="${roomId}">
-            ${starsHtml}   <!-- chỗ này là chuỗi 5 sao bạn đã dựng sẵn -->
-          </div>
-        </div>
+       <!-- Dòng 3: ⭐⭐⭐⭐⭐ -->
+       <div class="room-line">
+          ${starsHtml}
+       </div>
 
         <!-- Dòng 4: Tầng -->
           <div class="room-line">
@@ -1462,12 +1460,11 @@ function renderRooms(filter) {
               onclick="toggleLike('${roomId}')">♥</button>
             <button class="icon-btn"
               onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-            ${videoBtnHtml || ""}
+            ${videoIconHtml || ""}   <!-- sửa tên biến ở đây -->
             <span class="like-count">${likeData.count || 0}</span>
           </div>
           <a class="room-btn" href="${detailUrl}">Xem</a>
         </div>
-      `;
 
       grid.appendChild(card);
     });
@@ -1705,6 +1702,7 @@ function renderRooms(filter) {
   </script>
 </body>
 </html>
+
 
 
 
