@@ -1426,27 +1426,46 @@ function renderRooms(filter) {
         : "";
 
       card.innerHTML = `
+        <!-- Dòng 1: tên phòng + trạng thái -->
         <div class="room-line">
-          <span>${roomId} · ${room.loaiPhong || ""}</span>
+          <div>
+            ${roomId || ""}${room.loaiPhong ? " · " + room.loaiPhong : ""}
+          </div>
           <span class="room-status-chip ${statusClass}">
             ${statusText}
           </span>
         </div>
+
+        <!-- Dòng 2: giá thuê -->
         <div class="room-line">
           <span>
-            ${formatVND(room.giaThue)}/tháng
-            ${room.tang ? " · Tầng " + room.tang : ""}
+            ${room.giaThue ? formatVND(room.giaThue) + " /tháng" : "-/tháng"}
           </span>
-          <div class="room-actions">
-            ${starsHtml}
-            <button class="icon-btn${likeBtnExtraClass}" title="Yêu thích"
-                    onclick="toggleLike('${roomId}')">❤</button>
-            <span class="like-count">${likeData.count || 0}</span>
-            <button class="icon-btn" title="Sao chép link"
-                    onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-            ${videoIconHtml}
-            <a class="room-btn" href="${detailUrl}">Xem</a>
+        </div>
+
+        <!-- Dòng 3: ⭐⭐⭐⭐⭐ -->
+        <div class="room-line">
+          <div class="rating" data-room-id="${roomId}">
+            ${starsHtml}   <!-- chỗ này là chuỗi 5 sao bạn đã dựng sẵn -->
           </div>
+        </div>
+
+        <!-- Dòng 4: Tầng -->
+          <div class="room-line">
+            <span>${room.tang ? "Tầng " + room.tang : ""}</span>
+          </div>
+
+        <!-- Footer: like / link / xem -->
+        <div class="room-footer">
+          <div class="room-actions">
+            <button class="icon-btn${likeBtnExtraClass}"
+              onclick="toggleLike('${roomId}')">♥</button>
+            <button class="icon-btn"
+              onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
+            ${videoBtnHtml || ""}
+            <span class="like-count">${likeData.count || 0}</span>
+          </div>
+          <a class="room-btn" href="${detailUrl}">Xem</a>
         </div>
       `;
 
@@ -1686,5 +1705,6 @@ function renderRooms(filter) {
   </script>
 </body>
 </html>
+
 
 
