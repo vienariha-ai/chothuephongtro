@@ -134,6 +134,31 @@
       margin-bottom: 4px;
     }
 
+    /* ⭐ Rating 5 sao */
+    .rating {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-top: 4px;
+      font-size: 0.9rem;
+    }
+
+    .rating .star {
+      cursor: pointer;
+      color: #fbbf24;
+      opacity: 0.35;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    .rating .star.active {
+      opacity: 1;
+    }
+
+    .rating .star:hover {
+      transform: translateY(-1px) scale(1.05);
+      opacity: 1;
+    }
+
     .room-sub {
       font-size: 0.85rem;
       color: rgba(148,163,184,0.95);
@@ -568,6 +593,59 @@
     let CURRENT_ROOM = null;
     let SERVICES = [];
 
+    // ⭐ Rating cho phòng (dùng chung với index.html)
+    const RATING_STORAGE_KEY = "ytHomeRoomRatings";
+    let ROOM_RATINGS = {};
+
+    function loadRatingsFromStorage() {
+      try {
+        const raw = localStorage.getItem(RATING_STORAGE_KEY);
+        ROOM_RATINGS = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        ROOM_RATINGS = {};
+      }
+    }
+
+    function saveRatingsToStorage() {
+      try {
+        localStorage.setItem(RATING_STORAGE_KEY, JSON.stringify(ROOM_RATINGS));
+      } catch (e) {
+        console.error("saveRatingsToStorage error:", e);
+      }
+    }
+
+    function getRoomRating(roomId) {
+      if (!roomId) return 0;
+      const data = ROOM_RATINGS[roomId] || { rating: 0 };
+      return data.rating || 0;
+    }
+
+    function setRoomRating(roomId, rating) {
+      if (!roomId) return;
+      const r = Math.max(1, Math.min(5, rating)); // 1–5 sao
+      ROOM_RATINGS[roomId] = { rating: r };
+      saveRatingsToStorage();
+      renderRoomRating(roomId);
+    }
+
+    function buildStarsHtml(roomId) {
+      const current = getRoomRating(roomId);
+      let html = `<div class="rating" data-room="${roomId}">`;
+      for (let i = 1; i <= 5; i++) {
+        const active = i <= current ? "active" : "";
+        html += `<span class="star ${active}" onclick="setRoomRating('${roomId}', ${i})">★</span>`;
+      }
+      html += `<span style="margin-left:6px; font-size:0.8rem;">Đánh giá của bạn</span>`;
+      html += "</div>";
+      return html;
+    }
+
+    function renderRoomRating(roomId) {
+      const box = document.getElementById("roomRatingContainer");
+      if (!box) return;
+      box.innerHTML = buildStarsHtml(roomId);
+    }
+
     function formatVND(amount) {
       if (amount === null || amount === undefined || amount === "") return "--";
       const num = Number(String(amount).replace(/[^\d.-]/g, ""));
@@ -687,6 +765,7 @@
       breadcrumbRoom.textContent = maPhong;
       roomIdShort.textContent = maPhong;
 
+      // Thêm container rating vào card
       roomInfoCard.innerHTML = `
         <div class="room-title">${maPhong}</div>
         <div class="room-sub">${loaiPhong}</div>
@@ -694,6 +773,9 @@
           <div class="price">${gia}</div>
           <span class="status-chip ${statusClass}">${statusText}</span>
         </div>
+
+        <div id="roomRatingContainer"></div>
+
         <div class="meta-grid">
           <div class="meta-item">
             <span class="meta-label">Tầng</span>
@@ -728,6 +810,9 @@
 
         ${petPolicyHTML}
       `;
+
+      // render rating sao sau khi set innerHTML
+      renderRoomRating(maPhong);
 
       const images = collectImages(room);
       if (images.length) {
@@ -958,6 +1043,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      loadRatingsFromStorage();          // ⭐ đọc rating trước
       loadRoomDetailFromServer();
       loadServicesFromServer();
       loadContactInfo();
