@@ -338,6 +338,36 @@
       border: 1px solid rgba(74, 222, 128, 0.4);
     }
 
+    /* TỔNG QUAN TÒA NHÀ – DẠNG DÒNG THỐNG KÊ */
+    .hero-overview {
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .hero-overview-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .hero-overview-label {
+      color: rgba(148, 163, 184, 0.96);
+    }
+
+    .hero-overview-value {
+      text-align: right;
+      color: #e5e7eb;
+    }
+
+    .hero-overview-value strong {
+      font-weight: 700;
+    }
+
+    /* (giữ lại style cũ cho hero-room nếu sau này cần) */
     .hero-room-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -448,7 +478,32 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    /* bộ lọc nâng cao: tầng, đánh giá, quan tâm, giá, diện tích */
+    .filter-advanced {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-bottom: 12px;
+      margin-top: 4px;
+    }
+
+    .filter-select {
+      min-width: 130px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      color: rgba(229, 231, 235, 0.96);
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .filter-select:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
     }
 
     .filter-pill {
@@ -885,119 +940,6 @@
       border: none;
     }
 
-    /* 👉 SOCIAL ICONS + QR MODAL */
-    .social-icons-title {
-      margin-top: 10px;
-      font-size: 0.8rem;
-      color: rgba(148, 163, 184, 0.96);
-    }
-
-    .social-icons-row {
-      margin-top: 6px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .social-icon-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.95);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: rgba(229, 231, 235, 0.96);
-      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.9);
-      transition:
-        transform 0.16s ease,
-        box-shadow 0.16s ease,
-        border-color 0.16s ease,
-        background 0.16s ease,
-        filter 0.16s ease;
-    }
-
-    .social-icon-btn svg {
-      width: 20px;
-      height: 20px;
-      display: block;
-    }
-
-    .social-icon-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.96);
-      border-color: rgba(56, 189, 248, 0.95);
-      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.98));
-      filter: brightness(1.05);
-    }
-
-    .social-icon-btn:active {
-      transform: translateY(0);
-      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.96);
-    }
-
-    .qr-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 90;
-      display: none;
-    }
-
-    .qr-modal.show {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .qr-modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(4px);
-    }
-
-    .qr-modal-content {
-      position: relative;
-      z-index: 1;
-      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.99));
-      border-radius: 18px;
-      padding: 14px 14px 16px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-      box-shadow: 0 26px 70px rgba(15, 23, 42, 0.96);
-      width: min(320px, 90vw);
-      text-align: center;
-      color: #e5e7eb;
-    }
-
-    .qr-modal-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .qr-modal-close {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      border: none;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      background: rgba(15, 23, 42, 0.9);
-      color: #f9fafb;
-    }
-
-    .qr-modal-content img {
-      border-radius: 12px;
-      width: 80%;
-      max-width: 260px;
-      margin: 6px auto 0;
-      background: #fff;
-    }
-
     @media (max-width: 900px) {
       .hero-grid,
       .contact-grid {
@@ -1109,9 +1051,8 @@
                 <div class="hero-pill" id="heroStatus">Đang tải...</div>
               </div>
 
-              <div class="hero-room-grid" id="heroRoomGrid">
-                <!-- JS render -->
-              </div>
+              <!-- TỔNG QUAN THEO CHỈ SỐ, KHÔNG HIỆN CARD PHÒNG -->
+              <div class="hero-overview" id="heroOverview"></div>
 
               <div class="hero-card-footer">
                 <div class="hero-badge-row">
@@ -1134,17 +1075,58 @@
           <div>
             <div class="section-title">Danh sách phòng trọ & căn hộ</div>
             <p class="section-subtitle">
-              Lọc theo loại phòng hoặc tình trạng để chọn không gian phù hợp với nhu cầu của bạn.
+              Phòng được sắp xếp theo tầng (trệt, tầng 1, 2, 3, 4, 5). Bạn có thể lọc theo loại, tình trạng, tầng, giá, diện tích, đánh giá và mức độ quan tâm.
             </p>
           </div>
         </div>
 
+        <!-- Lọc theo loại phòng & tình trạng -->
         <div class="filter-bar">
           <button class="filter-pill active" data-filter="all">Tất cả</button>
           <button class="filter-pill" data-filter="Phòng đơn">Phòng đơn</button>
           <button class="filter-pill" data-filter="Phòng đôi">Phòng đôi</button>
           <button class="filter-pill" data-filter="Căn hộ mini">Căn hộ mini</button>
           <button class="filter-pill" data-filter="available">Còn trống</button>
+        </div>
+
+        <!-- Bộ lọc nâng cao: tầng, đánh giá, quan tâm, giá, diện tích -->
+        <div class="filter-advanced">
+          <select id="filterFloor" class="filter-select">
+            <option value="all">Tất cả tầng</option>
+            <option value="0">Trệt</option>
+            <option value="1">Tầng 1</option>
+            <option value="2">Tầng 2</option>
+            <option value="3">Tầng 3</option>
+            <option value="4">Tầng 4</option>
+            <option value="5">Tầng 5</option>
+          </select>
+
+          <select id="filterRating" class="filter-select">
+            <option value="all">Tất cả đánh giá</option>
+            <option value="rated">Chỉ phòng đã có đánh giá</option>
+            <option value="3plus">Từ 3★ trở lên</option>
+            <option value="4plus">Từ 4★ trở lên</option>
+          </select>
+
+          <select id="filterInterest" class="filter-select">
+            <option value="all">Quan tâm (tất cả)</option>
+            <option value="liked">Chỉ phòng đã bấm ♥</option>
+          </select>
+
+          <select id="filterPrice" class="filter-select">
+            <option value="all">Giá (tất cả)</option>
+            <option value="lt3">Dưới 3 triệu</option>
+            <option value="3-35">3 – 3.5 triệu</option>
+            <option value="35-4">3.5 – 4 triệu</option>
+            <option value="gt4">Trên 4 triệu</option>
+          </select>
+
+          <select id="filterArea" class="filter-select">
+            <option value="all">Diện tích (tất cả)</option>
+            <option value="lt18">Dưới 18 m²</option>
+            <option value="18-25">18 – 25 m²</option>
+            <option value="gt25">Trên 25 m²</option>
+          </select>
         </div>
 
         <div class="rooms-grid" id="roomsGrid"></div>
@@ -1285,8 +1267,8 @@
           <div class="contact-info">
             <p class="contact-highlight">Sẵn sàng hỗ trợ bạn tìm phòng phù hợp 💬</p>
             <p><strong>Địa chỉ:</strong> Phường Tân Bình, Tp. HCM</p>
-            <p><strong>Điện thoại/Zalo:</strong> <span id="contactPhoneText">YT Home</span></p>
-            <p><strong>Email:</strong> <span id="contactEmailText">sale@thuephongtanbinh.com</span></p>
+            <p><strong>Điện thoại/Zalo:</strong> YT Home </p>
+            <p><strong>Email:</strong>sale@thuephongtanbinh.com</p>
             <p style="margin-top: 8px;">
               Bạn có thể ghi rõ loại phòng mong muốn (đơn, đôi, căn hộ), khoảng giá 
               và thời gian dọn vào. Chúng tôi sẽ phản hồi trong thời gian sớm nhất.
@@ -1346,48 +1328,6 @@
               </a>
             </div>
 
-            <!-- ICON MẠNG XÃ HỘI + QR ZALO -->
-            <div class="social-icons-title">Kết nối với YT Home:</div>
-            <div class="social-icons-row">
-              <!-- Zalo: mở popup QR -->
-              <button type="button" class="social-icon-btn" onclick="openZaloQr()" title="Quét QR Zalo">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5" />
-                  <path d="M7 16h4.4c.5 0 .8-.1 1.1-.4.3-.3.5-.7.5-1.1 0-.7-.4-1.2-1-1.4.5-.2.9-.7.9-1.4 0-.9-.7-1.7-1.9-1.7H7v2h3.3c.5 0 .8.2.8.6s-.3.6-.8.6H7v2h3.6c.5 0 .8.2.8.6 0 .4-.3.6-.8.6H7v2z"
-                        fill="currentColor" />
-                </svg>
-              </button>
-
-              <!-- Facebook -->
-              <a id="socialFbLink" class="social-icon-btn" href="#" target="_blank" rel="noopener noreferrer" title="Facebook">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5" />
-                  <path d="M13 7h1.4a1 1 0 0 0 0-2H13a3 3 0 0 0-3 3v2H8.4a1 1 0 0 0 0 2H10v7h2.5v-7H14a1 1 0 0 0 0-2h-1.5V8a1 1 0 0 1 1-1z"
-                        fill="currentColor" />
-                </svg>
-              </a>
-
-              <!-- YouTube -->
-              <a id="socialYoutubeLink" class="social-icon-btn" href="#" target="_blank" rel="noopener noreferrer" title="YouTube">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="5" y="7" width="14" height="10" rx="3" ry="3"
-                        fill="none" stroke="currentColor" stroke-width="1" opacity="0.6" />
-                  <path d="M11 10.2v3.6c0 .2.2.3.4.2l3-1.8c.2-.1.2-.3 0-.4l-3-1.8c-.2-.1-.4 0-.4.2z"
-                        fill="currentColor" />
-                </svg>
-              </a>
-
-              <!-- Website / bản đồ -->
-              <a id="socialWebLink" class="social-icon-btn" href="#" target="_blank" rel="noopener noreferrer" title="Website / Bản đồ">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6" />
-                  <path d="M12 3c-2 2.4-3.2 5.3-3.2 9s1.2 6.6 3.2 9c2-2.4 3.2-5.3 3.2-9s-1.2-6.6-3.2-9z"
-                        fill="none" stroke="currentColor" stroke-width="1" />
-                  <path d="M4 9.5h16M4 14.5h16"
-                        fill="none" stroke="currentColor" stroke-width="1" />
-                </svg>
-              </a>
-            </div>
           </form>
         </div>
       </div>
@@ -1409,17 +1349,6 @@
     <div class="video-modal-content">
       <button type="button" class="video-modal-close" onclick="closeVideoModal()">✕</button>
       <div id="videoContainer"></div>
-    </div>
-  </div>
-
-  <!-- MODAL QR ZALO -->
-  <div id="qrModal" class="qr-modal">
-    <div class="qr-modal-backdrop" onclick="closeZaloQr()"></div>
-    <div class="qr-modal-content">
-      <button type="button" class="qr-modal-close" onclick="closeZaloQr()">✕</button>
-      <div class="qr-modal-title">Quét QR Zalo để chat với YT Home</div>
-      <!-- Đổi src này thành link ảnh QR thật của bạn, hoặc để Apps Script trả về field zaloQr -->
-      <img id="zaloQrImg" src="zalo-qr.png" alt="QR Zalo YT Home" />
     </div>
   </div>
 
@@ -1468,6 +1397,7 @@
       ROOM_LIKES[roomId] = current;
       saveLikesToStorage();
       renderRooms();
+      renderHeroOverview();
     }
 
     function copyRoomLink(encodedRoomId) {
@@ -1490,8 +1420,10 @@
     }
 
     function formatVND(amount) {
-      if (!amount || isNaN(amount)) return "--";
-      return Number(amount).toLocaleString("vi-VN") + " đ";
+      if (amount === null || amount === undefined || amount === "") return "--";
+      const num = Number(String(amount).replace(/[^\d.-]/g, ""));
+      if (isNaN(num)) return String(amount);
+      return num.toLocaleString("vi-VN") + " đ";
     }
 
     function scrollToSection(id) {
@@ -1546,15 +1478,145 @@
       modal.classList.remove("show");
     }
 
-    // QR Zalo
-    function openZaloQr() {
-      const modal = document.getElementById("qrModal");
-      if (modal) modal.classList.add("show");
+    // ====== HÀM PHỤ CHO LỌC / SẮP XẾP & TỔNG QUAN ======
+    function getFloorNumber(room) {
+      const raw = (room.tang || "").toString().toLowerCase();
+      if (!raw) return 999; // đưa xuống cuối
+      if (raw.includes("trệt") || raw.includes("tret") || raw.includes("ground")) return 0;
+      const m = raw.match(/(\d+)/);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (!isNaN(n)) return n;
+      }
+      return 999;
     }
 
-    function closeZaloQr() {
-      const modal = document.getElementById("qrModal");
-      if (modal) modal.classList.remove("show");
+    function getRoomPriceNumber(room) {
+      const raw = room.giaThue;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(String(raw).replace(/[^\d.-]/g, ""));
+      return isNaN(num) ? null : num;
+    }
+
+    function getRoomAreaNumber(room) {
+      const raw = room.dienTich || room.dientich;
+      if (!raw) return null;
+      const num = Number(String(raw).replace(/[^\d.-]/g, ""));
+      return isNaN(num) ? null : num;
+    }
+
+    function isRoomLiked(room) {
+      const id = room.maPhong || "";
+      const data = ROOM_LIKES[id];
+      return !!(data && data.liked);
+    }
+
+    function matchesFloor(room, value) {
+      if (value === "all") return true;
+      const n = getFloorNumber(room);
+      const v = parseInt(value, 10);
+      if (isNaN(v) || n === 999) return false;
+      return n === v;
+    }
+
+    function matchesRating(room, value) {
+      if (value === "all") return true;
+      const avg = Number(room.ratingAvg || 0);
+      if (value === "rated") return avg > 0;
+      if (value === "3plus") return avg >= 3;
+      if (value === "4plus") return avg >= 4;
+      return true;
+    }
+
+    function matchesInterest(room, value) {
+      if (value === "all") return true;
+      if (value === "liked") return isRoomLiked(room);
+      return true;
+    }
+
+    function matchesPrice(room, value) {
+      if (value === "all") return true;
+      const p = getRoomPriceNumber(room);
+      if (p == null) return true; // không có giá thì không lọc
+      if (value === "lt3") return p < 3000000;
+      if (value === "3-35") return p >= 3000000 && p <= 3500000;
+      if (value === "35-4") return p > 3500000 && p <= 4000000;
+      if (value === "gt4") return p > 4000000;
+      return true;
+    }
+
+    function matchesArea(room, value) {
+      if (value === "all") return true;
+      const a = getRoomAreaNumber(room);
+      if (a == null) return true;
+      if (value === "lt18") return a < 18;
+      if (value === "18-25") return a >= 18 && a <= 25;
+      if (value === "gt25") return a > 25;
+      return true;
+    }
+
+    function sortRooms(a, b) {
+      // sắp theo tầng, rồi theo mã phòng
+      const fa = getFloorNumber(a);
+      const fb = getFloorNumber(b);
+      if (fa !== fb) return fa - fb;
+
+      const idA = (a.maPhong || "").toString();
+      const idB = (b.maPhong || "").toString();
+      return idA.localeCompare(idB, "vi", { numeric: true, sensitivity: "base" });
+    }
+
+    // ====== TỔNG QUAN TÒA NHÀ (CARD BÊN PHẢI HERO) ======
+    function renderHeroOverview() {
+      const box = document.getElementById("heroOverview");
+      if (!box) return;
+
+      if (!ALL_ROOMS.length) {
+        box.innerHTML = `
+          <div class="hero-overview-row">
+            <div class="hero-overview-label">Dữ liệu phòng</div>
+            <div class="hero-overview-value">Chưa có trên hệ thống.</div>
+          </div>
+        `;
+        return;
+      }
+
+      const availableRooms = ALL_ROOMS.filter((r) => r.trangThaiWebsite === "available");
+      const likedRooms = ALL_ROOMS.filter((r) => isRoomLiked(r));
+      const highRatedRooms = ALL_ROOMS.filter(
+        (r) => Number(r.ratingAvg || 0) >= 4 && Number(r.ratingCount || 0) > 0
+      );
+
+      function buildList(rooms) {
+        const codes = rooms
+          .map((r) => r.maPhong)
+          .filter(Boolean)
+          .slice(0, 6);
+        if (!codes.length) return "";
+        const more = rooms.length > codes.length ? ",..." : "";
+        return " (" + codes.join(", ") + more + ")";
+      }
+
+      box.innerHTML = `
+        <div class="hero-overview-row">
+          <div class="hero-overview-label">Còn trống</div>
+          <div class="hero-overview-value">
+            <strong>${availableRooms.length}</strong> phòng${buildList(availableRooms)}
+          </div>
+        </div>
+        <div class="hero-overview-row">
+          <div class="hero-overview-label">Được bạn quan tâm (♥)</div>
+          <div class="hero-overview-value">
+            <strong>${likedRooms.length}</strong> phòng${buildList(likedRooms)}
+          </div>
+        </div>
+        <div class="hero-overview-row">
+          <div class="hero-overview-label">Đánh giá từ 4★ trở lên</div>
+          <div class="hero-overview-value">
+            <strong>${highRatedRooms.length}</strong> phòng${buildList(highRatedRooms)}
+          </div>
+        </div>
+      `;
     }
 
     // ====== RENDER DANH SÁCH PHÒNG ======
@@ -1569,11 +1631,41 @@
         filter = CURRENT_FILTER;
       }
 
-      const filtered = ALL_ROOMS.filter((room) => {
+      // đọc các filter nâng cao
+      const floorVal =
+        (document.getElementById("filterFloor") &&
+          document.getElementById("filterFloor").value) ||
+        "all";
+      const ratingVal =
+        (document.getElementById("filterRating") &&
+          document.getElementById("filterRating").value) ||
+        "all";
+      const interestVal =
+        (document.getElementById("filterInterest") &&
+          document.getElementById("filterInterest").value) ||
+        "all";
+      const priceVal =
+        (document.getElementById("filterPrice") &&
+          document.getElementById("filterPrice").value) ||
+        "all";
+      const areaVal =
+        (document.getElementById("filterArea") &&
+          document.getElementById("filterArea").value) ||
+        "all";
+
+      let filtered = ALL_ROOMS.filter((room) => {
         if (filter === "all") return true;
         if (filter === "available") return room.trangThaiWebsite === "available";
         return room.loaiPhong === filter;
       });
+
+      filtered = filtered
+        .filter((room) => matchesFloor(room, floorVal))
+        .filter((room) => matchesRating(room, ratingVal))
+        .filter((room) => matchesInterest(room, interestVal))
+        .filter((room) => matchesPrice(room, priceVal))
+        .filter((room) => matchesArea(room, areaVal))
+        .sort(sortRooms);
 
       statusEl.textContent = filtered.length
         ? "Hiển thị " + filtered.length + " phòng."
@@ -1613,19 +1705,19 @@
             </span>
           </div>
 
-          <!-- Dòng 4: Tầng -->
+          <!-- Dòng 2: Tầng -->
           <div class="room-line">
             <span>${room.tang ? "Tầng " + room.tang : ""}</span>
           </div>
 
-          <!-- Dòng 2: giá thuê -->
+          <!-- Dòng 3: giá thuê -->
           <div class="room-line">
             <span>
               ${room.giaThue ? formatVND(room.giaThue) + " /tháng" : "-/tháng"}
             </span>
           </div>
 
-          <!-- Dòng 3: ⭐⭐⭐⭐⭐ + số lượt đánh giá -->
+          <!-- Dòng 4: ⭐⭐⭐⭐⭐ + số lượt đánh giá -->
           <div class="room-line">
             ${starsHtml}
           </div>
@@ -1648,50 +1740,6 @@
       });
     }
 
-    // ====== HERO ROOMS ======
-    function renderHeroRooms() {
-      const heroGrid = document.getElementById("heroRoomGrid");
-      heroGrid.innerHTML = "";
-
-      if (!ALL_ROOMS.length) {
-        heroGrid.innerHTML = '<div class="hero-room">Chưa có dữ liệu phòng.</div>';
-        return;
-      }
-
-      const availableRooms = ALL_ROOMS.filter(
-        (r) => r.trangThaiWebsite === "available"
-      );
-      const sample = (availableRooms.length ? availableRooms : ALL_ROOMS).slice(0, 4);
-
-      sample.forEach((room) => {
-        const div = document.createElement("div");
-        div.className = "hero-room";
-        div.innerHTML = `
-          <div class="hero-room-top">
-            <span>${room.maPhong || ""}</span>
-            <span class="hero-room-status ${
-              room.trangThaiWebsite === "available"
-                ? "status-available"
-                : "status-rented"
-            }">
-              ${
-                room.trangThaiWebsite === "available"
-                  ? "Còn trống"
-                  : "Đang thuê"
-              }
-            </span>
-          </div>
-          <div class="hero-room-price">${formatVND(room.giaThue)}/tháng</div>
-          <div class="hero-room-meta">
-            ${room.loaiPhong || ""} · ${
-              room.tang ? "Tầng " + room.tang : ""
-            }
-          </div>
-        `;
-        heroGrid.appendChild(div);
-      });
-    }
-
     function updateStats() {
       const totalRoomsEl = document.getElementById("statTotalRooms");
       const availableEl = document.getElementById("statAvailable");
@@ -1708,6 +1756,7 @@
     }
 
     function initFilters() {
+      // filter theo loại phòng / còn trống
       document.querySelectorAll(".filter-pill").forEach((btn) => {
         btn.addEventListener("click", () => {
           document
@@ -1719,6 +1768,18 @@
           renderRooms(filter);
         });
       });
+
+      // filter nâng cao
+      ["filterFloor", "filterRating", "filterInterest", "filterPrice", "filterArea"].forEach(
+        (id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener("change", () => {
+              renderRooms(); // giữ CURRENT_FILTER
+            });
+          }
+        }
+      );
     }
 
     async function loadRoomsFromServer() {
@@ -1736,7 +1797,7 @@
           : 'Chưa có dữ liệu phòng trong sheet "Phòng".';
 
         renderRooms("all");
-        renderHeroRooms();
+        renderHeroOverview();
         updateStats();
       } catch (err) {
         console.error(err);
@@ -1798,10 +1859,6 @@
         const zaloLink  = document.getElementById("zaloQuickLink");
         const mailLink  = document.getElementById("emailQuickLink");
         const msgLink   = document.getElementById("messengerQuickLink");
-        const fbLink    = document.getElementById("socialFbLink");
-        const ytLink    = document.getElementById("socialYoutubeLink");
-        const webLink   = document.getElementById("socialWebLink");
-        const qrImg     = document.getElementById("zaloQrImg");
 
         if (emailSpan && CONTACT_INFO.email) {
           emailSpan.textContent = CONTACT_INFO.email;
@@ -1819,19 +1876,6 @@
         }
         if (msgLink && CONTACT_INFO.messenger) {
           msgLink.href = CONTACT_INFO.messenger;
-        }
-
-        if (fbLink && CONTACT_INFO.facebook) {
-          fbLink.href = CONTACT_INFO.facebook;
-        }
-        if (ytLink && CONTACT_INFO.youtube) {
-          ytLink.href = CONTACT_INFO.youtube;
-        }
-        if (webLink && CONTACT_INFO.website) {
-          webLink.href = CONTACT_INFO.website;
-        }
-        if (qrImg && CONTACT_INFO.zaloQr) {
-          qrImg.src = CONTACT_INFO.zaloQr;
         }
       } catch (err) {
         console.error("loadContactInfo error:", err);
@@ -1900,8 +1944,9 @@
           found.ratingCount = data.ratingCount != null ? data.ratingCount : (found.ratingCount || 0);
         }
 
-        // Render lại danh sách phòng với filter hiện tại
+        // Render lại danh sách phòng & tổng quan
         renderRooms();
+        renderHeroOverview();
       } catch (e) {
         console.error("setRoomRating error:", e);
         alert("Có lỗi khi gửi đánh giá. Vui lòng thử lại sau.");
