@@ -213,21 +213,6 @@
       transition: 0.25s ease;
     }
 
-    .badge.trong {
-      background: #22c55e;
-      color: white;
-    }
-
-    .badge.thue {
-      background: #ef4444;
-      color: white;
-    }
-
-    .badge.khong-hoat-dong {
-      background: #6b7280;
-      color: white;
-    }
-
     .badge-dot {
       width: 8px;
       height: 8px;
@@ -338,94 +323,66 @@
       border: 1px solid rgba(74, 222, 128, 0.4);
     }
 
-    /* TỔNG QUAN TÒA NHÀ – DẠNG DÒNG THỐNG KÊ */
-    .hero-overview {
+    /* 🎯 BIỂU ĐỒ TỔNG QUAN (BAR CHART) */
+    .hero-chart {
       font-size: 0.78rem;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    .hero-overview-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .hero-overview-label {
-      color: rgba(148, 163, 184, 0.96);
-    }
-
-    .hero-overview-value {
-      text-align: right;
-      color: #e5e7eb;
-    }
-
-    .hero-overview-value strong {
-      font-weight: 700;
-    }
-
-    /* (giữ lại style cũ cho hero-room nếu sau này cần) */
-    .hero-room-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       margin-bottom: 12px;
     }
 
-    .hero-room {
-      background: rgba(15, 23, 42, 0.9);
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      padding: 8px;
-      font-size: 0.75rem;
-      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
-      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.8);
+    .hero-chart-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
     }
 
-    .hero-room:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
-      border-color: rgba(56, 189, 248, 0.9);
-    }
-
-    .hero-room-top {
+    .hero-chart-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      gap: 8px;
     }
 
-    .hero-room-status {
-      font-size: 0.68rem;
-      padding: 2px 6px;
-      border-radius: 999px;
-      font-weight: 600;
+    .hero-chart-label {
+      color: rgba(148, 163, 184, 0.96);
     }
 
-    .status-available {
-      background: rgba(22, 163, 74, 0.18);
-      color: #bbf7d0;
-      border: 1px solid rgba(74, 222, 128, 0.5);
-    }
-
-    .status-rented {
-      background: rgba(148, 163, 184, 0.22);
+    .hero-chart-value {
       color: #e5e7eb;
-      border: 1px solid rgba(148, 163, 184, 0.7);
+      font-weight: 500;
     }
 
-    .hero-room-price {
-      font-weight: 700;
-      font-size: 0.85rem;
-      margin-bottom: 2px;
+    .hero-chart-bar-bg {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      overflow: hidden;
     }
 
-    .hero-room-meta {
-      font-size: 0.7rem;
-      color: rgba(148, 163, 184, 0.95);
+    .hero-chart-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      width: 0;
+      transition: width 0.4s ease-out;
+    }
+
+    .hero-chart-bar-available {
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.7);
+    }
+
+    .hero-chart-bar-liked {
+      background: linear-gradient(90deg, #fb923c, #f97316);
+      box-shadow: 0 0 12px rgba(251, 146, 60, 0.7);
+    }
+
+    .hero-chart-bar-highrated {
+      background: linear-gradient(90deg, #facc15, #eab308);
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.7);
     }
 
     .hero-card-footer {
@@ -591,29 +548,6 @@
       transform: translateY(0);
     }
 
-    .room-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-
-    .room-type {
-      font-size: 0.75rem;
-      color: rgba(148, 163, 184, 0.95);
-    }
-
-    .room-price {
-      font-weight: 700;
-      font-size: 0.86rem;
-    }
-
-    .room-meta {
-      font-size: 0.72rem;
-      color: rgba(156, 163, 175, 0.98);
-    }
-
     .room-footer {
       display: flex;
       justify-content: space-between;
@@ -733,16 +667,14 @@
     }
 
     /* 👉 Phòng CÒN TRỐNG: nền xanh lá rõ ràng */
-    .room-status-chip.status-available,
-    .hero-room-status.status-available {
+    .room-status-chip.status-available {
       background: #22c55e;
       color: #022c22;
       border-color: #22c55e;
     }
 
     /* 👉 Phòng ĐANG THUÊ: nền xám đậm */
-    .room-status-chip.status-rented,
-    .hero-room-status.status-rented {
+    .room-status-chip.status-rented {
       background: #4b5563;
       color: #e5e7eb;
       border-color: #6b7280;
@@ -1051,8 +983,8 @@
                 <div class="hero-pill" id="heroStatus">Đang tải...</div>
               </div>
 
-              <!-- TỔNG QUAN THEO CHỈ SỐ, KHÔNG HIỆN CARD PHÒNG -->
-              <div class="hero-overview" id="heroOverview"></div>
+              <!-- BIỂU ĐỒ TỔNG QUAN -->
+              <div class="hero-chart" id="heroOverview"></div>
 
               <div class="hero-card-footer">
                 <div class="hero-badge-row">
@@ -1566,54 +1498,67 @@
       return idA.localeCompare(idB, "vi", { numeric: true, sensitivity: "base" });
     }
 
-    // ====== TỔNG QUAN TÒA NHÀ (CARD BÊN PHẢI HERO) ======
+    // ====== TỔNG QUAN TÒA NHÀ (BIỂU ĐỒ BÊN PHẢI HERO) ======
     function renderHeroOverview() {
       const box = document.getElementById("heroOverview");
       if (!box) return;
 
       if (!ALL_ROOMS.length) {
         box.innerHTML = `
-          <div class="hero-overview-row">
-            <div class="hero-overview-label">Dữ liệu phòng</div>
-            <div class="hero-overview-value">Chưa có trên hệ thống.</div>
+          <div class="hero-chart-row">
+            <div class="hero-chart-top">
+              <span class="hero-chart-label">Dữ liệu phòng</span>
+              <span class="hero-chart-value">Chưa có trên hệ thống</span>
+            </div>
           </div>
         `;
         return;
       }
 
+      const total = ALL_ROOMS.length;
       const availableRooms = ALL_ROOMS.filter((r) => r.trangThaiWebsite === "available");
       const likedRooms = ALL_ROOMS.filter((r) => isRoomLiked(r));
       const highRatedRooms = ALL_ROOMS.filter(
         (r) => Number(r.ratingAvg || 0) >= 4 && Number(r.ratingCount || 0) > 0
       );
 
-      function buildList(rooms) {
-        const codes = rooms
-          .map((r) => r.maPhong)
-          .filter(Boolean)
-          .slice(0, 6);
-        if (!codes.length) return "";
-        const more = rooms.length > codes.length ? ",..." : "";
-        return " (" + codes.join(", ") + more + ")";
+      function pct(count) {
+        if (!total) return 0;
+        return Math.max(4, Math.min(100, Math.round((count / total) * 100)));
       }
 
       box.innerHTML = `
-        <div class="hero-overview-row">
-          <div class="hero-overview-label">Còn trống</div>
-          <div class="hero-overview-value">
-            <strong>${availableRooms.length}</strong> phòng${buildList(availableRooms)}
+        <div class="hero-chart-row">
+          <div class="hero-chart-top">
+            <span class="hero-chart-label">Còn trống</span>
+            <span class="hero-chart-value">${availableRooms.length}/${total} phòng</span>
+          </div>
+          <div class="hero-chart-bar-bg">
+            <div class="hero-chart-bar-fill hero-chart-bar-available" style="width:${pct(
+              availableRooms.length
+            )}%"></div>
           </div>
         </div>
-        <div class="hero-overview-row">
-          <div class="hero-overview-label">Được bạn quan tâm (♥)</div>
-          <div class="hero-overview-value">
-            <strong>${likedRooms.length}</strong> phòng${buildList(likedRooms)}
+        <div class="hero-chart-row">
+          <div class="hero-chart-top">
+            <span class="hero-chart-label">Được bạn quan tâm (♥)</span>
+            <span class="hero-chart-value">${likedRooms.length}/${total} phòng</span>
+          </div>
+          <div class="hero-chart-bar-bg">
+            <div class="hero-chart-bar-fill hero-chart-bar-liked" style="width:${pct(
+              likedRooms.length
+            )}%"></div>
           </div>
         </div>
-        <div class="hero-overview-row">
-          <div class="hero-overview-label">Đánh giá từ 4★ trở lên</div>
-          <div class="hero-overview-value">
-            <strong>${highRatedRooms.length}</strong> phòng${buildList(highRatedRooms)}
+        <div class="hero-chart-row">
+          <div class="hero-chart-top">
+            <span class="hero-chart-label">Đánh giá từ 4★ trở lên</span>
+            <span class="hero-chart-value">${highRatedRooms.length}/${total} phòng</span>
+          </div>
+          <div class="hero-chart-bar-bg">
+            <div class="hero-chart-bar-fill hero-chart-bar-highrated" style="width:${pct(
+              highRatedRooms.length
+            )}%"></div>
           </div>
         </div>
       `;
