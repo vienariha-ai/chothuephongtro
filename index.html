@@ -448,7 +448,32 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    /* bộ lọc nâng cao: tầng, đánh giá, quan tâm, giá, diện tích */
+    .filter-advanced {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-bottom: 12px;
+      margin-top: 4px;
+    }
+
+    .filter-select {
+      min-width: 130px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      color: rgba(229, 231, 235, 0.96);
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .filter-select:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
     }
 
     .filter-pill {
@@ -1021,17 +1046,58 @@
           <div>
             <div class="section-title">Danh sách phòng trọ & căn hộ</div>
             <p class="section-subtitle">
-              Lọc theo loại phòng hoặc tình trạng để chọn không gian phù hợp với nhu cầu của bạn.
+              Phòng được sắp xếp theo tầng (trệt, tầng 1, 2, 3, 4, 5). Bạn có thể lọc theo loại, tình trạng, tầng, giá, diện tích, đánh giá và mức độ quan tâm.
             </p>
           </div>
         </div>
 
+        <!-- Lọc theo loại phòng & tình trạng -->
         <div class="filter-bar">
           <button class="filter-pill active" data-filter="all">Tất cả</button>
           <button class="filter-pill" data-filter="Phòng đơn">Phòng đơn</button>
           <button class="filter-pill" data-filter="Phòng đôi">Phòng đôi</button>
           <button class="filter-pill" data-filter="Căn hộ mini">Căn hộ mini</button>
           <button class="filter-pill" data-filter="available">Còn trống</button>
+        </div>
+
+        <!-- Bộ lọc nâng cao: tầng, đánh giá, quan tâm, giá, diện tích -->
+        <div class="filter-advanced">
+          <select id="filterFloor" class="filter-select">
+            <option value="all">Tất cả tầng</option>
+            <option value="0">Trệt</option>
+            <option value="1">Tầng 1</option>
+            <option value="2">Tầng 2</option>
+            <option value="3">Tầng 3</option>
+            <option value="4">Tầng 4</option>
+            <option value="5">Tầng 5</option>
+          </select>
+
+          <select id="filterRating" class="filter-select">
+            <option value="all">Tất cả đánh giá</option>
+            <option value="rated">Chỉ phòng đã có đánh giá</option>
+            <option value="3plus">Từ 3★ trở lên</option>
+            <option value="4plus">Từ 4★ trở lên</option>
+          </select>
+
+          <select id="filterInterest" class="filter-select">
+            <option value="all">Quan tâm (tất cả)</option>
+            <option value="liked">Chỉ phòng đã bấm ♥</option>
+          </select>
+
+          <select id="filterPrice" class="filter-select">
+            <option value="all">Giá (tất cả)</option>
+            <option value="lt3">Dưới 3 triệu</option>
+            <option value="3-35">3 – 3.5 triệu</option>
+            <option value="35-4">3.5 – 4 triệu</option>
+            <option value="gt4">Trên 4 triệu</option>
+          </select>
+
+          <select id="filterArea" class="filter-select">
+            <option value="all">Diện tích (tất cả)</option>
+            <option value="lt18">Dưới 18 m²</option>
+            <option value="18-25">18 – 25 m²</option>
+            <option value="gt25">Trên 25 m²</option>
+          </select>
         </div>
 
         <div class="rooms-grid" id="roomsGrid"></div>
@@ -1324,8 +1390,10 @@
     }
 
     function formatVND(amount) {
-      if (!amount || isNaN(amount)) return "--";
-      return Number(amount).toLocaleString("vi-VN") + " đ";
+      if (amount === null || amount === undefined || amount === "") return "--";
+      const num = Number(String(amount).replace(/[^\d.-]/g, ""));
+      if (isNaN(num)) return String(amount);
+      return num.toLocaleString("vi-VN") + " đ";
     }
 
     function scrollToSection(id) {
@@ -1380,6 +1448,94 @@
       modal.classList.remove("show");
     }
 
+    // ====== HÀM PHỤ CHO LỌC / SẮP XẾP ======
+    function getFloorNumber(room) {
+      const raw = (room.tang || "").toString().toLowerCase();
+      if (!raw) return 999; // đưa xuống cuối
+      if (raw.includes("trệt") || raw.includes("tret") || raw.includes("ground")) return 0;
+      const m = raw.match(/(\d+)/);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (!isNaN(n)) return n;
+      }
+      return 999;
+    }
+
+    function getRoomPriceNumber(room) {
+      const raw = room.giaThue;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(String(raw).replace(/[^\d.-]/g, ""));
+      return isNaN(num) ? null : num;
+    }
+
+    function getRoomAreaNumber(room) {
+      const raw = room.dienTich || room.dientich;
+      if (!raw) return null;
+      const num = Number(String(raw).replace(/[^\d.-]/g, ""));
+      return isNaN(num) ? null : num;
+    }
+
+    function isRoomLiked(room) {
+      const id = room.maPhong || "";
+      const data = ROOM_LIKES[id];
+      return !!(data && data.liked);
+    }
+
+    function matchesFloor(room, value) {
+      if (value === "all") return true;
+      const n = getFloorNumber(room);
+      const v = parseInt(value, 10);
+      if (isNaN(v) || n === 999) return false;
+      return n === v;
+    }
+
+    function matchesRating(room, value) {
+      if (value === "all") return true;
+      const avg = Number(room.ratingAvg || 0);
+      if (value === "rated") return avg > 0;
+      if (value === "3plus") return avg >= 3;
+      if (value === "4plus") return avg >= 4;
+      return true;
+    }
+
+    function matchesInterest(room, value) {
+      if (value === "all") return true;
+      if (value === "liked") return isRoomLiked(room);
+      return true;
+    }
+
+    function matchesPrice(room, value) {
+      if (value === "all") return true;
+      const p = getRoomPriceNumber(room);
+      if (p == null) return true; // không có giá thì không lọc
+      if (value === "lt3") return p < 3000000;
+      if (value === "3-35") return p >= 3000000 && p <= 3500000;
+      if (value === "35-4") return p > 3500000 && p <= 4000000;
+      if (value === "gt4") return p > 4000000;
+      return true;
+    }
+
+    function matchesArea(room, value) {
+      if (value === "all") return true;
+      const a = getRoomAreaNumber(room);
+      if (a == null) return true;
+      if (value === "lt18") return a < 18;
+      if (value === "18-25") return a >= 18 && a <= 25;
+      if (value === "gt25") return a > 25;
+      return true;
+    }
+
+    function sortRooms(a, b) {
+      // sắp theo tầng, rồi theo mã phòng
+      const fa = getFloorNumber(a);
+      const fb = getFloorNumber(b);
+      if (fa !== fb) return fa - fb;
+
+      const idA = (a.maPhong || "").toString();
+      const idB = (b.maPhong || "").toString();
+      return idA.localeCompare(idB, "vi", { numeric: true, sensitivity: "base" });
+    }
+
     // ====== RENDER DANH SÁCH PHÒNG ======
     function renderRooms(filter) {
       const grid = document.getElementById("roomsGrid");
@@ -1392,11 +1548,41 @@
         filter = CURRENT_FILTER;
       }
 
-      const filtered = ALL_ROOMS.filter((room) => {
+      // đọc các filter nâng cao
+      const floorVal =
+        (document.getElementById("filterFloor") &&
+          document.getElementById("filterFloor").value) ||
+        "all";
+      const ratingVal =
+        (document.getElementById("filterRating") &&
+          document.getElementById("filterRating").value) ||
+        "all";
+      const interestVal =
+        (document.getElementById("filterInterest") &&
+          document.getElementById("filterInterest").value) ||
+        "all";
+      const priceVal =
+        (document.getElementById("filterPrice") &&
+          document.getElementById("filterPrice").value) ||
+        "all";
+      const areaVal =
+        (document.getElementById("filterArea") &&
+          document.getElementById("filterArea").value) ||
+        "all";
+
+      let filtered = ALL_ROOMS.filter((room) => {
         if (filter === "all") return true;
         if (filter === "available") return room.trangThaiWebsite === "available";
         return room.loaiPhong === filter;
       });
+
+      filtered = filtered
+        .filter((room) => matchesFloor(room, floorVal))
+        .filter((room) => matchesRating(room, ratingVal))
+        .filter((room) => matchesInterest(room, interestVal))
+        .filter((room) => matchesPrice(room, priceVal))
+        .filter((room) => matchesArea(room, areaVal))
+        .sort(sortRooms);
 
       statusEl.textContent = filtered.length
         ? "Hiển thị " + filtered.length + " phòng."
@@ -1436,19 +1622,19 @@
             </span>
           </div>
 
-          <!-- Dòng 4: Tầng -->
+          <!-- Dòng 2: Tầng -->
           <div class="room-line">
             <span>${room.tang ? "Tầng " + room.tang : ""}</span>
           </div>
 
-          <!-- Dòng 2: giá thuê -->
+          <!-- Dòng 3: giá thuê -->
           <div class="room-line">
             <span>
               ${room.giaThue ? formatVND(room.giaThue) + " /tháng" : "-/tháng"}
             </span>
           </div>
 
-          <!-- Dòng 3: ⭐⭐⭐⭐⭐ + số lượt đánh giá -->
+          <!-- Dòng 4: ⭐⭐⭐⭐⭐ + số lượt đánh giá -->
           <div class="room-line">
             ${starsHtml}
           </div>
@@ -1484,7 +1670,8 @@
       const availableRooms = ALL_ROOMS.filter(
         (r) => r.trangThaiWebsite === "available"
       );
-      const sample = (availableRooms.length ? availableRooms : ALL_ROOMS).slice(0, 4);
+      let sample = (availableRooms.length ? availableRooms : ALL_ROOMS).slice(0, 8);
+      sample = sample.sort(sortRooms).slice(0, 4);
 
       sample.forEach((room) => {
         const div = document.createElement("div");
@@ -1531,6 +1718,7 @@
     }
 
     function initFilters() {
+      // filter theo loại phòng / còn trống
       document.querySelectorAll(".filter-pill").forEach((btn) => {
         btn.addEventListener("click", () => {
           document
@@ -1542,6 +1730,18 @@
           renderRooms(filter);
         });
       });
+
+      // filter nâng cao
+      ["filterFloor", "filterRating", "filterInterest", "filterPrice", "filterArea"].forEach(
+        (id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener("change", () => {
+              renderRooms(); // giữ CURRENT_FILTER
+            });
+          }
+        }
+      );
     }
 
     async function loadRoomsFromServer() {
@@ -1744,6 +1944,3 @@
   </script>
 </body>
 </html>
-
-
-
