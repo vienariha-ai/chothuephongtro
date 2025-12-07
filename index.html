@@ -338,6 +338,36 @@
       border: 1px solid rgba(74, 222, 128, 0.4);
     }
 
+    /* TỔNG QUAN TÒA NHÀ – DẠNG DÒNG THỐNG KÊ */
+    .hero-overview {
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .hero-overview-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .hero-overview-label {
+      color: rgba(148, 163, 184, 0.96);
+    }
+
+    .hero-overview-value {
+      text-align: right;
+      color: #e5e7eb;
+    }
+
+    .hero-overview-value strong {
+      font-weight: 700;
+    }
+
+    /* (giữ lại style cũ cho hero-room nếu sau này cần) */
     .hero-room-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1021,9 +1051,8 @@
                 <div class="hero-pill" id="heroStatus">Đang tải...</div>
               </div>
 
-              <div class="hero-room-grid" id="heroRoomGrid">
-                <!-- JS render -->
-              </div>
+              <!-- TỔNG QUAN THEO CHỈ SỐ, KHÔNG HIỆN CARD PHÒNG -->
+              <div class="hero-overview" id="heroOverview"></div>
 
               <div class="hero-card-footer">
                 <div class="hero-badge-row">
@@ -1368,6 +1397,7 @@
       ROOM_LIKES[roomId] = current;
       saveLikesToStorage();
       renderRooms();
+      renderHeroOverview();
     }
 
     function copyRoomLink(encodedRoomId) {
@@ -1448,7 +1478,7 @@
       modal.classList.remove("show");
     }
 
-    // ====== HÀM PHỤ CHO LỌC / SẮP XẾP ======
+    // ====== HÀM PHỤ CHO LỌC / SẮP XẾP & TỔNG QUAN ======
     function getFloorNumber(room) {
       const raw = (room.tang || "").toString().toLowerCase();
       if (!raw) return 999; // đưa xuống cuối
@@ -1534,6 +1564,59 @@
       const idA = (a.maPhong || "").toString();
       const idB = (b.maPhong || "").toString();
       return idA.localeCompare(idB, "vi", { numeric: true, sensitivity: "base" });
+    }
+
+    // ====== TỔNG QUAN TÒA NHÀ (CARD BÊN PHẢI HERO) ======
+    function renderHeroOverview() {
+      const box = document.getElementById("heroOverview");
+      if (!box) return;
+
+      if (!ALL_ROOMS.length) {
+        box.innerHTML = `
+          <div class="hero-overview-row">
+            <div class="hero-overview-label">Dữ liệu phòng</div>
+            <div class="hero-overview-value">Chưa có trên hệ thống.</div>
+          </div>
+        `;
+        return;
+      }
+
+      const availableRooms = ALL_ROOMS.filter((r) => r.trangThaiWebsite === "available");
+      const likedRooms = ALL_ROOMS.filter((r) => isRoomLiked(r));
+      const highRatedRooms = ALL_ROOMS.filter(
+        (r) => Number(r.ratingAvg || 0) >= 4 && Number(r.ratingCount || 0) > 0
+      );
+
+      function buildList(rooms) {
+        const codes = rooms
+          .map((r) => r.maPhong)
+          .filter(Boolean)
+          .slice(0, 6);
+        if (!codes.length) return "";
+        const more = rooms.length > codes.length ? ",..." : "";
+        return " (" + codes.join(", ") + more + ")";
+      }
+
+      box.innerHTML = `
+        <div class="hero-overview-row">
+          <div class="hero-overview-label">Còn trống</div>
+          <div class="hero-overview-value">
+            <strong>${availableRooms.length}</strong> phòng${buildList(availableRooms)}
+          </div>
+        </div>
+        <div class="hero-overview-row">
+          <div class="hero-overview-label">Được bạn quan tâm (♥)</div>
+          <div class="hero-overview-value">
+            <strong>${likedRooms.length}</strong> phòng${buildList(likedRooms)}
+          </div>
+        </div>
+        <div class="hero-overview-row">
+          <div class="hero-overview-label">Đánh giá từ 4★ trở lên</div>
+          <div class="hero-overview-value">
+            <strong>${highRatedRooms.length}</strong> phòng${buildList(highRatedRooms)}
+          </div>
+        </div>
+      `;
     }
 
     // ====== RENDER DANH SÁCH PHÒNG ======
@@ -1657,51 +1740,6 @@
       });
     }
 
-    // ====== HERO ROOMS ======
-    function renderHeroRooms() {
-      const heroGrid = document.getElementById("heroRoomGrid");
-      heroGrid.innerHTML = "";
-
-      if (!ALL_ROOMS.length) {
-        heroGrid.innerHTML = '<div class="hero-room">Chưa có dữ liệu phòng.</div>';
-        return;
-      }
-
-      const availableRooms = ALL_ROOMS.filter(
-        (r) => r.trangThaiWebsite === "available"
-      );
-      let sample = (availableRooms.length ? availableRooms : ALL_ROOMS).slice(0, 8);
-      sample = sample.sort(sortRooms).slice(0, 4);
-
-      sample.forEach((room) => {
-        const div = document.createElement("div");
-        div.className = "hero-room";
-        div.innerHTML = `
-          <div class="hero-room-top">
-            <span>${room.maPhong || ""}</span>
-            <span class="hero-room-status ${
-              room.trangThaiWebsite === "available"
-                ? "status-available"
-                : "status-rented"
-            }">
-              ${
-                room.trangThaiWebsite === "available"
-                  ? "Còn trống"
-                  : "Đang thuê"
-              }
-            </span>
-          </div>
-          <div class="hero-room-price">${formatVND(room.giaThue)}/tháng</div>
-          <div class="hero-room-meta">
-            ${room.loaiPhong || ""} · ${
-              room.tang ? "Tầng " + room.tang : ""
-            }
-          </div>
-        `;
-        heroGrid.appendChild(div);
-      });
-    }
-
     function updateStats() {
       const totalRoomsEl = document.getElementById("statTotalRooms");
       const availableEl = document.getElementById("statAvailable");
@@ -1759,7 +1797,7 @@
           : 'Chưa có dữ liệu phòng trong sheet "Phòng".';
 
         renderRooms("all");
-        renderHeroRooms();
+        renderHeroOverview();
         updateStats();
       } catch (err) {
         console.error(err);
@@ -1906,8 +1944,9 @@
           found.ratingCount = data.ratingCount != null ? data.ratingCount : (found.ratingCount || 0);
         }
 
-        // Render lại danh sách phòng với filter hiện tại
+        // Render lại danh sách phòng & tổng quan
         renderRooms();
+        renderHeroOverview();
       } catch (e) {
         console.error("setRoomRating error:", e);
         alert("Có lỗi khi gửi đánh giá. Vui lòng thử lại sau.");
