@@ -555,6 +555,12 @@
       margin-top: 4px;
       gap: 4px;
     }
+    
+    .room-footer-buttons {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+    }
 
     .room-actions {
       display: flex;
@@ -2518,27 +2524,35 @@
             <span>${floorText ? "Tầng " + floorText : ""}</span>
           </div>
           ${starsHtml}
-          <div class="room-footer">
-            <div class="room-actions">
-              <button class="icon-btn${likeBtnExtraClass}" type="button"
-                      onclick="toggleLike('${roomId}')">♥</button>
-              <button class="icon-btn" type="button"
-                      onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-              ${videoIconHtml}
-              <span class="like-count">${likeData.count || 0}</span>
+         <div class="room-footer">
+         <div class="room-actions">
+            <button class="icon-btn${likeBtnExtraClass}" type="button"
+                onclick="toggleLike('${roomId}')">♥</button>
+            <button class="icon-btn" type="button"
+                onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
+            ${videoIconHtml}
+            <span class="like-count">${likeData.count || 0}</span>
             </div>
-            <div style="display:flex; gap:4px;">
+            <div class="room-footer-buttons">
               <a class="room-btn" href="${detailUrl}">Xem phòng</a>
-              <button type="button; justify-content:center"
-                      class="room-btn-secondary${loginBtnExtraClass}"
-                      ${loginBtnDisabledAttr}
-                      onclick="${isAvailable
-                        ? "return false;"
-                        : `openLoginModalWithRoom('${roomId}')`}">
-                Đăng nhập
-              </button>
-            </div>
-          </div>
+              ${
+            isAvailable
+            // 🔒 Phòng TRỐNG: nút Đăng nhập bị disable, không bấm được
+            ? `<button type="button"
+                   class="room-btn-secondary room-btn-secondary-disabled"
+                   disabled>
+             Đăng nhập
+           </button>`
+            // 🔓 Phòng ĐANG THUÊ: mở modal đăng nhập và auto điền mã phòng
+              : `<button type="button"
+                   class="room-btn-secondary"
+                   onclick="openLoginModalWithRoom('${roomId}')">
+             Đăng nhập
+           </button>`
+          }
+        </div>
+      </div>
+
         `;
 
         grid.appendChild(card);
@@ -3015,6 +3029,7 @@
   </script>
 </body>
 </html>
+
 
 
 
