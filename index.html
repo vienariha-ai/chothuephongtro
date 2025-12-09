@@ -923,6 +923,94 @@
       border: none;
     }
 
+    /* MODAL ĐĂNG NHẬP PHÒNG */
+    .login-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+    }
+
+    .login-modal.show {
+      display: block;
+    }
+
+    .login-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(3px);
+    }
+
+    .login-modal-content {
+      position: relative;
+      max-width: 420px;
+      width: 92%;
+      margin: 60px auto;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.98);
+      background: radial-gradient(circle at top left,
+        rgba(15,23,42,0.98),
+        rgba(15,23,42,1)
+      );
+      color: #e5e7eb;
+      padding: 14px 16px 16px;
+      font-size: 0.85rem;
+    }
+
+    .login-modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      border: none;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.9);
+      color: #f9fafb;
+    }
+
+    .login-modal-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .login-modal-sub {
+      font-size: 0.8rem;
+      color: rgba(148,163,184,0.96);
+      margin-bottom: 8px;
+    }
+
+    .login-form .form-group {
+      margin-bottom: 8px;
+    }
+
+    .login-form .form-control {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      padding: 6px 8px;
+      font-size: 0.85rem;
+      outline: none;
+      background: rgba(15, 23, 42, 0.96);
+      color: #e5e7eb;
+    }
+
+    .login-form .form-control:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
+      background: rgba(15, 23, 42, 0.98);
+    }
+
+    .login-form-note {
+      font-size: 0.75rem;
+      color: rgba(148,163,184,0.96);
+      margin-top: 4px;
+    }
+
     @media (max-width: 900px) {
       .hero-grid,
       .contact-grid {
@@ -1338,6 +1426,40 @@
     </div>
   </div>
 
+  <!-- MODAL ĐĂNG NHẬP TÀI KHOẢN PHÒNG -->
+  <div id="loginModal" class="login-modal">
+    <div class="login-modal-backdrop" onclick="closeTenantLoginModal()"></div>
+    <div class="login-modal-content">
+      <button type="button" class="login-modal-close" onclick="closeTenantLoginModal()">✕</button>
+
+      <div class="login-modal-title">Đăng nhập tài khoản phòng</div>
+      <div class="login-modal-sub">
+        Vui lòng nhập thông tin đăng nhập để xem portal nội bộ cho
+        <strong id="loginRoomLabel"></strong>.
+      </div>
+
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="loginPhone">Số điện thoại/Zalo</label>
+          <input id="loginPhone" class="form-control" type="tel" required />
+        </div>
+        <div class="form-group">
+          <label for="loginCode">Mã đăng nhập / Mã phòng</label>
+          <input id="loginCode" class="form-control" type="text" required />
+        </div>
+
+        <button type="submit" class="btn" style="width:100%; justify-content:center; margin-top:4px;">
+          Đăng nhập
+        </button>
+
+        <p id="loginStatus" style="margin-top:6px; font-size:0.78rem; color:rgba(148,163,184,0.96);"></p>
+        <p class="login-form-note">
+          Sau khi xác thực, hệ thống có thể mở portal quản lý hợp đồng, hóa đơn, chỉ số điện nước...
+        </p>
+      </form>
+    </div>
+  </div>
+
   <script>
     // 👉 URL Web App Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbzJLQh5tqpdy0TVFjo4CEASsZQxKoyiRXvzBG7hAqtKF9DIxLwUemDfpcDvJEMCQKC5Rw/exec";
@@ -1351,6 +1473,9 @@
     let ROOM_LIKES = {};
     let ROOM_RATINGS = {};
     let CURRENT_FILTER = "all";
+
+    // Biến lưu phòng đang chọn để đăng nhập
+    let LOGIN_SELECTED_ROOM = null;
 
     function loadLikesFromStorage() {
       try {
@@ -1484,6 +1609,85 @@
       const container = document.getElementById("videoContainer");
       container.innerHTML = "";
       modal.classList.remove("show");
+    }
+
+    // 👉 Mở popup đăng nhập phòng
+    function openTenantLoginModal(roomId) {
+      LOGIN_SELECTED_ROOM = roomId || "";
+      const modal = document.getElementById("loginModal");
+      const label = document.getElementById("loginRoomLabel");
+      const status = document.getElementById("loginStatus");
+
+      if (label) {
+        label.textContent = roomId ? "phòng " + roomId : "tài khoản phòng";
+      }
+      if (status) {
+        status.textContent = "";
+      }
+      if (modal) {
+        modal.classList.add("show");
+      }
+
+      // Auto focus ô số điện thoại
+      setTimeout(() => {
+        const input = document.getElementById("loginPhone");
+        if (input) input.focus();
+      }, 100);
+    }
+
+    function closeTenantLoginModal() {
+      const modal = document.getElementById("loginModal");
+      if (modal) {
+        modal.classList.remove("show");
+      }
+      LOGIN_SELECTED_ROOM = null;
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const statusEl = document.getElementById("loginStatus");
+      const phone = document.getElementById("loginPhone").value.trim();
+      const code  = document.getElementById("loginCode").value.trim();
+
+      if (!phone || !code) {
+        if (statusEl) statusEl.textContent = "Vui lòng nhập đầy đủ thông tin.";
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
+
+      try {
+        // TODO: Thay đoạn demo này bằng call Apps Script thật sự nếu bạn có API login
+        /*
+        const body = new URLSearchParams({
+          action: "tenantLogin",
+          phone,
+          code,
+          roomId: LOGIN_SELECTED_ROOM || ""
+        });
+        const res = await fetch(API_URL, { method: "POST", body });
+        const data = await res.json();
+        if (!data || !data.success) {
+          statusEl.textContent = data.message || "Thông tin đăng nhập chưa chính xác.";
+          return;
+        }
+        // Nếu backend trả về link portal:
+        window.location.href = data.portalUrl;
+        */
+
+        // Demo tạm: coi như đăng nhập thành công
+        if (statusEl) {
+          statusEl.textContent = "Login demo thành công (bạn gắn thêm API thật ở đây).";
+        }
+        setTimeout(() => {
+          closeTenantLoginModal();
+        }, 1000);
+      } catch (err) {
+        console.error("handleLoginSubmit error:", err);
+        if (statusEl) {
+          statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
+        }
+      }
     }
 
     function getFloorNumber(room) {
@@ -1794,11 +1998,11 @@
                              disabled>
                        Đăng nhập
                      </button>`
-                  : `<a type="button"
-                        class="room-btn-secondary"
-                        href="${detailUrl}#portal">
+                  : `<button type="button"
+                             class="room-btn-secondary"
+                             onclick="openTenantLoginModal('${roomId}')">
                        Đăng nhập
-                     </a>`
+                     </button>`
               }
             </div>
           </div>
@@ -1959,6 +2163,11 @@
       document
         .getElementById("contactForm")
         .addEventListener("submit", handleSubmit);
+
+      const loginForm = document.getElementById("loginForm");
+      if (loginForm) {
+        loginForm.addEventListener("submit", handleLoginSubmit);
+      }
     });
   </script>
 </body>
