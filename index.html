@@ -1688,33 +1688,25 @@
   </footer>
 
   <!-- MODAL ĐĂNG NHẬP PHÒNG -->
-  <div id="roomLoginModal" class="room-modal">
-    <div class="room-modal-backdrop" onclick="closeRoomLoginModal()"></div>
-    <div class="room-modal-content">
-      <button type="button" class="room-modal-close" onclick="closeRoomLoginModal()">✕</button>
-      <div class="room-modal-title">Đăng nhập tài khoản phòng</div>
-      <div class="room-modal-subtitle">
-        Nhập số điện thoại chủ phòng để xem thông tin hoá đơn, hợp đồng, tạm trú và báo hỏng.
-      </div>
-
-      <form id="roomLoginForm">
-        <div class="form-group">
-          <label>Mã phòng</label>
-          <input id="loginRoomId" class="form-control" type="text" readonly />
-        </div>
-        <div class="form-group">
-          <label for="loginPhone">Số điện thoại chủ phòng</label>
-          <input id="loginPhone" class="form-control" type="tel" required
-                 placeholder="Nhập số điện thoại đã đăng ký trong Hợp đồng" />
-        </div>
-        <button type="submit" class="btn" style="width:100%;justify-content:center;">
-          Xác nhận & mở chi tiết phòng
-        </button>
-        <p id="roomLoginStatus"
-           style="margin-top:6px;font-size:0.8rem;color:rgba(148,163,184,0.96);"></p>
-      </form>
-    </div>
+ <div class="room-footer">
+  <div class="room-actions">
+    <button class="icon-btn${likeBtnExtraClass}"
+      onclick="toggleLike('${roomId}')">♥</button>
+    <button class="icon-btn"
+      onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
+    ${videoIconHtml || ""}
+    <span class="like-count">${likeData.count || 0}</span>
   </div>
+  <div style="display:flex; gap:4px;">
+    <a class="room-btn" href="${detailUrl}">Xem chi tiết</a>
+    <button type="button"
+            class="room-btn-secondary"
+            onclick="openRoomLoginModal('${roomId}')">
+      Đăng nhập
+    </button>
+   </div>
+  </div>
+
 
   <!-- MODAL PORTAL CHI TIẾT PHÒNG -->
   <div id="roomPortalModal" class="room-modal">
@@ -2489,110 +2481,22 @@
         ? "Hiển thị " + filtered.length + " phòng."
         : "Không có phòng phù hợp với bộ lọc hiện tại.";
 
-      filtered.forEach((room) => {
-         const detailUrl = `room.html?room=${detailIdEncoded}`;
-         const starsHtml = buildStarsHtml(room);
+     filtered.forEach((room) => {
+   const detailUrl = `room.html?room=${detailIdEncoded}`;
+   const starsHtml = buildStarsHtml(room);
 
-        const videoIconHtml = room.video
-        ? `<button class="icon-btn" title="Xem video"
-             onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
-        : "";
+  const videoIconHtml = room.video
+  ? `<button class="icon-btn" title="Xem video"
+       onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
+  : "";
 
-        card.innerHTML = `
-        <!-- Dòng 1: tên phòng + trạng thái -->
-        <div class="room-line">
-          <div>
-            ${roomId || ""}${room.loaiPhong ? " · " + room.loaiPhong : ""}
-          </div>
-          <span class="room-status-chip ${statusClass}">
-            ${statusText}
-          </span>
-        </div>
+  card.innerHTML = `...`;
 
-        <!-- Dòng 2: Tầng -->
-        <div class="room-line">
-          <span>${room.tang ? "Tầng " + room.tang : ""}</span>
-        </div>
+  card.innerHTML = `...`; // (lại gán lần nữa)
 
-        <!-- Dòng 3: giá thuê -->
-        <div class="room-line">
-          <span>
-            ${room.giaThue ? formatVND(room.giaThue) + " /tháng" : "-/tháng"}
-          </span>
-        </div>
+  grid.appendChild(card);
+});
 
-        <!-- Dòng 4: ⭐⭐⭐⭐⭐ + số lượt đánh giá -->
-        <div class="room-line">
-          ${starsHtml}
-        </div>
-
-        <!-- Footer: like / link / xem / đăng nhập -->
-        <div class="room-footer">
-          <div class="room-actions">
-            <button class="icon-btn${likeBtnExtraClass}"
-              onclick="toggleLike('${roomId}')">♥</button>
-            <button class="icon-btn"
-              onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-            ${videoIconHtml || ""}
-            <span class="like-count">${likeData.count || 0}</span>
-          </div>
-          <div style="display:flex;gap:4px;">
-            <a class="room-btn" href="${detailUrl}">Xem chi tiết</a>
-            <button type="button"
-                    class="room-btn-secondary"
-                    onclick="openRoomLoginModal('${roomId}')">
-              Đăng nhập
-            </button>
-          </div>
-          </div>
-        `;
-
-
-        card.innerHTML = `
-          <!-- Dòng 1: tên phòng + trạng thái -->
-          <div class="room-line">
-            <div>
-              ${roomId || ""}${room.loaiPhong ? " · " + room.loaiPhong : ""}
-            </div>
-            <span class="room-status-chip ${statusClass}">
-              ${statusText}
-            </span>
-          </div>
-
-          <!-- Dòng 2: Tầng -->
-          <div class="room-line">
-            <span>${room.tang ? "Tầng " + room.tang : ""}</span>
-          </div>
-
-          <!-- Dòng 3: giá thuê -->
-          <div class="room-line">
-            <span>
-              ${room.giaThue ? formatVND(room.giaThue) + " /tháng" : "-/tháng"}
-            </span>
-          </div>
-
-          <!-- Dòng 4: ⭐⭐⭐⭐⭐ + số lượt đánh giá -->
-          <div class="room-line">
-            ${starsHtml}
-          </div>
-
-          <!-- Footer: like / link / xem -->
-          <div class="room-footer">
-            <div class="room-actions">
-              <button class="icon-btn${likeBtnExtraClass}"
-                onclick="toggleLike('${roomId}')">♥</button>
-              <button class="icon-btn"
-                onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-              ${videoIconHtml || ""}
-              <span class="like-count">${likeData.count || 0}</span>
-            </div>
-            <a class="room-btn" href="${detailUrl}">Xem chi tiết</a>
-          </div>
-        `;
-
-        grid.appendChild(card);
-      });
-    }
 
     function updateStats() {
       const totalRoomsEl = document.getElementById("statTotalRooms");
@@ -3063,5 +2967,6 @@
   </script>
 </body>
 </html>
+
 
 
