@@ -676,6 +676,22 @@
       filter: brightness(1.05);
       border-color: rgba(56, 189, 248, 0.9);
     }
+    /* Nút đăng nhập bị disable khi phòng trống */
+    .room-btn-secondary:disabled,
+    .room-btn-secondary.room-btn-secondary-disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+      border-color: rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .room-btn-secondary.room-btn-secondary-disabled:hover {
+      transform: none;
+      box-shadow: none;
+      filter: none;
+      border-color: rgba(148, 163, 184, 0.5);
+    }
 
     /* MODAL ĐĂNG NHẬP & PORTAL PHÒNG */
     .room-modal {
@@ -1687,27 +1703,6 @@
     </div>
   </footer>
 
-  <!-- MODAL ĐĂNG NHẬP PHÒNG -->
- <div class="room-footer">
-  <div class="room-actions">
-    <button class="icon-btn${likeBtnExtraClass}"
-      onclick="toggleLike('${roomId}')">♥</button>
-    <button class="icon-btn"
-      onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-    ${videoIconHtml || ""}
-    <span class="like-count">${likeData.count || 0}</span>
-  </div>
-  <div style="display:flex; gap:4px;">
-    <a class="room-btn" href="${detailUrl}">Xem chi tiết</a>
-    <button type="button"
-            class="room-btn-secondary"
-            onclick="openRoomLoginModal('${roomId}')">
-      Đăng nhập
-    </button>
-   </div>
-  </div>
-
-
   <!-- MODAL PORTAL CHI TIẾT PHÒNG -->
   <div id="roomPortalModal" class="room-modal">
     <div class="room-modal-backdrop" onclick="closeRoomPortalModal()"></div>
@@ -1849,6 +1844,15 @@
     function closeLoginModal() {
       const modal = document.getElementById("authModal");
       if (modal) modal.classList.remove("show");
+    }
+   
+    // Mở modal đăng nhập và auto điền sẵn mã phòng
+    function openLoginModalWithRoom(roomCode) {
+      const roomInput = document.getElementById("loginRoomCode");
+      if (roomInput) {
+        roomInput.value = roomCode || "";
+      }
+      openLoginModal();
     }
 
     function updateTenantUI() {
@@ -2430,11 +2434,14 @@
     }
 
     // ====== RENDER DANH SÁCH PHÒNG ======
+        // ====== RENDER DANH SÁCH PHÒNG ======
     function renderRooms(filter) {
       const grid = document.getElementById("roomsGrid");
       const statusEl = document.getElementById("roomsStatus");
+      if (!grid || !statusEl) return;
       grid.innerHTML = "";
 
+      // Giữ/đổi CURRENT_FILTER
       if (typeof filter === "string") {
         CURRENT_FILTER = filter;
       } else {
@@ -2442,26 +2449,11 @@
       }
 
       // đọc các filter nâng cao
-      const floorVal =
-        (document.getElementById("filterFloor") &&
-          document.getElementById("filterFloor").value) ||
-        "all";
-      const ratingVal =
-        (document.getElementById("filterRating") &&
-          document.getElementById("filterRating").value) ||
-        "all";
-      const interestVal =
-        (document.getElementById("filterInterest") &&
-          document.getElementById("filterInterest").value) ||
-        "all";
-      const priceVal =
-        (document.getElementById("filterPrice") &&
-          document.getElementById("filterPrice").value) ||
-        "all";
-      const areaVal =
-        (document.getElementById("filterArea") &&
-          document.getElementById("filterArea").value) ||
-        "all";
+      const floorVal     = document.getElementById("filterFloor")?.value     || "all";
+      const ratingVal    = document.getElementById("filterRating")?.value    || "all";
+      const interestVal  = document.getElementById("filterInterest")?.value  || "all";
+      const priceVal     = document.getElementById("filterPrice")?.value     || "all";
+      const areaVal      = document.getElementById("filterArea")?.value      || "all";
 
       let filtered = ALL_ROOMS.filter((room) => {
         if (filter === "all") return true;
@@ -2481,21 +2473,77 @@
         ? "Hiển thị " + filtered.length + " phòng."
         : "Không có phòng phù hợp với bộ lọc hiện tại.";
 
-     filtered.forEach((room) => {
-   const detailUrl = `room.html?room=${detailIdEncoded}`;
-   const starsHtml = buildStarsHtml(room);
+      filtered.forEach((room) => {
+        const card = document.createElement("div");
+        card.className = "room-card";
 
-  const videoIconHtml = room.video
-  ? `<button class="icon-btn" title="Xem video"
-       onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
-  : "";
+        const roomId = room.maPhong || "";
+        const detailIdEncoded = encodeURIComponent(roomId);
+        const detailUrl = "room.html?room=" + detailIdEncoded;
 
-  card.innerHTML = `...`;
+        const likeData = ROOM_LIKES[roomId] || { count: 0, liked: false };
+        const likeBtnExtraClass = likeData.liked ? " like-btn-liked" : "";
 
-  card.innerHTML = `...`; // (lại gán lần nữa)
+        const isAvailable = room.trangThaiWebsite === "available";
+        const statusLabel = isAvailable
+          ? "Còn trống"
+          : (room.trangThaiHienThi || room.trangThai || "Đang thuê");
+        const statusClass = isAvailable ? "status-available" : "status-rented";
 
-  grid.appendChild(card);
-});
+        const loginBtnDisabledAttr = isAvailable ? "disabled" : "";
+        const loginBtnExtraClass   = isAvailable ? " room-btn-secondary-disabled" : "";
+
+        const videoIconHtml = room.video
+          ? `<button class="icon-btn" type="button" title="Xem video"
+               onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
+          : "";
+
+        const giaText  = formatVND(room.giaThue);
+        const areaText = room.dienTich ? room.dienTich + " m²" : "";
+        const floorText = room.tang || "";
+
+        const starsHtml = buildStarsHtml(room);
+
+        card.innerHTML = `
+          <div class="room-line" style="font-weight:600;">
+            <span>${roomId || "Chưa đặt mã"}</span>
+            <span class="room-status-chip ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="room-line">
+            <span>${room.loaiPhong || ""}</span>
+            <span>${areaText}</span>
+          </div>
+          <div class="room-line">
+            <span>${giaText}</span>
+            <span>${floorText ? "Tầng " + floorText : ""}</span>
+          </div>
+          ${starsHtml}
+          <div class="room-footer">
+            <div class="room-actions">
+              <button class="icon-btn${likeBtnExtraClass}" type="button"
+                      onclick="toggleLike('${roomId}')">♥</button>
+              <button class="icon-btn" type="button"
+                      onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
+              ${videoIconHtml}
+              <span class="like-count">${likeData.count || 0}</span>
+            </div>
+            <div style="display:flex; gap:4px;">
+              <a class="room-btn" href="${detailUrl}">Xem chi tiết</a>
+              <button type="button"
+                      class="room-btn-secondary${loginBtnExtraClass}"
+                      ${loginBtnDisabledAttr}
+                      onclick="${isAvailable
+                        ? "return false;"
+                        : `openLoginModalWithRoom('${roomId}')`}">
+                Đăng nhập
+              </button>
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
 
 
     function updateStats() {
@@ -2967,6 +3015,7 @@
   </script>
 </body>
 </html>
+
 
 
 
