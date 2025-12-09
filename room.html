@@ -761,8 +761,9 @@
             <!-- Khi CHƯA đăng nhập -->
             <div id="tenantLoginBox">
               <p id="tenantLoginHint">
-                Mục này dành cho cư dân đang thuê phòng. Vui lòng đăng nhập bằng
-                <strong>Mã phòng</strong> và <strong>CCCD/SDT của chủ phòng</strong> theo hợp đồng hiệu lực.
+                  Mục này dành cho cư dân đang thuê phòng. Vui lòng đăng nhập bằng
+                  <strong>Mã phòng</strong> và <strong>Số điện thoại hoặc Số CCCD/CMND của chủ phòng</strong>
+                  theo Hợp đồng hiệu lực.
               </p>
               <form id="tenantLoginForm">
                 <div class="form-group">
@@ -776,14 +777,14 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label for="tenantLoginIdentity">Số CCCD/CMND hoặc Số điện thoại chủ phòng</label>
+                  <label for="tenantLoginIdentity">Số điện thoại hoặc Số CCCD/CMND của chủ phòng</label>
                   <input
-                    id="tenantLoginIdentity"
-                    class="form-control"
-                    type="text"
-                    placeholder="Nhập CCCD/CMND hoặc Số điện thoại chủ phòng"
-                    required
-                  />
+                      id="tenantLoginIdentity"
+                      class="form-control"
+                      type="text"
+                      placeholder="Nhập Số điện thoại hoặc Số CCCD/CMND của chủ phòng"
+                      required
+                    />
                 </div>
                 <button type="submit" class="btn" style="width:100%;">Đăng nhập tài khoản phòng</button>
                 <p id="tenantLoginStatus"></p>
@@ -1491,18 +1492,20 @@
       });
     }
 
-    async function handleTenantLogin(event) {
-      event.preventDefault();
-      const roomCode = document.getElementById("tenantLoginRoomCode").value.trim();
-      const identity = document.getElementById("tenantLoginIdentity").value.trim();
-      const statusEl = document.getElementById("tenantLoginStatus");
-      if (!roomCode || !identity) {
-        if (statusEl) statusEl.textContent = "Vui lòng nhập đủ Mã phòng và CCCD/SDT chủ phòng.";
-        return;
-      }
+   async function handleTenantLogin(event) {
+   event.preventDefault();
+    const roomCode = document.getElementById("tenantLoginRoomCode").value.trim();
+    const identity = document.getElementById("tenantLoginIdentity").value.trim();
+    const statusEl = document.getElementById("tenantLoginStatus");
+    if (!roomCode || !identity) {
+      if (statusEl) {
+        statusEl.textContent =
+        "Vui lòng nhập đủ Mã phòng và Số điện thoại hoặc Số CCCD/CMND của chủ phòng.";
+       }
+      return;
+     }
 
       if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
-
       try {
         const body = new URLSearchParams({
           action: "tenantLogin",
@@ -1522,11 +1525,11 @@
         if (!data || !data.success) {
           if (statusEl) {
             statusEl.textContent =
-              (data && data.message) ||
-              "Không tìm thấy Hợp đồng hiệu lực hoặc thông tin chủ phòng không khớp.";
+            (data && data.message) ||
+            "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD của chủ phòng không khớp.";
           }
-          return;
-        }
+        return;
+     }
 
         CURRENT_TENANT = {
           roomCode: data.roomCode || roomCode,
@@ -1788,4 +1791,5 @@
   </script>
 </body>
 </html>
+
 
