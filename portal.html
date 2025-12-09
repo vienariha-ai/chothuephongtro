@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>YT Home – Portal tài khoản phòng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 50%),
+        radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 55%),
+        radial-gradient(circle at bottom, rgba(45, 212, 191, 0.25), transparent 55%),
+        #0b1120;
+      color: #e5e7eb;
+      min-height: 100vh;
+      padding: 12px 16px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      background: conic-gradient(from 120deg, #38bdf8, #22c55e, #6366f1, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #0b1120;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8), 0 10px 30px rgba(15, 23, 42, 0.8);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .logo-text-main {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .logo-text-sub {
+      font-size: 0.75rem;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: radial-gradient(circle at top left, #38bdf8, #2563eb);
+      color: #f9fafb;
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.5);
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        filter 0.16s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.75);
+      filter: brightness(1.03);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: rgba(148, 163, 184, 0.8);
+      box-shadow: none;
+      color: #e5e7eb;
+    }
+
+    .btn-outline:hover {
+      background: rgba(15, 23, 42, 0.98);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.98);
+    }
+
+    a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .page-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 0.85rem;
+      color: rgba(148, 163, 184, 0.96);
+      margin-bottom: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.99));
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 1);
+      padding: 12px;
+      font-size: 0.85rem;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.85);
+      background: rgba(15, 23, 42, 0.96);
+      margin-bottom: 4px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .info-label {
+      color: rgba(148, 163, 184, 0.96);
+      font-size: 0.8rem;
+    }
+
+    .info-value {
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+
+    .list {
+      margin-top: 4px;
+      padding-left: 16px;
+      font-size: 0.82rem;
+      color: rgba(209, 213, 219, 0.96);
+    }
+
+    .list li {
+      margin-bottom: 2px;
+    }
+
+    .small-note {
+      font-size: 0.75rem;
+      color: rgba(148, 163, 184, 0.96);
+      margin-top: 6px;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      margin-top: 4px;
+    }
+
+    .table-like {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    .table-like th,
+    .table-like td {
+      padding: 6px 6px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+    }
+
+    .table-like th {
+      text-align: left;
+      font-weight: 600;
+      color: rgba(148, 163, 184, 0.98);
+      font-size: 0.78rem;
+    }
+
+    .table-like td {
+      color: rgba(229, 231, 235, 0.96);
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px 10px 18px;
+      }
+
+      .card {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo-row">
+        <div class="logo-icon">YT</div>
+        <div class="logo-text">
+          <div class="logo-text-main">YT Home</div>
+          <div class="logo-text-sub">Portal tài khoản phòng</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="btn-outline" style="text-decoration:none;">Trang xem phòng</a>
+        <button type="button" class="btn-outline" onclick="logoutTenant()">Đăng xuất</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="page-title">Xin chào, cư dân YT Home 🏡</div>
+      <div class="page-subtitle">
+        Dưới đây là thông tin tổng quan tài khoản phòng của bạn. Có thể mở rộng để hiển thị hợp đồng, hóa đơn, chỉ số điện nước...
+      </div>
+
+      <div class="grid">
+        <!-- Thông tin tài khoản phòng -->
+        <section class="card">
+          <div class="card-title">Thông tin tài khoản phòng</div>
+          <div class="badge" id="roomBadge">Phòng: --</div>
+
+          <div class="info-row">
+            <span class="info-label">Phòng:</span>
+            <span class="info-value" id="roomLabel">--</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Tên chủ phòng:</span>
+            <span class="info-value" id="tenantName">--</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Định danh (ẩn bớt):</span>
+            <span class="info-value" id="tenantIdentity">--</span>
+          </div>
+
+          <div class="small-note">
+            Dữ liệu chi tiết có thể được lấy thêm từ Apps Script (vd: action=tenantPortal) và render vào đây.
+          </div>
+        </section>
+
+        <!-- Thông tin nhanh -->
+        <section class="card">
+          <div class="card-title">Tóm tắt nhanh</div>
+          <ul class="list">
+            <li>Trạng thái hợp đồng: <strong id="contractStatus">Đang hiệu lực (ví dụ)</strong></li>
+            <li>Kỳ thanh toán: <strong id="billingCycle">Hàng tháng</strong></li>
+            <li>Hình thức thanh toán: <strong id="paymentMethod">Chuyển khoản / tiền mặt</strong></li>
+          </ul>
+          <div class="small-note">
+            Bạn có thể tuỳ chỉnh để hiển thị đúng theo dữ liệu từ Google Sheet (Hợp đồng, Thu chi...).
+          </div>
+        </section>
+      </div>
+
+      <!-- Bảng ví dụ hóa đơn gần đây -->
+      <section class="card">
+        <div class="section-title">Hóa đơn gần đây (ví dụ minh hoạ)</div>
+        <table class="table-like">
+          <thead>
+            <tr>
+              <th>Kỳ</th>
+              <th>Mô tả</th>
+              <th>Số tiền</th>
+              <th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="invoiceTableBody">
+            <tr>
+              <td>12/2025</td>
+              <td>Tiền phòng + điện nước</td>
+              <td>3.500.000 đ</td>
+              <td>Đã thanh toán</td>
+            </tr>
+            <tr>
+              <td>11/2025</td>
+              <td>Tiền phòng + điện nước</td>
+              <td>3.450.000 đ</td>
+              <td>Đã thanh toán</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="small-note">
+          Khi kết nối Apps Script, bạn có thể lấy danh sách hóa đơn theo phòng (action=tenantInvoices chẳng hạn) và render vào bảng này.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const TENANT_STORAGE_KEY = "ytHomeTenant";
+
+    function logoutTenant() {
+      try {
+        localStorage.removeItem(TENANT_STORAGE_KEY);
+      } catch (e) {
+        console.error("logoutTenant error:", e);
+      }
+      window.location.href = "tenant.html";
+    }
+
+    function maskIdentity(identity) {
+      if (!identity) return "--";
+      const s = String(identity);
+      if (s.length <= 4) return "***" + s;
+      const last4 = s.slice(-4);
+      return "**** " + last4;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const roomParam = params.get("room");
+
+      let tenant = null;
+      try {
+        const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+        if (saved) {
+          tenant = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.error("read tenant error:", e);
+      }
+
+      if (!tenant || !tenant.maPhong) {
+        // Chưa login → quay về trang login
+        window.location.href = "tenant.html";
+        return;
+      }
+
+      // Nếu URL không có room hoặc room khác → đồng bộ lại
+      if (!roomParam || roomParam !== tenant.maPhong) {
+        const newUrl = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+        window.history.replaceState({}, "", newUrl);
+      }
+
+      const roomBadge   = document.getElementById("roomBadge");
+      const roomLabel   = document.getElementById("roomLabel");
+      const tenantName  = document.getElementById("tenantName");
+      const tenantIdEl  = document.getElementById("tenantIdentity");
+
+      if (roomBadge) {
+        roomBadge.textContent = "Phòng: " + tenant.maPhong;
+      }
+      if (roomLabel) {
+        roomLabel.textContent = tenant.maPhong;
+      }
+      if (tenantName) {
+        tenantName.textContent = tenant.name || "Chủ phòng";
+      }
+      if (tenantIdEl) {
+        tenantIdEl.textContent = maskIdentity(tenant.identity || "");
+      }
+
+      // Nếu sau này có gọi thêm API (hợp đồng, hóa đơn...) thì viết ở đây.
+    });
+  </script>
+</body>
+</html>
