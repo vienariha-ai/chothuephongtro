@@ -325,7 +325,6 @@
       border: 1px solid rgba(74, 222, 128, 0.4);
     }
 
-    /* 🎯 BIỂU ĐỒ TỔNG QUAN (BAR CHART) */
     .hero-chart {
       font-size: 0.78rem;
       display: flex;
@@ -440,7 +439,6 @@
       margin-bottom: 8px;
     }
 
-    /* bộ lọc nâng cao: tầng, đánh giá, quan tâm, giá, diện tích */
     .filter-advanced {
       display: flex;
       flex-wrap: wrap;
@@ -491,7 +489,6 @@
       box-shadow: 0 12px 32px rgba(15, 23, 42, 0.9);
     }
 
-    /* 👉 THU NHỎ CARD & TĂNG SỐ CỘT */
     .rooms-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -564,7 +561,6 @@
       gap: 4px;
     }
 
-    /* 👉 Nhóm nút Xem phòng / Đăng nhập – canh giữa */
     .room-footer-buttons {
       display: flex;
       gap: 4px;
@@ -693,7 +689,6 @@
       border-color: rgba(56, 189, 248, 0.9);
     }
 
-    /* Nút đăng nhập bị disable khi phòng trống */
     .room-btn-secondary:disabled,
     .room-btn-secondary.room-btn-secondary-disabled {
       opacity: 0.45;
@@ -861,7 +856,6 @@
       flex-wrap: wrap;
     }
 
-    /* MODAL VIDEO */
     .video-modal {
       position: fixed;
       inset: 0;
@@ -923,94 +917,6 @@
       border: none;
     }
 
-    /* MODAL ĐĂNG NHẬP PHÒNG */
-    .login-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 90;
-      display: none;
-    }
-
-    .login-modal.show {
-      display: block;
-    }
-
-    .login-modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(3px);
-    }
-
-    .login-modal-content {
-      position: relative;
-      max-width: 420px;
-      width: 92%;
-      margin: 60px auto;
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.75);
-      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.98);
-      background: radial-gradient(circle at top left,
-        rgba(15,23,42,0.98),
-        rgba(15,23,42,1)
-      );
-      color: #e5e7eb;
-      padding: 14px 16px 16px;
-      font-size: 0.85rem;
-    }
-
-    .login-modal-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      border: none;
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      background: rgba(15, 23, 42, 0.9);
-      color: #f9fafb;
-    }
-
-    .login-modal-title {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .login-modal-sub {
-      font-size: 0.8rem;
-      color: rgba(148,163,184,0.96);
-      margin-bottom: 8px;
-    }
-
-    .login-form .form-group {
-      margin-bottom: 8px;
-    }
-
-    .login-form .form-control {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.75);
-      padding: 6px 8px;
-      font-size: 0.85rem;
-      outline: none;
-      background: rgba(15, 23, 42, 0.96);
-      color: #e5e7eb;
-    }
-
-    .login-form .form-control:focus {
-      border-color: #38bdf8;
-      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
-      background: rgba(15, 23, 42, 0.98);
-    }
-
-    .login-form-note {
-      font-size: 0.75rem;
-      color: rgba(148,163,184,0.96);
-      margin-top: 4px;
-    }
-
     @media (max-width: 900px) {
       .hero-grid,
       .contact-grid {
@@ -1064,8 +970,8 @@
           <a href="#contact">Liên hệ</a>
         </nav>
         <div class="nav-cta">
-          <!-- Chuyển sang trang tài khoản phòng -->
-          <a class="btn-outline btn" href="room.html">
+          <!-- 🔁 Đổi sang tenant.html -->
+          <a class="btn-outline btn" href="tenant.html">
             Tài khoản phòng
           </a>
           <button class="btn-outline btn" type="button" onclick="scrollToSection('contact')">Gọi tư vấn</button>
@@ -1126,7 +1032,6 @@
                 <div class="hero-pill" id="heroStatus">Đang tải...</div>
               </div>
 
-              <!-- BIỂU ĐỒ TỔNG QUAN -->
               <div class="hero-chart" id="heroOverview"></div>
 
               <div class="hero-card-footer">
@@ -1155,7 +1060,6 @@
           </div>
         </div>
 
-        <!-- Lọc theo loại phòng & tình trạng -->
         <div class="filter-bar">
           <button class="filter-pill active" data-filter="all">Tất cả</button>
           <button class="filter-pill" data-filter="Phòng đơn">Phòng đơn</button>
@@ -1164,7 +1068,6 @@
           <button class="filter-pill" data-filter="available">Còn trống</button>
         </div>
 
-        <!-- Bộ lọc nâng cao: tầng, đánh giá, quan tâm, giá, diện tích -->
         <div class="filter-advanced">
           <select id="filterFloor" class="filter-select">
             <option value="all">Tất cả tầng</option>
@@ -1426,43 +1329,8 @@
     </div>
   </div>
 
-  <!-- MODAL ĐĂNG NHẬP TÀI KHOẢN PHÒNG -->
-  <div id="loginModal" class="login-modal">
-    <div class="login-modal-backdrop" onclick="closeTenantLoginModal()"></div>
-    <div class="login-modal-content">
-      <button type="button" class="login-modal-close" onclick="closeTenantLoginModal()">✕</button>
-
-      <div class="login-modal-title">Đăng nhập tài khoản phòng</div>
-      <div class="login-modal-sub">
-        Vui lòng nhập thông tin đăng nhập để xem portal nội bộ cho
-        <strong id="loginRoomLabel"></strong>.
-      </div>
-
-      <form id="loginForm" class="login-form">
-        <div class="form-group">
-          <label for="loginPhone">Số điện thoại/Zalo</label>
-          <input id="loginPhone" class="form-control" type="tel" required />
-        </div>
-        <div class="form-group">
-          <label for="loginCode">Mã đăng nhập / Mã phòng</label>
-          <input id="loginCode" class="form-control" type="text" required />
-        </div>
-
-        <button type="submit" class="btn" style="width:100%; justify-content:center; margin-top:4px;">
-          Đăng nhập
-        </button>
-
-        <p id="loginStatus" style="margin-top:6px; font-size:0.78rem; color:rgba(148,163,184,0.96);"></p>
-        <p class="login-form-note">
-          Sau khi xác thực, hệ thống có thể mở portal quản lý hợp đồng, hóa đơn, chỉ số điện nước...
-        </p>
-      </form>
-    </div>
-  </div>
-
   <script>
-    // 👉 URL Web App Apps Script
-       const API_URL = "https://script.google.com/macros/s/AKfycbwyqskjnUjwkn95TqRmcFjLem2eSMfKBuh23PHDD0QcL0gCwEnqNLYxd6vmi7xqDzUoow/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwyqskjnUjwkn95TqRmcFjLem2eSMfKBuh23PHDD0QcL0gCwEnqNLYxd6vmi7xqDzUoow/exec";
 
     let ALL_ROOMS = [];
     let CONTACT_INFO = { zalo: "", email: "", messenger: "" };
@@ -1473,24 +1341,6 @@
     let ROOM_LIKES = {};
     let ROOM_RATINGS = {};
     let CURRENT_FILTER = "all";
-
-    // Biến lưu phòng đang chọn để đăng nhập
-    let LOGIN_SELECTED_ROOM = null;
-
-    // ⭐ KEY dùng chung với room.html
-    const TENANT_STORAGE_KEY = "ytHomeTenant";
-
-    function saveTenantToStorage(tenant) {
-      try {
-        if (tenant) {
-          localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant));
-        } else {
-          localStorage.removeItem(TENANT_STORAGE_KEY);
-        }
-      } catch (e) {
-        console.error("saveTenantToStorage error:", e);
-      }
-    }
 
     function loadLikesFromStorage() {
       try {
@@ -1626,105 +1476,14 @@
       modal.classList.remove("show");
     }
 
-    // 👉 Mở popup đăng nhập phòng
-    function openTenantLoginModal(roomId) {
-      LOGIN_SELECTED_ROOM = roomId || "";
-      const modal = document.getElementById("loginModal");
-      const label = document.getElementById("loginRoomLabel");
-      const status = document.getElementById("loginStatus");
-
-      if (label) {
-        label.textContent = roomId ? "phòng " + roomId : "tài khoản phòng";
-      }
-      if (status) {
-        status.textContent = "";
-      }
-      if (modal) {
-        modal.classList.add("show");
-      }
-
-      // Auto focus ô số điện thoại
-      setTimeout(() => {
-        const input = document.getElementById("loginPhone");
-        if (input) input.focus();
-      }, 100);
+    // 🔁 Khi bấm Đăng nhập trên card → chuyển sang tenant.html?room=MãPhòng
+    function openTenantLogin(roomId) {
+      const target = roomId || "";
+      const url = target
+        ? "tenant.html?room=" + encodeURIComponent(target)
+        : "tenant.html";
+      window.location.href = url;
     }
-
-    function closeTenantLoginModal() {
-      const modal = document.getElementById("loginModal");
-      if (modal) {
-        modal.classList.remove("show");
-      }
-      LOGIN_SELECTED_ROOM = null;
-    }
-
-     async function handleLoginSubmit(event) {
-  event.preventDefault();
-
-  const statusEl = document.getElementById("loginStatus");
-  const roomCodeInput = document.getElementById("loginCode");
-  const identityInput = document.getElementById("loginPhone");
-
-  const roomCode = roomCodeInput ? roomCodeInput.value.trim() : "";
-  const identity = identityInput ? identityInput.value.trim() : "";
-
-  if (!roomCode || !identity) {
-    if (statusEl) {
-      statusEl.textContent = "Vui lòng nhập đầy đủ Mã phòng và Số điện thoại/CCCD của chủ phòng.";
-    }
-    return;
-  }
-
-  if (statusEl) {
-    statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
-  }
-
-  try {
-    const body = new URLSearchParams({
-      action:   "tenantLogin",
-      roomCode: roomCode,
-      identity: identity
-    });
-
-    const res  = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-      },
-      body
-    });
-
-    const data = await res.json();
-
-    if (!data || !data.success) {
-      if (statusEl) {
-        statusEl.textContent =
-          (data && data.message) ||
-          "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD của chủ phòng không khớp.";
-      }
-      return;
-    }
-
-    // Đăng nhập thành công
-    if (statusEl) {
-      statusEl.textContent = "Đăng nhập tài khoản phòng thành công.";
-    }
-
-    // Chuyển sang trang chi tiết phòng (nếu muốn)
-    const targetRoom = data.maPhong || roomCode;
-    if (targetRoom) {
-      window.location.href = "room.html?room=" + encodeURIComponent(targetRoom) + "#tenant";
-    }
-
-  } catch (err) {
-    console.error("handleLoginSubmit error:", err);
-    if (statusEl) {
-      statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
-    }
-  }
-}
-
-
 
     function getFloorNumber(room) {
       const raw = (room.tang || "").toString().toLowerCase();
@@ -1995,8 +1754,8 @@
                onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
           : "";
 
-        const giaText  = formatVND(room.giaThue);
-        const areaText = room.dienTich ? room.dienTich + " m²" : "";
+        const giaText   = formatVND(room.giaThue);
+        const areaText  = room.dienTich ? room.dienTich + " m²" : "";
         const floorText = room.tang || "";
 
         const likeCountText = likeData.count || 0;
@@ -2036,7 +1795,7 @@
                      </button>`
                   : `<button type="button"
                              class="room-btn-secondary"
-                             onclick="openTenantLoginModal('${roomId}')">
+                             onclick="openTenantLogin('${roomId}')">
                        Đăng nhập
                      </button>`
               }
@@ -2199,18 +1958,7 @@
       document
         .getElementById("contactForm")
         .addEventListener("submit", handleSubmit);
-
-      const loginForm = document.getElementById("loginForm");
-      if (loginForm) {
-        loginForm.addEventListener("submit", handleLoginSubmit);
-      }
     });
   </script>
 </body>
 </html>
-
-
-
-
-
-
