@@ -681,19 +681,37 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      loadTenantFromStorage();
-      initTenantTabs();
-      updateTenantUI();
+      const params = new URLSearchParams(window.location.search);
+      const roomFromURL = params.get("room");
 
-      const loginForm = document.getElementById("tenantLoginForm");
-      if (loginForm) loginForm.addEventListener("submit", handleTenantLogin);
+      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+      if (saved) {
+        const tenant = JSON.parse(saved);
 
-      const mForm = document.getElementById("maintenanceForm");
-      if (mForm) mForm.addEventListener("submit", handleMaintenanceSubmit);
+      // Nếu có dữ liệu hợp lệ và đúng phòng → auto redirect vào portal
+      if (tenant && tenant.maPhong) {
+        document.getElementById("loginRoomLabel").textContent = tenant.maPhong;
 
-      const tForm = document.getElementById("tempStayForm");
-      if (tForm) tForm.addEventListener("submit", handleTempStaySubmit);
-    });
+      if (!roomFromURL || tenant.maPhong === roomFromURL) {
+        window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+        return;
+      }
+     }
+    }
+
+    // Nếu URL có room → auto điền form
+    if (roomFromURL) {
+      const inputCode = document.getElementById("loginCode");
+      if (inputCode) inputCode.value = roomFromURL;
+      }
+  });
+  
+  function logoutTenant() {
+    localStorage.removeItem(TENANT_STORAGE_KEY);
+    window.location.href = "tenant.html";
+  }
+
   </script>
 </body>
 </html>
+
