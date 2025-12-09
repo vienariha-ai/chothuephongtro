@@ -1959,40 +1959,40 @@
         .getElementById("contactForm")
         .addEventListener("submit", handleSubmit);
     });
-  </script>
-  
-  function openTenantPortal() {
-  const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-  if (saved) {
-    const tenant = JSON.parse(saved);
-    if (tenant && tenant.maPhong) {
-      // Đã đăng nhập → vào thẳng portal
-      window.location.href = "tenant.html?room=" + encodeURIComponent(tenant.maPhong);
-      return;
+
+    function openTenantPortal() {
+      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+      if (saved) {
+        const tenant = JSON.parse(saved);
+        if (tenant && tenant.maPhong) {
+        // Đã đăng nhập → vào thẳng portal
+          window.location.href = "tenant.html?room=" + encodeURIComponent(tenant.maPhong);
+        return;
+        }
+        }
+
+      // Nếu chưa đăng nhập → mở tenant.html để yêu cầu login
+        window.location.href = "tenant.html";
+        }
+
+       // Khi nhấn nút Đăng nhập trên từng card
+       function goTenantLogin(roomId) {
+         const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+
+          if (saved) {
+            const tenant = JSON.parse(saved);
+          if (tenant && tenant.maPhong === roomId) {
+        // Đã login đúng phòng → vào luôn
+          window.location.href = "tenant.html?room=" + encodeURIComponent(roomId);
+        return;
+      }
     }
-  }
-
-  // Nếu chưa đăng nhập → mở tenant.html để yêu cầu login
-    window.location.href = "tenant.html";
-  }
-
- // Khi nhấn nút Đăng nhập trên từng card
- function goTenantLogin(roomId) {
-   const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-
-  if (saved) {
-    const tenant = JSON.parse(saved);
-    if (tenant && tenant.maPhong === roomId) {
-      // Đã login đúng phòng → vào luôn
-      window.location.href = "tenant.html?room=" + encodeURIComponent(roomId);
-      return;
-    }
-  }
 
   // Chưa login → chuyển sang tenant.html và truyền mã phòng
   window.location.href = "tenant.html?room=" + encodeURIComponent(roomId);
 }
-
+  </script>
 </body>
 </html>
+
 
