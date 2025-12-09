@@ -1744,6 +1744,19 @@
       }
     }
 
+    function scrollToTenantCardIfNeeded() {
+      const fromParam = getQueryParam("from");
+      if (fromParam === "login") {
+        const card = document.querySelector(".tenant-card");
+        if (card) {
+          // Đợi layout render xong rồi mới scroll cho mượt
+          setTimeout(() => {
+            card.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 400);
+        }
+      }
+     }
+    
     document.addEventListener("DOMContentLoaded", () => {
       loadRatingsFromStorage();
       loadTenantFromStorage();
@@ -1767,7 +1780,12 @@
 
       // Nếu đã có tenant lưu từ trước thì cập nhật UI (tabs sẽ được load khi room detail xong)
       updateTenantUI();
+
+      // Nếu vừa chuyển từ màn hình Đăng nhập (index.html) sang thì auto scroll xuống Tài khoản phòng
+      scrollToTenantCardIfNeeded();
     });
+
   </script>
 </body>
 </html>
+
