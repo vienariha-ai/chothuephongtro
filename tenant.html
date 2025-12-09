@@ -2,368 +2,272 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Tài khoản phòng – YT Home</title>
+  <title>YT Home – Đăng nhập tài khoản phòng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --primary: #2563eb;
-      --bg: #0b1120;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-
-    * { box-sizing:border-box; margin:0; padding:0; }
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(56,189,248,0.2), transparent 50%),
-        radial-gradient(circle at top right, rgba(129,140,248,0.2), transparent 55%),
-        radial-gradient(circle at bottom, rgba(45,212,191,0.25), transparent 55%),
-        var(--bg);
-      color:#e5e7eb;
-      min-height:100vh;
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 50%),
+        radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 55%),
+        radial-gradient(circle at bottom, rgba(45, 212, 191, 0.25), transparent 55%),
+        #0b1120;
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
     }
 
-    a { color:inherit; text-decoration:none; }
-
-    .container { max-width:960px; margin:0 auto; padding:16px; }
-
-    header {
-      border-bottom:1px solid rgba(148,163,184,0.5);
-      margin-bottom:16px;
-      padding-bottom:8px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
+    .page-wrapper {
+      width: 100%;
+      max-width: 420px;
     }
 
-    .logo {
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:700;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
+    .card {
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 1));
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.98);
+      padding: 16px 18px 18px;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
     .logo-icon {
-      width:32px; height:32px;
-      border-radius:999px;
-      background:conic-gradient(from 120deg,#38bdf8,#22c55e,#6366f1,#38bdf8);
-      display:flex; align-items:center; justify-content:center;
-      color:#0b1120; font-size:0.9rem; font-weight:800;
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      background: conic-gradient(from 120deg, #38bdf8, #22c55e, #6366f1, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #0b1120;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8), 0 10px 30px rgba(15, 23, 42, 0.8);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .logo-text-main {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .logo-text-sub {
+      font-size: 0.75rem;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: rgba(148, 163, 184, 0.95);
+      margin-bottom: 10px;
+    }
+
+    .badge-room {
+      display: inline-block;
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.85);
+      background: rgba(15, 23, 42, 0.96);
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: rgba(209, 213, 219, 0.96);
+    }
+
+    .form-control {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      padding: 7px 9px;
+      font-size: 0.86rem;
+      outline: none;
+      background: rgba(15, 23, 42, 0.96);
+      color: #e5e7eb;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .form-control:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
+      background: rgba(15, 23, 42, 0.98);
     }
 
     .btn {
-      border-radius:999px;
-      padding:8px 16px;
-      font-size:0.85rem;
-      font-weight:600;
-      border:none;
-      cursor:pointer;
-      background:radial-gradient(circle at top left,#38bdf8,#2563eb);
-      color:#f9fafb;
-      box-shadow:0 10px 25px rgba(37,99,235,0.5);
-      transition:transform .18s, box-shadow .18s, filter .18s;
-    }
-    .btn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(37,99,235,0.8);filter:brightness(1.05);}
-    .btn-outline{background:transparent;border:1px solid rgba(148,163,184,0.8);box-shadow:none;}
-    .btn-outline:hover{background:rgba(15,23,42,0.9);}
-
-    .card {
-      background:radial-gradient(circle at top,rgba(15,23,42,0.98),rgba(15,23,42,1));
-      border-radius:18px;
-      border:1px solid rgba(148,163,184,0.7);
-      box-shadow:0 18px 46px rgba(15,23,42,0.96);
-      padding:16px;
-      font-size:0.9rem;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: radial-gradient(circle at top left, #38bdf8, #2563eb);
+      color: #f9fafb;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+      width: 100%;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        filter 0.16s ease;
     }
 
-    .section-title{font-size:1.05rem;font-weight:600;margin-bottom:8px;}
-
-    .form-group{margin-bottom:8px;font-size:0.85rem;}
-    .form-group label{display:block;margin-bottom:2px;font-weight:600;}
-    .form-control{
-      width:100%;padding:6px 8px;border-radius:10px;
-      border:1px solid rgba(148,163,184,0.8);background:rgba(15,23,42,0.96);
-      color:#e5e7eb;font-size:0.85rem;outline:none;
-    }
-    .form-control:focus{border-color:#38bdf8;}
-    textarea.form-control{min-height:80px;resize:vertical;}
-
-    .tenant-card p{font-size:0.85rem;color:rgba(209,213,219,0.98);}
-    .tenant-header{
-      display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
-      gap:8px;margin:6px 0 8px;
-    }
-    .tenant-header-main{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
-    .tenant-welcome{font-size:0.88rem;color:rgba(226,232,240,0.98);}
-    .tenant-welcome strong{color:#f9fafb;}
-
-    .tenant-tabs{
-      display:flex;flex-wrap:wrap;gap:6px;
-    }
-    .tenant-tab{
-      font-size:0.8rem;padding:6px 13px;border-radius:999px;
-      border:1px solid rgba(148,163,184,0.7);
-      background:rgba(15,23,42,0.96);
-      color:rgba(226,232,240,0.96);
-      cursor:pointer;transition:all .16s;
-    }
-    .tenant-tab:hover{
-      border-color:#38bdf8;
-      background:radial-gradient(circle at top,rgba(56,189,248,0.22),rgba(15,23,42,0.99));
-      box-shadow:0 10px 24px rgba(15,23,42,0.95);
-    }
-    .tenant-tab.active{
-      border-color:#38bdf8;
-      background:linear-gradient(120deg,rgba(56,189,248,0.28),rgba(15,23,42,0.98));
-      color:#e0f2fe;
-      box-shadow:0 12px 30px rgba(15,23,42,0.98);
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(37, 99, 235, 0.7);
+      filter: brightness(1.03);
     }
 
-    .tenant-panel{display:none;margin-top:6px;}
-    .tenant-panel.active{display:block;}
-
-    .tenant-status-text{font-size:0.8rem;color:rgba(148,163,184,0.96);margin-bottom:4px;}
-
-    .tenant-table{width:100%;border-collapse:collapse;font-size:0.8rem;}
-    .tenant-table th,.tenant-table td{
-      padding:4px 6px;
-      border-bottom:1px solid rgba(51,65,85,0.9);
-      text-align:left;
-    }
-    .tenant-table th{font-weight:600;color:rgba(226,232,240,0.98);}
-    .tenant-table td{color:rgba(203,213,225,0.98);}
-
-    .tenant-history-list{margin-top:4px;display:flex;flex-direction:column;gap:6px;font-size:0.8rem;}
-    .tenant-history-item{
-      padding:6px 8px;border-radius:10px;
-      border:1px solid rgba(51,65,85,0.9);background:rgba(15,23,42,0.96);
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.9);
     }
 
-    .tenant-badge{
-      display:inline-flex;align-items:center;
-      padding:2px 6px;border-radius:999px;
-      border:1px solid rgba(148,163,184,0.8);
-      font-size:0.7rem;margin-right:4px;
+    .btn-outline {
+      background: transparent;
+      border-color: rgba(148, 163, 184, 0.8);
+      box-shadow: none;
+      color: #e5e7eb;
     }
 
-    .tenant-form-note{font-size:0.78rem;color:rgba(148,163,184,0.96);margin-top:4px;}
+    .btn-outline:hover {
+      background: rgba(15, 23, 42, 0.98);
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 1);
+    }
 
-    #tenantLoginStatus,#maintenanceStatus,#tempStayStatus{
-      margin-top:4px;font-size:0.8rem;color:rgba(148,163,184,0.96);min-height:16px;
+    .status {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: rgba(148, 163, 184, 0.96);
+      min-height: 16px;
+    }
+
+    .note {
+      margin-top: 6px;
+      font-size: 0.76rem;
+      color: rgba(148, 163, 184, 0.96);
+    }
+
+    .link-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    a {
+      color: #38bdf8;
+      text-decoration: none;
+      font-size: 0.8rem;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 14px 14px 16px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">
+  <div class="page-wrapper">
+    <div class="card">
+      <div class="logo-row">
         <div class="logo-icon">YT</div>
-        <div>
-          <div>YT Home</div>
-          <div style="font-size:0.7rem;font-weight:500;color:rgba(148,163,184,0.9);">
-            Tài khoản phòng
-          </div>
+        <div class="logo-text">
+          <div class="logo-text-main">YT Home</div>
+          <div class="logo-text-sub">Portal tài khoản phòng</div>
         </div>
       </div>
-      <button class="btn btn-outline" onclick="window.location.href='index.html'">
-        ← Về danh sách phòng
-      </button>
-    </header>
 
-    <main>
-      <div class="card tenant-card">
-        <div class="section-title">Tài khoản phòng</div>
-
-        <!-- Chưa đăng nhập -->
-        <div id="tenantLoginBox">
-          <p id="tenantLoginHint">
-            Mục này dành cho cư dân đang thuê phòng. Vui lòng đăng nhập bằng
-            <strong>Mã phòng</strong> và
-            <strong>Số điện thoại hoặc Số CCCD/CMND của chủ phòng</strong>
-            theo Hợp đồng hiệu lực.
-          </p>
-          <form id="tenantLoginForm">
-            <div class="form-group">
-              <label for="tenantLoginRoomCode">Mã phòng</label>
-              <input
-                id="tenantLoginRoomCode"
-                class="form-control"
-                type="text"
-                placeholder="Ví dụ: P303, 301, 4A..."
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="tenantLoginIdentity">Số điện thoại hoặc Số CCCD/CMND của chủ phòng</label>
-              <input
-                id="tenantLoginIdentity"
-                class="form-control"
-                type="text"
-                placeholder="Nhập Số điện thoại hoặc Số CCCD/CMND"
-                required
-              />
-            </div>
-            <button type="submit" class="btn" style="width:100%;">Đăng nhập tài khoản phòng</button>
-            <p id="tenantLoginStatus"></p>
-          </form>
-        </div>
-
-        <!-- Đã đăng nhập -->
-        <div id="tenantPortal" style="display:none;">
-          <div class="tenant-header">
-            <div class="tenant-header-main">
-              <div class="tenant-welcome">
-                Xin chào <strong id="tenantWelcomeName"></strong> · Phòng
-                <span id="tenantWelcomeRoom"></span>
-              </div>
-              <button type="button"
-                      class="btn btn-outline"
-                      style="padding:4px 10px;font-size:0.78rem;"
-                      onclick="logoutTenant()">
-                Đăng xuất
-              </button>
-            </div>
-            <div class="tenant-tabs">
-              <button class="tenant-tab active" data-tab="tenantBills">Hóa đơn & thanh toán</button>
-              <button class="tenant-tab" data-tab="tenantMaintenance">Báo hỏng / sửa chữa</button>
-              <button class="tenant-tab" data-tab="tenantTempStay">Đăng ký tạm trú</button>
-              <button class="tenant-tab" data-tab="tenantHistory">Yêu cầu đã gửi</button>
-            </div>
-          </div>
-
-          <div class="tenant-tab-panels">
-            <!-- Hóa đơn -->
-            <div id="tenantBills" class="tenant-panel active">
-              <div id="tenantBillsStatus" class="tenant-status-text">Đang tải hóa đơn...</div>
-              <table class="tenant-table" id="tenantBillsTable">
-                <thead>
-                  <tr>
-                    <th>Tháng</th>
-                    <th>Tổng tiền</th>
-                    <th>Trạng thái</th>
-                    <th>Hạn thanh toán</th>
-                    <th>Chi tiết</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-
-            <!-- Báo hỏng -->
-            <div id="tenantMaintenance" class="tenant-panel">
-              <form id="maintenanceForm">
-                <div class="form-group">
-                  <label for="maintenanceCategory">Hạng mục hư hỏng</label>
-                  <select id="maintenanceCategory" class="form-control" required>
-                    <option value="">-- Chọn hạng mục --</option>
-                    <option>Điện</option>
-                    <option>Nước</option>
-                    <option>Nội thất (giường, tủ...)</option>
-                    <option>Thiết bị (máy lạnh, máy nước nóng...)</option>
-                    <option>Khác</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="maintenanceDesc">Mô tả chi tiết</label>
-                  <textarea id="maintenanceDesc"
-                            class="form-control"
-                            required
-                            placeholder="Ví dụ: Vòi nước trong nhà tắm bị rò, chảy liên tục từ tối qua..."></textarea>
-                </div>
-                <div class="form-group">
-                  <label for="maintenanceTime">Thời gian thuận tiện để kiểm tra (dự kiến)</label>
-                  <input
-                    id="maintenanceTime"
-                    class="form-control"
-                    type="text"
-                    placeholder="Ví dụ: Sau 18h các ngày trong tuần hoặc sáng Chủ Nhật"
-                  />
-                </div>
-                <button type="submit" class="btn" style="width:100%;">Gửi yêu cầu sửa chữa</button>
-                <p id="maintenanceStatus"></p>
-                <p class="tenant-form-note">
-                  Yêu cầu của bạn sẽ được ghi nhận trên hệ thống. Quản lý sẽ liên hệ lại để xác nhận thời gian sửa chữa.
-                </p>
-              </form>
-            </div>
-
-            <!-- Đăng ký tạm trú -->
-            <div id="tenantTempStay" class="tenant-panel">
-              <form id="tempStayForm">
-                <div class="form-group">
-                  <label for="tempGuestName">Họ tên người tạm trú</label>
-                  <input id="tempGuestName" class="form-control" type="text" required />
-                </div>
-                <div class="form-group">
-                  <label for="tempGuestId">Số CCCD/CMND</label>
-                  <input id="tempGuestId" class="form-control" type="text" required />
-                </div>
-                <div class="form-group">
-                  <label for="tempStayFrom">Thời gian tạm trú</label>
-                  <input
-                    id="tempStayFrom"
-                    class="form-control"
-                    type="text"
-                    placeholder="Ví dụ: từ 10/12/2025 đến 15/12/2025"
-                    required
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="tempStayNote">Ghi chú thêm (nếu có)</label>
-                  <textarea
-                    id="tempStayNote"
-                    class="form-control"
-                    placeholder="Ví dụ: Người thân ở quê lên khám bệnh..."
-                  ></textarea>
-                </div>
-                <button type="submit" class="btn" style="width:100%;">Gửi đăng ký tạm trú</button>
-                <p id="tempStayStatus"></p>
-                <p class="tenant-form-note">
-                  YT Home sẽ dùng thông tin này để hỗ trợ khai báo tạm trú/tạm vắng theo quy định địa phương.
-                </p>
-              </form>
-            </div>
-
-            <!-- Lịch sử yêu cầu -->
-            <div id="tenantHistory" class="tenant-panel">
-              <div id="tenantHistoryStatus" class="tenant-status-text">Đang tải dữ liệu...</div>
-              <div id="tenantHistoryList" class="tenant-history-list"></div>
-            </div>
-          </div>
-        </div>
+      <div class="title">Đăng nhập tài khoản phòng</div>
+      <div class="subtitle">
+        Nhập <strong>Mã phòng</strong> và <strong>Số điện thoại/CCCD</strong> của chủ phòng để xem portal nội bộ.
       </div>
-    </main>
+
+      <div id="roomBadge" class="badge-room" style="display:none;"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginCode">Mã phòng</label>
+          <input id="loginCode" class="form-control" type="text" autocomplete="off" required />
+        </div>
+        <div class="form-group">
+          <label for="loginPhone">Số điện thoại/CCCD chủ phòng</label>
+          <input id="loginPhone" class="form-control" type="tel" autocomplete="off" required />
+        </div>
+        <button type="submit" class="btn">
+          Đăng nhập
+        </button>
+      </form>
+
+      <div id="loginStatus" class="status"></div>
+
+      <div class="note">
+        Sau khi đăng nhập thành công, hệ thống sẽ lưu tài khoản phòng để những lần sau tự chuyển thẳng vào portal.
+      </div>
+
+      <div class="link-row">
+        <a href="index.html">← Quay lại trang xem phòng</a>
+        <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="logoutTenant()">
+          Đăng xuất / Đổi phòng
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
-    const API_URL =
-      "https://script.google.com/macros/s/AKfycbwyqskjnUjwkn95TqRmcFjLem2eSMfKBuh23PHDD0QcL0gCwEnqNLYxd6vmi7xqDzUoow/exec";
-
+    const API_URL            = "https://script.google.com/macros/s/AKfycbwyqskjnUjwkn95TqRmcFjLem2eSMfKBuh23PHDD0QcL0gCwEnqNLYxd6vmi7xqDzUoow/exec";
     const TENANT_STORAGE_KEY = "ytHomeTenant";
-    let CURRENT_TENANT = null;
 
-    function getQueryParam(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name);
-    }
-
-    function loadTenantFromStorage() {
+    function saveTenantToStorage(tenant) {
       try {
-        const raw = localStorage.getItem(TENANT_STORAGE_KEY);
-        CURRENT_TENANT = raw ? JSON.parse(raw) : null;
-      } catch (e) {
-        CURRENT_TENANT = null;
-      }
-    }
-
-    function saveTenantToStorage() {
-      try {
-        if (CURRENT_TENANT) {
-          localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(CURRENT_TENANT));
+        if (tenant) {
+          localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant));
         } else {
           localStorage.removeItem(TENANT_STORAGE_KEY);
         }
@@ -373,77 +277,39 @@
     }
 
     function logoutTenant() {
-      CURRENT_TENANT = null;
-      saveTenantToStorage();
-      updateTenantUI();
-      alert("Đã đăng xuất tài khoản phòng.");
-    }
-
-    function updateTenantUI() {
-      const loginBox = document.getElementById("tenantLoginBox");
-      const portal   = document.getElementById("tenantPortal");
-      const nameEl   = document.getElementById("tenantWelcomeName");
-      const roomEl   = document.getElementById("tenantWelcomeRoom");
-      const roomInput= document.getElementById("tenantLoginRoomCode");
-
-      if (!loginBox || !portal) return;
-
-      if (CURRENT_TENANT && CURRENT_TENANT.roomCode) {
-        loginBox.style.display = "none";
-        portal.style.display   = "block";
-        if (nameEl) nameEl.textContent =
-          CURRENT_TENANT.tenantName ||
-          CURRENT_TENANT.tenNguoiThue ||
-          "Cư dân";
-        if (roomEl) roomEl.textContent =
-          CURRENT_TENANT.roomCode || CURRENT_TENANT.maPhong || "";
-        loadTenantDashboard();
-      } else {
-        loginBox.style.display = "block";
-        portal.style.display   = "none";
-
-        // Prefill mã phòng từ query ?room=
-        const roomParam = getQueryParam("room");
-        if (roomInput && roomParam) roomInput.value = roomParam;
+      saveTenantToStorage(null);
+      const status = document.getElementById("loginStatus");
+      if (status) {
+        status.textContent = "Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.";
       }
     }
 
-    function initTenantTabs() {
-      const tabs   = document.querySelectorAll(".tenant-tab");
-      const panels = document.querySelectorAll(".tenant-panel");
-      tabs.forEach((tab) => {
-        tab.addEventListener("click", () => {
-          const target = tab.dataset.tab;
-          tabs.forEach(t => t.classList.remove("active"));
-          panels.forEach(p => p.classList.remove("active"));
-          tab.classList.add("active");
-          const panel = document.getElementById(target);
-          if (panel) panel.classList.add("active");
-        });
-      });
-    }
-
-    async function handleTenantLogin(event) {
+    async function handleLoginSubmit(event) {
       event.preventDefault();
-      const roomCode = document.getElementById("tenantLoginRoomCode").value.trim();
-      const identity = document.getElementById("tenantLoginIdentity").value.trim();
-      const statusEl = document.getElementById("tenantLoginStatus");
+
+      const statusEl   = document.getElementById("loginStatus");
+      const roomCodeEl = document.getElementById("loginCode");
+      const phoneEl    = document.getElementById("loginPhone");
+
+      const roomCode = roomCodeEl ? roomCodeEl.value.trim() : "";
+      const identity = phoneEl ? phoneEl.value.trim() : "";
 
       if (!roomCode || !identity) {
         if (statusEl) {
-          statusEl.textContent =
-            "Vui lòng nhập đủ Mã phòng và Số điện thoại hoặc Số CCCD/CMND của chủ phòng.";
+          statusEl.textContent = "Vui lòng nhập đầy đủ Mã phòng và Số điện thoại/CCCD.";
         }
         return;
       }
 
-      if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
+      if (statusEl) {
+        statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
+      }
 
       try {
         const body = new URLSearchParams({
-          action: "tenantLogin",
-          roomCode,
-          identity
+          action:   "tenantLogin",
+          roomCode: roomCode,
+          identity: identity
         });
 
         const res  = await fetch(API_URL, {
@@ -455,263 +321,75 @@
         });
 
         const data = await res.json();
+
         if (!data || !data.success) {
           if (statusEl) {
             statusEl.textContent =
               (data && data.message) ||
-              "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD của chủ phòng không khớp.";
+              "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD không khớp.";
           }
           return;
         }
 
-        CURRENT_TENANT = {
-          roomCode:   data.roomCode   || roomCode,
-          tenantName: data.tenantName || data.tenNguoiThue || "",
-          maPhong:    data.maPhong    || roomCode
+        const tenant = {
+          maPhong: data.maPhong || roomCode,
+          identity: identity,
+          name: data.tenKhach || data.tenChuPhong || ""
         };
-        saveTenantToStorage();
-        if (statusEl) statusEl.textContent = "Đăng nhập thành công.";
-        updateTenantUI();
-      } catch (e) {
-        console.error("handleTenantLogin error:", e);
-        if (statusEl) statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
-      }
-    }
+        saveTenantToStorage(tenant);
 
-    function formatVND(amount) {
-      if (amount === null || amount === undefined || amount === "") return "--";
-      const num = Number(String(amount).replace(/[^\d.-]/g, ""));
-      if (isNaN(num)) return String(amount);
-      return num.toLocaleString("vi-VN") + " đ";
-    }
-
-    function renderTenantBills(invoices) {
-      const tbody    = document.querySelector("#tenantBillsTable tbody");
-      const statusEl = document.getElementById("tenantBillsStatus");
-      if (!tbody) return;
-      tbody.innerHTML = "";
-
-      if (!invoices || !invoices.length) {
-        if (statusEl) statusEl.textContent = "Chưa có hóa đơn trên hệ thống.";
-        return;
-      }
-
-      if (statusEl) statusEl.textContent = "Có " + invoices.length + " hóa đơn.";
-
-      invoices.forEach((inv) => {
-        const tr = document.createElement("tr");
-        const monthText =
-          inv.monthYear ||
-          inv.thangNam ||
-          (inv.month && inv.year ? inv.month + "/" + inv.year : "");
-        const totalText  = formatVND(inv.total || inv.tongTien || inv.tienThanhToan || 0);
-        const statusText = inv.status || inv.trangThai || inv.tinhTrang || "";
-        const dueText    = inv.dueDate || inv.hanThanhToan || "";
-
-        const detailLink = inv.detailUrl || inv.link || "";
-        const detailHtml = detailLink
-          ? `<a href="${detailLink}" target="_blank" rel="noopener noreferrer">Xem</a>`
-          : "";
-
-        tr.innerHTML = `
-          <td>${monthText || ""}</td>
-          <td>${totalText}</td>
-          <td>${statusText}</td>
-          <td>${dueText}</td>
-          <td>${detailHtml}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderTenantHistory(items) {
-      const list     = document.getElementById("tenantHistoryList");
-      const statusEl = document.getElementById("tenantHistoryStatus");
-      if (!list) return;
-      list.innerHTML = "";
-
-      if (!items || !items.length) {
-        if (statusEl) statusEl.textContent = "Chưa có yêu cầu nào được ghi nhận.";
-        return;
-      }
-
-      if (statusEl) statusEl.textContent = "Tổng " + items.length + " yêu cầu.";
-
-      items.forEach((it) => {
-        const div = document.createElement("div");
-        div.className = "tenant-history-item";
-
-        const typeText    = it.type || it.loai || "";
-        const dateText    = it.createdAt || it.ngay || "";
-        const statusText  = it.status || it.trangThai || "";
-        const contentText = it.content || it.noiDung || it.moTa || "";
-
-        div.innerHTML = `
-          <div style="margin-bottom:2px;">
-            <span class="tenant-badge">${typeText}</span>
-            <span style="font-size:0.76rem;color:rgba(148,163,184,0.95);">${dateText}</span>
-          </div>
-          <div style="margin-bottom:2px;">
-            ${contentText}
-          </div>
-          <div style="font-size:0.76rem;color:rgba(148,163,184,0.96);">
-            Trạng thái: <strong>${statusText}</strong>
-          </div>
-        `;
-        list.appendChild(div);
-      });
-    }
-
-    async function loadTenantDashboard() {
-      if (!CURRENT_TENANT || !CURRENT_TENANT.roomCode) return;
-      const roomCode     = CURRENT_TENANT.roomCode;
-      const billsStatus  = document.getElementById("tenantBillsStatus");
-      const historyStatus= document.getElementById("tenantHistoryStatus");
-
-      if (billsStatus)  billsStatus.textContent  = "Đang tải hóa đơn...";
-      if (historyStatus)historyStatus.textContent= "Đang tải dữ liệu...";
-
-      try {
-        const res  = await fetch(
-          API_URL + "?action=tenantDashboard&roomCode=" + encodeURIComponent(roomCode)
-        );
-        const data = await res.json();
-        if (!data || !data.success) {
-          if (billsStatus)  billsStatus.textContent  = "Không tải được dữ liệu hóa đơn.";
-          if (historyStatus)historyStatus.textContent= "Không tải được lịch sử yêu cầu.";
-          return;
-        }
-        renderTenantBills(data.invoices || []);
-        renderTenantHistory(data.history || []);
-      } catch (e) {
-        console.error("loadTenantDashboard error:", e);
-        if (billsStatus)  billsStatus.textContent  = "Lỗi kết nối khi tải hóa đơn.";
-        if (historyStatus)historyStatus.textContent= "Lỗi kết nối khi tải lịch sử yêu cầu.";
-      }
-    }
-
-    async function handleMaintenanceSubmit(event) {
-      event.preventDefault();
-      if (!CURRENT_TENANT || !CURRENT_TENANT.roomCode) {
-        alert("Vui lòng đăng nhập tài khoản phòng trước khi báo hỏng.");
-        return;
-      }
-
-      const category = document.getElementById("maintenanceCategory").value.trim();
-      const desc     = document.getElementById("maintenanceDesc").value.trim();
-      const time     = document.getElementById("maintenanceTime").value.trim();
-      const statusEl = document.getElementById("maintenanceStatus");
-
-      if (statusEl) statusEl.textContent = "Đang gửi yêu cầu...";
-
-      try {
-        const body = new URLSearchParams({
-          action: "tenantMaintenance",
-          roomCode: CURRENT_TENANT.roomCode,
-          category,
-          description: desc,
-          preferredTime: time
-        });
-
-        const res  = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-          body
-        });
-        const data = await res.json();
-        if (!data || !data.success) {
-          if (statusEl) statusEl.textContent =
-            (data && data.message) || "Không gửi được yêu cầu. Vui lòng thử lại.";
-          return;
+        if (statusEl) {
+          statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
         }
 
-        if (statusEl) statusEl.textContent = "Đã gửi yêu cầu sửa chữa. Cảm ơn bạn.";
-        document.getElementById("maintenanceForm").reset();
-        loadTenantDashboard();
-      } catch (e) {
-        console.error("handleMaintenanceSubmit error:", e);
-        if (statusEl) statusEl.textContent = "Có lỗi khi gửi yêu cầu. Vui lòng thử lại.";
-      }
-    }
+        const targetRoom = tenant.maPhong;
+        window.location.href = "portal.html?room=" + encodeURIComponent(targetRoom);
 
-    async function handleTempStaySubmit(event) {
-      event.preventDefault();
-      if (!CURRENT_TENANT || !CURRENT_TENANT.roomCode) {
-        alert("Vui lòng đăng nhập tài khoản phòng trước khi đăng ký tạm trú.");
-        return;
-      }
-
-      const guestName = document.getElementById("tempGuestName").value.trim();
-      const guestId   = document.getElementById("tempGuestId").value.trim();
-      const stayFrom  = document.getElementById("tempStayFrom").value.trim();
-      const note      = document.getElementById("tempStayNote").value.trim();
-      const statusEl  = document.getElementById("tempStayStatus");
-
-      if (statusEl) statusEl.textContent = "Đang gửi đăng ký...";
-
-      try {
-        const body = new URLSearchParams({
-          action: "tenantTempStay",
-          roomCode: CURRENT_TENANT.roomCode,
-          guestName,
-          guestId,
-          stayTime: stayFrom,
-          note
-        });
-
-        const res  = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-          body
-        });
-        const data = await res.json();
-        if (!data || !data.success) {
-          if (statusEl) statusEl.textContent =
-            (data && data.message) || "Không gửi được đăng ký. Vui lòng thử lại.";
-          return;
+      } catch (err) {
+        console.error("handleLoginSubmit error:", err);
+        if (statusEl) {
+          statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
         }
-
-        if (statusEl) statusEl.textContent = "Đã gửi đăng ký tạm trú. Cảm ơn bạn.";
-        document.getElementById("tempStayForm").reset();
-        loadTenantDashboard();
-      } catch (e) {
-        console.error("handleTempStaySubmit error:", e);
-        if (statusEl) statusEl.textContent = "Có lỗi khi gửi đăng ký. Vui lòng thử lại.";
       }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(window.location.search);
-      const roomFromURL = params.get("room");
+      const params       = new URLSearchParams(window.location.search);
+      const roomFromURL  = params.get("room");
+      const loginCodeEl  = document.getElementById("loginCode");
+      const roomBadgeEl  = document.getElementById("roomBadge");
 
-      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-      if (saved) {
-        const tenant = JSON.parse(saved);
-
-      // Nếu có dữ liệu hợp lệ và đúng phòng → auto redirect vào portal
-      if (tenant && tenant.maPhong) {
-        document.getElementById("loginRoomLabel").textContent = tenant.maPhong;
-
-      if (!roomFromURL || tenant.maPhong === roomFromURL) {
-        window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
-        return;
+      // Nếu có tenant trong localStorage → auto redirect vào portal
+      try {
+        const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+        if (saved) {
+          const tenant = JSON.parse(saved);
+          if (tenant && tenant.maPhong) {
+            // Nếu URL không yêu cầu phòng khác thì redirect luôn
+            if (!roomFromURL || roomFromURL === tenant.maPhong) {
+              window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("check existing tenant error:", e);
       }
-     }
-    }
 
-    // Nếu URL có room → auto điền form
-    if (roomFromURL) {
-      const inputCode = document.getElementById("loginCode");
-      if (inputCode) inputCode.value = roomFromURL;
+      // Nếu có room trên URL → auto điền
+      if (roomFromURL && loginCodeEl) {
+        loginCodeEl.value = roomFromURL;
+        if (roomBadgeEl) {
+          roomBadgeEl.style.display = "inline-block";
+          roomBadgeEl.textContent = "Đang đăng nhập cho phòng: " + roomFromURL;
+        }
       }
-  });
-  
-  function logoutTenant() {
-    localStorage.removeItem(TENANT_STORAGE_KEY);
-    window.location.href = "tenant.html";
-  }
 
+      const form = document.getElementById("loginForm");
+      if (form) {
+        form.addEventListener("submit", handleLoginSubmit);
+      }
+    });
   </script>
 </body>
 </html>
-
