@@ -971,9 +971,7 @@
         </nav>
         <div class="nav-cta">
           <!-- 🔁 Đổi sang tenant.html -->
-          <a class="btn-outline btn" href="tenant.html">
-            Tài khoản phòng
-          </a>
+          <a class="btn-outline btn" href="#" onclick="openTenantPortal()">Tài khoản phòng</a>
           <button class="btn-outline btn" type="button" onclick="scrollToSection('contact')">Gọi tư vấn</button>
           <button class="btn" type="button" onclick="scrollToSection('rooms')">Xem phòng</button>
         </div>
@@ -1793,11 +1791,13 @@
                              disabled>
                        Đăng nhập
                      </button>`
-                  : `<button type="button"
-                             class="room-btn-secondary"
-                             onclick="openTenantLogin('${roomId}')">
-                       Đăng nhập
-                     </button>`
+                  : `
+                  <button type="button"
+                    class="room-btn-secondary"
+                    onclick="goTenantLogin('${roomId}')">
+                      Đăng nhập
+                  </button>
+                `
               }
             </div>
           </div>
@@ -1960,5 +1960,39 @@
         .addEventListener("submit", handleSubmit);
     });
   </script>
+  
+  function openTenantPortal() {
+  const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+  if (saved) {
+    const tenant = JSON.parse(saved);
+    if (tenant && tenant.maPhong) {
+      // Đã đăng nhập → vào thẳng portal
+      window.location.href = "tenant.html?room=" + encodeURIComponent(tenant.maPhong);
+      return;
+    }
+  }
+
+  // Nếu chưa đăng nhập → mở tenant.html để yêu cầu login
+    window.location.href = "tenant.html";
+  }
+
+ // Khi nhấn nút Đăng nhập trên từng card
+ function goTenantLogin(roomId) {
+   const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+
+  if (saved) {
+    const tenant = JSON.parse(saved);
+    if (tenant && tenant.maPhong === roomId) {
+      // Đã login đúng phòng → vào luôn
+      window.location.href = "tenant.html?room=" + encodeURIComponent(roomId);
+      return;
+    }
+  }
+
+  // Chưa login → chuyển sang tenant.html và truyền mã phòng
+  window.location.href = "tenant.html?room=" + encodeURIComponent(roomId);
+}
+
 </body>
 </html>
+
