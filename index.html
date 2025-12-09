@@ -1442,6 +1442,15 @@
       window.location.href = "tenant.html?room=" + encodeURIComponent(roomId);
     }
 
+    // 👉 Nút "Xem chi tiết" trên từng card phòng → sang room.html
+    function goRoomDetail(roomId) {
+      if (!roomId) {
+        window.location.href = "room.html";
+        return;
+      }
+      window.location.href = "room.html?room=" + encodeURIComponent(roomId);
+    }
+
     function loadLikesFromStorage() {
       try {
         const raw = localStorage.getItem(LIKE_STORAGE_KEY);
@@ -1876,7 +1885,7 @@
             </div>
             <div class="room-footer-buttons">
               <button class="room-btn" type="button"
-                      onclick="scrollToSection('contact')">
+                      onclick="goRoomDetail('${roomId}')">
                 Xem chi tiết
               </button>
               ${
