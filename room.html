@@ -502,16 +502,31 @@
       transform: translateX(0);
     }
 
-    /* ====== TÀI KHOẢN PHÒNG & TABS (chỉ hiện sau đăng nhập) ====== */
+    /* ====== TÀI KHOẢN PHÒNG & TABS ====== */
     .tenant-card p {
       font-size: 0.85rem;
       color: rgba(209, 213, 219, 0.98);
     }
 
+    .tenant-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 6px 0 8px;
+    }
+
+    .tenant-header-main {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
     .tenant-welcome {
       font-size: 0.88rem;
       color: rgba(226, 232, 240, 0.98);
-      margin: 6px 0 8px;
     }
 
     .tenant-welcome strong {
@@ -522,8 +537,8 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 8px;
-      margin-top: 4px;
+      margin-bottom: 0;
+      margin-top: 0;
     }
 
     .tenant-tab {
@@ -761,9 +776,9 @@
             <!-- Khi CHƯA đăng nhập -->
             <div id="tenantLoginBox">
               <p id="tenantLoginHint">
-                  Mục này dành cho cư dân đang thuê phòng. Vui lòng đăng nhập bằng
-                  <strong>Mã phòng</strong> và <strong>Số điện thoại hoặc Số CCCD/CMND của chủ phòng</strong>
-                  theo Hợp đồng hiệu lực.
+                Mục này dành cho cư dân đang thuê phòng. Vui lòng đăng nhập bằng
+                <strong>Mã phòng</strong> và <strong>Số điện thoại hoặc Số CCCD/CMND của chủ phòng</strong>
+                theo Hợp đồng hiệu lực.
               </p>
               <form id="tenantLoginForm">
                 <div class="form-group">
@@ -779,39 +794,41 @@
                 <div class="form-group">
                   <label for="tenantLoginIdentity">Số điện thoại hoặc Số CCCD/CMND của chủ phòng</label>
                   <input
-                      id="tenantLoginIdentity"
-                      class="form-control"
-                      type="text"
-                      placeholder="Nhập Số điện thoại hoặc Số CCCD/CMND của chủ phòng"
-                      required
-                    />
+                    id="tenantLoginIdentity"
+                    class="form-control"
+                    type="text"
+                    placeholder="Nhập Số điện thoại hoặc Số CCCD/CMND của chủ phòng"
+                    required
+                  />
                 </div>
                 <button type="submit" class="btn" style="width:100%;">Đăng nhập tài khoản phòng</button>
                 <p id="tenantLoginStatus"></p>
               </form>
             </div>
 
-            <!-- Sau KHI đăng nhập: hiện tabs & chức năng -->
+            <!-- Sau KHI đăng nhập: hiện header + tabs + chức năng -->
             <div id="tenantPortal" style="display:none; margin-top:6px;">
-              <div class="tenant-welcome">
-                Xin chào <strong id="tenantWelcomeName"></strong> · Phòng <span id="tenantWelcomeRoom"></span>
-              </div>
-              <div style="margin-bottom:6px;">
-                <button
-                  type="button"
-                  class="btn-outline btn"
-                  style="padding:4px 10px; font-size:0.78rem;"
-                  onclick="logoutTenant()"
-                >
-                  Đăng xuất
-                </button>
-              </div>
-
-              <div class="tenant-tabs">
-                <button class="tenant-tab active" data-tab="tenantBills">Hóa đơn & thanh toán</button>
-                <button class="tenant-tab" data-tab="tenantMaintenance">Báo hỏng / sửa chữa</button>
-                <button class="tenant-tab" data-tab="tenantTempStay">Đăng ký tạm trú</button>
-                <button class="tenant-tab" data-tab="tenantHistory">Yêu cầu đã gửi</button>
+              <div class="tenant-header">
+                <div class="tenant-header-main">
+                  <div class="tenant-welcome">
+                    Xin chào <strong id="tenantWelcomeName"></strong> · Phòng
+                    <span id="tenantWelcomeRoom"></span>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-outline btn"
+                    style="padding:4px 10px; font-size:0.78rem;"
+                    onclick="logoutTenant()"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+                <div class="tenant-tabs">
+                  <button class="tenant-tab active" data-tab="tenantBills">Hóa đơn & thanh toán</button>
+                  <button class="tenant-tab" data-tab="tenantMaintenance">Báo hỏng / sửa chữa</button>
+                  <button class="tenant-tab" data-tab="tenantTempStay">Đăng ký tạm trú</button>
+                  <button class="tenant-tab" data-tab="tenantHistory">Yêu cầu đã gửi</button>
+                </div>
               </div>
 
               <div class="tenant-tab-panels">
@@ -931,11 +948,9 @@
     let CURRENT_ROOM = null;
     let SERVICES = [];
 
-    // ⭐ Rating (dùng chung key với index.html)
     const RATING_STORAGE_KEY = "ytHomeRoomRatings";
     let ROOM_RATINGS = {};
 
-    // ====== TÀI KHOẢN PHÒNG (TENANT) ======
     const TENANT_STORAGE_KEY = "ytHomeTenant";
     let CURRENT_TENANT = null;
 
@@ -1115,11 +1130,9 @@
         `;
       }
 
-      // breadcrumb & short id
       breadcrumbRoom.textContent = maPhong;
       roomIdShort.textContent = maPhong;
 
-      // đổi title tab
       document.title = maPhong + " – YT Home";
 
       roomInfoCard.innerHTML = `
@@ -1169,10 +1182,8 @@
         ${petPolicyHTML}
       `;
 
-      // render rating sao
       renderRoomRating(maPhong);
 
-      // Hình ảnh
       const images = collectImages(room);
       if (images.length) {
         if (images.length === 1) {
@@ -1214,18 +1225,15 @@
         `;
       }
 
-      // Video
       if (room.video) {
         videoContainer.innerHTML = buildVideoEmbed(room.video);
       } else {
         videoContainer.innerHTML = "";
       }
 
-      // Gợi ý nội dung form
       const msgInput = document.getElementById("message");
       msgInput.value = `Em quan tâm phòng ${maPhong} (${loaiPhong}), xin tư vấn thêm và đặt lịch xem phòng.`;
 
-      // cập nhật UI tenant (prefill mã phòng nếu chưa login)
       updateTenantUI();
     }
 
@@ -1408,7 +1416,6 @@
       }
     }
 
-    // ====== TÀI KHOẢN PHÒNG: LOGIN & TABS & API ======
     function loadTenantFromStorage() {
       try {
         const raw = localStorage.getItem(TENANT_STORAGE_KEY);
@@ -1447,7 +1454,6 @@
       if (!loginBox || !portal) return;
 
       if (CURRENT_TENANT && CURRENT_TENANT.roomCode) {
-        // Đã login
         loginBox.style.display = "none";
         portal.style.display = "block";
         if (nameEl) {
@@ -1459,13 +1465,10 @@
         if (roomEl) {
           roomEl.textContent = CURRENT_TENANT.roomCode || CURRENT_TENANT.maPhong || "";
         }
-        // Load dashboard dữ liệu
         loadTenantDashboard();
       } else {
-        // Chưa login
         loginBox.style.display = "block";
         portal.style.display = "none";
-        // Prefill mã phòng nếu đang xem 1 phòng cụ thể
         if (roomInput) {
           if (CURRENT_ROOM && (CURRENT_ROOM.maPhong || CURRENT_ROOM.roomCode)) {
             roomInput.value = CURRENT_ROOM.maPhong || CURRENT_ROOM.roomCode;
@@ -1492,18 +1495,18 @@
       });
     }
 
-   async function handleTenantLogin(event) {
-   event.preventDefault();
-    const roomCode = document.getElementById("tenantLoginRoomCode").value.trim();
-    const identity = document.getElementById("tenantLoginIdentity").value.trim();
-    const statusEl = document.getElementById("tenantLoginStatus");
-    if (!roomCode || !identity) {
-      if (statusEl) {
-        statusEl.textContent =
-        "Vui lòng nhập đủ Mã phòng và Số điện thoại hoặc Số CCCD/CMND của chủ phòng.";
-       }
-      return;
-     }
+    async function handleTenantLogin(event) {
+      event.preventDefault();
+      const roomCode = document.getElementById("tenantLoginRoomCode").value.trim();
+      const identity = document.getElementById("tenantLoginIdentity").value.trim();
+      const statusEl = document.getElementById("tenantLoginStatus");
+      if (!roomCode || !identity) {
+        if (statusEl) {
+          statusEl.textContent =
+            "Vui lòng nhập đủ Mã phòng và Số điện thoại hoặc Số CCCD/CMND của chủ phòng.";
+        }
+        return;
+      }
 
       if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
       try {
@@ -1525,11 +1528,11 @@
         if (!data || !data.success) {
           if (statusEl) {
             statusEl.textContent =
-            (data && data.message) ||
-            "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD của chủ phòng không khớp.";
+              (data && data.message) ||
+              "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD của chủ phòng không khớp.";
           }
-        return;
-     }
+          return;
+        }
 
         CURRENT_TENANT = {
           roomCode: data.roomCode || roomCode,
@@ -1752,14 +1755,13 @@
       if (fromParam === "login") {
         const card = document.querySelector(".tenant-card");
         if (card) {
-          // Đợi layout render xong rồi mới scroll cho mượt
           setTimeout(() => {
             card.scrollIntoView({ behavior: "smooth", block: "start" });
           }, 400);
         }
       }
-     }
-    
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       loadRatingsFromStorage();
       loadTenantFromStorage();
@@ -1781,16 +1783,9 @@
       const tForm = document.getElementById("tempStayForm");
       if (tForm) tForm.addEventListener("submit", handleTempStaySubmit);
 
-      // Nếu đã có tenant lưu từ trước thì cập nhật UI (tabs sẽ được load khi room detail xong)
       updateTenantUI();
-
-      // Nếu vừa chuyển từ màn hình Đăng nhập (index.html) sang thì auto scroll xuống Tài khoản phòng
       scrollToTenantCardIfNeeded();
     });
-
   </script>
 </body>
 </html>
-
-
-
