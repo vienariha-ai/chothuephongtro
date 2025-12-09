@@ -555,17 +555,18 @@
       margin-top: 4px;
       gap: 4px;
     }
-    
-    .room-footer-buttons {
-      display: flex;
-      gap: 4px;
-      justify-content: center;
-    }
 
     .room-actions {
       display: flex;
       align-items: center;
       gap: 4px;
+    }
+
+    /* 👉 Nhóm nút Xem phòng / Đăng nhập – canh giữa */
+    .room-footer-buttons {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
     }
 
     .rating {
@@ -662,6 +663,7 @@
       transform: translateY(0);
       box-shadow: 0 10px 24px rgba(15, 23, 42, 0.9);
     }
+
     .room-btn-secondary {
       font-size: 0.74rem;
       padding: 4px 9px;
@@ -682,6 +684,7 @@
       filter: brightness(1.05);
       border-color: rgba(56, 189, 248, 0.9);
     }
+
     /* Nút đăng nhập bị disable khi phòng trống */
     .room-btn-secondary:disabled,
     .room-btn-secondary.room-btn-secondary-disabled {
@@ -720,7 +723,7 @@
 
     .room-modal-content {
       position: relative;
-      max-width: 520px;
+      max-width: 720px;
       width: 92%;
       max-height: 80vh;
       margin: 40px auto;
@@ -1712,7 +1715,7 @@
   <!-- MODAL PORTAL CHI TIẾT PHÒNG -->
   <div id="roomPortalModal" class="room-modal">
     <div class="room-modal-backdrop" onclick="closeRoomPortalModal()"></div>
-    <div class="room-modal-content" style="max-width:720px;">
+    <div class="room-modal-content">
       <button type="button" class="room-modal-close" onclick="closeRoomPortalModal()">✕</button>
       <div class="room-modal-title" id="portalRoomHeader">Tài khoản phòng</div>
       <div class="room-modal-subtitle">
@@ -1753,7 +1756,6 @@
     </div>
   </div>
 
-  
   <!-- MODAL VIDEO -->
   <div id="videoModal" class="video-modal">
     <div class="video-modal-backdrop" onclick="closeVideoModal()"></div>
@@ -1770,7 +1772,8 @@
       <button class="auth-modal-close" type="button" onclick="closeLoginModal()">✕</button>
       <div class="auth-title">Đăng nhập tài khoản phòng</div>
       <div class="auth-subtitle">
-        Nhập <strong>mã phòng</strong> (ví dụ: P301, P001...) và số điện thoại đã đăng ký hợp đồng.
+        Nhập <strong>Mã phòng</strong> và <strong>Số CCCD/CMND hoặc Số điện thoại của chủ phòng</strong>
+        (theo Hợp đồng hiệu lực và Khách thuê đang ở).
       </div>
       <form id="tenantLoginForm">
         <div class="form-group">
@@ -1779,12 +1782,12 @@
                  placeholder="Ví dụ: 301, 4A, CH-502..." />
         </div>
         <div class="form-group">
-          <label for="loginPhone">Số điện thoại người thuê</label>
-          <input id="loginPhone" class="form-control" type="tel" required
-                 placeholder="Số điện thoại trên hợp đồng" />
+          <label for="loginIdentity">Số CCCD/CMND hoặc Số điện thoại chủ phòng</label>
+          <input id="loginIdentity" class="form-control" type="text" required
+                 placeholder="Nhập số CCCD/CMND hoặc Số điện thoại của chủ phòng" />
         </div>
         <button type="submit" class="btn" style="width:100%; justify-content:center;">
-          Login
+          Đăng nhập
         </button>
         <p id="tenantLoginStatus"></p>
       </form>
@@ -1851,7 +1854,7 @@
       const modal = document.getElementById("authModal");
       if (modal) modal.classList.remove("show");
     }
-   
+
     // Mở modal đăng nhập và auto điền sẵn mã phòng
     function openLoginModalWithRoom(roomCode) {
       const roomInput = document.getElementById("loginRoomCode");
@@ -1893,10 +1896,10 @@
     async function handleTenantLogin(event) {
       event.preventDefault();
       const roomCode = document.getElementById("loginRoomCode").value.trim();
-      const phone = document.getElementById("loginPhone").value.trim();
+      const identity = document.getElementById("loginIdentity").value.trim(); // CCCD/CMND hoặc Số ĐT
       const statusEl = document.getElementById("tenantLoginStatus");
-      if (!roomCode || !phone) {
-        if (statusEl) statusEl.textContent = "Vui lòng nhập đủ mã phòng và số điện thoại.";
+      if (!roomCode || !identity) {
+        if (statusEl) statusEl.textContent = "Vui lòng nhập đủ Mã phòng và Số CCCD/CMND hoặc Số điện thoại.";
         return;
       }
 
@@ -1904,11 +1907,14 @@
 
       try {
         // 👉 Backend Apps Script: xử lý action=tenantLogin
-        // Trả về: { success, message, roomCode, tenantName, maPhong, tenNguoiThue, ... }
+        // - Tìm trong bảng Hợp đồng: Mã phòng với Trạng thái = "Hiệu lực"
+        // - Join sang bảng Khách thuê (cùng Mã phòng) với:
+        //     Loại = "Chủ phòng", Trạng thái = "Đang ở",
+        //     và (Số CCCD == identity OR Số điện thoại == identity)
         const body = new URLSearchParams({
           action: "tenantLogin",
           roomCode: roomCode,
-          phone: phone
+          identity: identity
         });
 
         const res = await fetch(API_URL, {
@@ -1923,7 +1929,8 @@
         if (!data || !data.success) {
           if (statusEl) {
             statusEl.textContent =
-              (data && data.message) || "Không tìm thấy phòng hoặc số điện thoại không khớp.";
+              (data && data.message) ||
+              "Không tìm thấy Hợp đồng hiệu lực hoặc thông tin chủ phòng không khớp.";
           }
           return;
         }
@@ -2173,7 +2180,7 @@
       }
     }
 
-    // ====== PHẦN LIKE / RATING / PHÒNG (giữ nguyên gốc) ======
+    // ====== PHẦN LIKE / RATING / PHÒNG ======
     function loadLikesFromStorage() {
       try {
         const raw = localStorage.getItem(LIKE_STORAGE_KEY);
@@ -2440,7 +2447,6 @@
     }
 
     // ====== RENDER DANH SÁCH PHÒNG ======
-        // ====== RENDER DANH SÁCH PHÒNG ======
     function renderRooms(filter) {
       const grid = document.getElementById("roomsGrid");
       const statusEl = document.getElementById("roomsStatus");
@@ -2496,9 +2502,6 @@
           : (room.trangThaiHienThi || room.trangThai || "Đang thuê");
         const statusClass = isAvailable ? "status-available" : "status-rented";
 
-        const loginBtnDisabledAttr = isAvailable ? "disabled" : "";
-        const loginBtnExtraClass   = isAvailable ? " room-btn-secondary-disabled" : "";
-
         const videoIconHtml = room.video
           ? `<button class="icon-btn" type="button" title="Xem video"
                onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
@@ -2508,6 +2511,7 @@
         const areaText = room.dienTich ? room.dienTich + " m²" : "";
         const floorText = room.tang || "";
 
+        const likeCountText = likeData.count || 0;
         const starsHtml = buildStarsHtml(room);
 
         card.innerHTML = `
@@ -2524,41 +2528,39 @@
             <span>${floorText ? "Tầng " + floorText : ""}</span>
           </div>
           ${starsHtml}
-         <div class="room-footer">
-         <div class="room-actions">
-            <button class="icon-btn${likeBtnExtraClass}" type="button"
-                onclick="toggleLike('${roomId}')">♥</button>
-            <button class="icon-btn" type="button"
-                onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
-            ${videoIconHtml}
-            <span class="like-count">${likeData.count || 0}</span>
+          <div class="room-footer">
+            <div class="room-actions">
+              <button class="icon-btn${likeBtnExtraClass}" type="button"
+                      onclick="toggleLike('${roomId}')">♥</button>
+              <button class="icon-btn" type="button"
+                      onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
+              ${videoIconHtml}
+              <span class="like-count">${likeCountText}</span>
             </div>
             <div class="room-footer-buttons">
-              <a class="room-btn" href="${detailUrl}">Xem</a>
+              <a class="room-btn" href="${detailUrl}">Xem phòng</a>
               ${
-            isAvailable
-            // 🔒 Phòng TRỐNG: nút Đăng nhập bị disable, không bấm được
-            ? `<button type="button"
-                   class="room-btn-secondary room-btn-secondary-disabled"
-                   disabled>
-             Login
-           </button>`
-            // 🔓 Phòng ĐANG THUÊ: mở modal đăng nhập và auto điền mã phòng
-              : `<button type="button"
-                   class="room-btn-secondary"
-                   onclick="openLoginModalWithRoom('${roomId}')">
-             Login
-           </button>`
-          }
-        </div>
-      </div>
-
+                isAvailable
+                  // Phòng CÒN TRỐNG: Đăng nhập bị vô hiệu hóa
+                  ? `<button type="button"
+                             class="room-btn-secondary room-btn-secondary-disabled"
+                             disabled>
+                       Đăng nhập
+                     </button>`
+                  // Phòng ĐANG THUÊ: mở modal đăng nhập và auto điền mã phòng
+                  : `<button type="button"
+                             class="room-btn-secondary"
+                             onclick="openLoginModalWithRoom('${roomId}')">
+                       Đăng nhập
+                     </button>`
+              }
+            </div>
+          </div>
         `;
 
         grid.appendChild(card);
       });
     }
-
 
     function updateStats() {
       const totalRoomsEl = document.getElementById("statTotalRooms");
@@ -2789,7 +2791,7 @@
       return html;
     }
 
-    // ====== ĐĂNG NHẬP THEO MÃ PHÒNG & PORTAL CHI TIẾT ======
+    // ====== ĐĂNG NHẬP THEO MÃ PHÒNG & PORTAL CHI TIẾT (ĐANG ĐỂ DỰ PHÒNG) ======
     let CURRENT_LOGIN_ROOM_ID = null;
 
     function openRoomLoginModal(roomId) {
@@ -2823,19 +2825,6 @@
       if (modal) modal.classList.remove("show");
     }
 
-    // portalData (gợi ý cấu trúc backend trả về):
-    // {
-    //   contract: { soHopDong, ngayKy, ngayHetHan, trangThai },
-    //   invoices: [
-    //     { Tháng, Năm, PhảiThu, TrangThai }
-    //   ],
-    //   tamTru: [
-    //     { hoTen, tuNgay, denNgayDuKien, trangThai }
-    //   ],
-    //   baoHong: [
-    //     { tieuDe, loaiSuCo, trangThai, createdAt }
-    //   ]
-    // }
     function renderRoomPortal(roomId, phone, portalData) {
       const header = document.getElementById("portalRoomHeader");
       const phoneSpan = document.getElementById("portalPhone");
@@ -2989,7 +2978,6 @@
       }
     }
 
-    
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("year").textContent = new Date().getFullYear();
       loadLikesFromStorage();
@@ -2999,7 +2987,7 @@
       loadRoomsFromServer();
       loadContactInfo();
 
-      // Đăng nhập tài khoản phòng
+      // Đăng nhập tài khoản phòng (Mã phòng + CCCD/ĐT chủ phòng)
       const loginForm = document.getElementById("tenantLoginForm");
       if (loginForm) {
         loginForm.addEventListener("submit", handleTenantLogin);
@@ -3029,14 +3017,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
