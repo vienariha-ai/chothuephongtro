@@ -1462,7 +1462,7 @@
 
   <script>
     // 👉 URL Web App Apps Script
-    const API_URL = "https://script.google.com/macros/s/AKfycby5Cwwy8xCp6jtduwCdr_yBNg1YynGi0dIP5alwGdFo1aqdT1qyEN-dsJMC9YPD_ceABQ/exec";
+       const API_URL = "https://script.google.com/macros/s/AKfycby5Cwwy8xCp6jtduwCdr_yBNg1YynGi0dIP5alwGdFo1aqdT1qyEN-dsJMC9YPD_ceABQ/exec";
 
     let ALL_ROOMS = [];
     let CONTACT_INFO = { zalo: "", email: "", messenger: "" };
@@ -1476,6 +1476,21 @@
 
     // Biến lưu phòng đang chọn để đăng nhập
     let LOGIN_SELECTED_ROOM = null;
+
+    // ⭐ KEY dùng chung với room.html
+    const TENANT_STORAGE_KEY = "ytHomeTenant";
+
+    function saveTenantToStorage(tenant) {
+      try {
+        if (tenant) {
+          localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant));
+        } else {
+          localStorage.removeItem(TENANT_STORAGE_KEY);
+        }
+      } catch (e) {
+        console.error("saveTenantToStorage error:", e);
+      }
+    }
 
     function loadLikesFromStorage() {
       try {
@@ -1643,91 +1658,52 @@
       LOGIN_SELECTED_ROOM = null;
     }
 
-  async function handleLoginSubmit(event) {
-  event.preventDefault();
-  const statusEl = document.getElementById("loginStatus");
-  const phone = document.getElementById("loginPhone").value.trim();
-  const code  = document.getElementById("loginCode").value.trim();
+     async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const statusEl = document.getElementById("loginStatus");
+      const phone = document.getElementById("loginPhone").value.trim();
+      const code  = document.getElementById("loginCode").value.trim();
 
-  // Mã phòng ưu tiên lấy từ nút "Đăng nhập" đang chọn
-  const roomCode = LOGIN_SELECTED_ROOM || code;
-
-  if (!roomCode) {
-    if (statusEl) {
-      statusEl.textContent = "Không xác định được mã phòng. Vui lòng mở lại từ nút Đăng nhập của phòng.";
-    }
-    return;
-  }
-
-  // identity = CCCD/CMND hoặc SĐT (chỉ lấy số)
-  const identityNumeric = (phone || code || "").replace(/\D/g, "");
-  if (!identityNumeric) {
-    if (statusEl) {
-      statusEl.textContent = "Vui lòng nhập số điện thoại/Zalo hoặc CCCD/CMND.";
-    }
-    return;
-  }
-
-  if (statusEl) {
-    statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
-  }
-
-  try {
-    const body = new URLSearchParams({
-      action:   "tenantLogin",
-      roomCode: roomCode,         // trùng với tenantLogin_ trong code.gs
-      identity: identityNumeric   // trùng với tham số identity (CCCD/CMND/SĐT)
-    });
-
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-      },
-      body
-    });
-
-    const data = await res.json();
-
-    if (!data || !data.success) {
-      if (statusEl) {
-        statusEl.textContent =
-          (data && data.message) || "Thông tin đăng nhập chưa chính xác. Vui lòng kiểm tra lại.";
+      if (!phone || !code) {
+        if (statusEl) statusEl.textContent = "Vui lòng nhập đầy đủ thông tin.";
+        return;
       }
-      return;
-    }
 
-    // Đăng nhập OK → lưu thông tin nhẹ trong localStorage (để room.html dùng thêm nếu muốn)
-    const finalRoomCode = data.roomCode || roomCode;
-    try {
-      localStorage.setItem(
-        "ytHomeTenantPortal",
-        JSON.stringify({
-          roomCode:   finalRoomCode,
-          tenantName: data.tenantName || data.tenNguoiThue || "",
-          loggedAt:   new Date().toISOString()
-        })
-      );
-    } catch (e) {
-      console.warn("Không lưu được ytHomeTenantPortal:", e);
-    }
+      if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
 
-    if (statusEl) {
-      statusEl.textContent = "Đăng nhập thành công, đang mở trang quản lý phòng...";
-    }
+      try {
+        // TODO: Thay đoạn demo này bằng call Apps Script thật sự nếu bạn có API login
+        /*
+        const body = new URLSearchParams({
+          action: "tenantLogin",
+          phone,
+          code,
+          roomId: LOGIN_SELECTED_ROOM || ""
+        });
+        const res = await fetch(API_URL, { method: "POST", body });
+        const data = await res.json();
+        if (!data || !data.success) {
+          statusEl.textContent = data.message || "Thông tin đăng nhập chưa chính xác.";
+          return;
+        }
+        // Nếu backend trả về link portal:
+        window.location.href = data.portalUrl;
+        */
 
-    // Chuyển sang room.html với chế độ portal quản lý
-    setTimeout(() => {
-      window.location.href =
-        "room.html?room=" + encodeURIComponent(finalRoomCode) + "&portal=1";
-    }, 700);
-  } catch (err) {
-    console.error("handleLoginSubmit error:", err);
-    if (statusEl) {
-      statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
-    }
-  }
-}
+        // Demo tạm: coi như đăng nhập thành công
+        if (statusEl) {
+          statusEl.textContent = "Login demo thành công (bạn gắn thêm API thật ở đây).";
+        }
+        setTimeout(() => {
+          closeTenantLoginModal();
+        }, 1000);
+      } catch (err) {
+        console.error("handleLoginSubmit error:", err);
+        if (statusEl) {
+          statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
+        }
+       }
+     }
 
 
     function getFloorNumber(room) {
@@ -2212,5 +2188,6 @@
   </script>
 </body>
 </html>
+
 
 
