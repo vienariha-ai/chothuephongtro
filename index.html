@@ -656,6 +656,107 @@
       transform: translateY(0);
       box-shadow: 0 10px 24px rgba(15, 23, 42, 0.9);
     }
+    .room-btn-secondary {
+      font-size: 0.74rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.98);
+      color: #e5e7eb;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.8);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease,
+        border-color 0.16s ease;
+    }
+
+    .room-btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.95);
+      filter: brightness(1.05);
+      border-color: rgba(56, 189, 248, 0.9);
+    }
+
+    /* MODAL ĐĂNG NHẬP & PORTAL PHÒNG */
+    .room-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+    }
+
+    .room-modal.show {
+      display: block;
+    }
+
+    .room-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(4px);
+    }
+
+    .room-modal-content {
+      position: relative;
+      max-width: 520px;
+      width: 92%;
+      max-height: 80vh;
+      margin: 40px auto;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), #020617);
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.96);
+      overflow: hidden;
+      padding: 16px 16px 18px;
+      color: #e5e7eb;
+      font-size: 0.85rem;
+    }
+
+    .room-modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      border: none;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.9);
+      color: #f9fafb;
+    }
+
+    .room-modal-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .room-modal-subtitle {
+      font-size: 0.8rem;
+      color: rgba(148, 163, 184, 0.95);
+      margin-bottom: 8px;
+    }
+
+    .portal-section {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(51, 65, 85, 0.9);
+    }
+
+    .portal-section h4 {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .portal-list {
+      font-size: 0.8rem;
+      color: rgba(148, 163, 184, 0.96);
+    }
+
+    .portal-list-item {
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(51, 65, 85, 0.9);
+    }
 
     .room-status-chip {
       font-size: 0.68rem;
@@ -1586,6 +1687,80 @@
     </div>
   </footer>
 
+  <!-- MODAL ĐĂNG NHẬP PHÒNG -->
+  <div id="roomLoginModal" class="room-modal">
+    <div class="room-modal-backdrop" onclick="closeRoomLoginModal()"></div>
+    <div class="room-modal-content">
+      <button type="button" class="room-modal-close" onclick="closeRoomLoginModal()">✕</button>
+      <div class="room-modal-title">Đăng nhập tài khoản phòng</div>
+      <div class="room-modal-subtitle">
+        Nhập số điện thoại chủ phòng để xem thông tin hoá đơn, hợp đồng, tạm trú và báo hỏng.
+      </div>
+
+      <form id="roomLoginForm">
+        <div class="form-group">
+          <label>Mã phòng</label>
+          <input id="loginRoomId" class="form-control" type="text" readonly />
+        </div>
+        <div class="form-group">
+          <label for="loginPhone">Số điện thoại chủ phòng</label>
+          <input id="loginPhone" class="form-control" type="tel" required
+                 placeholder="Nhập số điện thoại đã đăng ký trong Hợp đồng" />
+        </div>
+        <button type="submit" class="btn" style="width:100%;justify-content:center;">
+          Xác nhận & mở chi tiết phòng
+        </button>
+        <p id="roomLoginStatus"
+           style="margin-top:6px;font-size:0.8rem;color:rgba(148,163,184,0.96);"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL PORTAL CHI TIẾT PHÒNG -->
+  <div id="roomPortalModal" class="room-modal">
+    <div class="room-modal-backdrop" onclick="closeRoomPortalModal()"></div>
+    <div class="room-modal-content" style="max-width:720px;">
+      <button type="button" class="room-modal-close" onclick="closeRoomPortalModal()">✕</button>
+      <div class="room-modal-title" id="portalRoomHeader">Tài khoản phòng</div>
+      <div class="room-modal-subtitle">
+        Chủ phòng: <span id="portalPhone"></span>
+      </div>
+
+      <!-- Hoá đơn hàng tháng -->
+      <div class="portal-section">
+        <h4>Hoá đơn hàng tháng</h4>
+        <div id="portalInvoices" class="portal-list">
+          Đang tải dữ liệu hoá đơn...
+        </div>
+      </div>
+
+      <!-- Hợp đồng đã ký -->
+      <div class="portal-section">
+        <h4>Hợp đồng đã ký</h4>
+        <div id="portalContract" class="portal-list">
+          Đang tải thông tin hợp đồng...
+        </div>
+      </div>
+
+      <!-- Đăng ký tạm trú -->
+      <div class="portal-section">
+        <h4>Đăng ký tạm trú</h4>
+        <div id="portalTamTru" class="portal-list">
+          Đang tải danh sách đăng ký tạm trú...
+        </div>
+      </div>
+
+      <!-- Báo hỏng -->
+      <div class="portal-section">
+        <h4>Báo hỏng</h4>
+        <div id="portalBaoHong" class="portal-list">
+          Đang tải lịch sử báo hỏng...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
   <!-- MODAL VIDEO -->
   <div id="videoModal" class="video-modal">
     <div class="video-modal-backdrop" onclick="closeVideoModal()"></div>
@@ -1625,7 +1800,7 @@
 
   <script>
     // 👉 DÁN URL WEB APP API CỦA BẠN Ở ĐÂY
-    const API_URL = "https://script.google.com/macros/s/AKfycbxLTPhZH10mJPtmBxgIfOreFDLXN5oI8ebGZYrZLbeXh6tUKiFETrej-cdGaIMIKceLkw/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbz9W2kZsevLSMlvvVwn4u0S5k3xT1Ncs0MEp4Sxpv__30Pb6sLMWlW1rKnG9Cweqnczfw/exec";
 
     let ALL_ROOMS = [];
     let CONTACT_INFO = { zalo: "", email: "", messenger: "" };
@@ -2315,27 +2490,63 @@
         : "Không có phòng phù hợp với bộ lọc hiện tại.";
 
       filtered.forEach((room) => {
-        const card = document.createElement("div");
-        card.className = "room-card";
-
-        const statusClass =
-          room.trangThaiWebsite === "available" ? "status-available" : "status-rented";
-        const statusText =
-          room.trangThaiWebsite === "available" ? "Còn trống" : "Đang thuê";
-
-        const roomId = room.maPhong || "";
-        const detailIdEncoded = encodeURIComponent(roomId);
-
-        const likeData = ROOM_LIKES[roomId] || { count: 0, liked: false };
-        const likeBtnExtraClass = likeData.liked ? " like-btn-liked" : "";
-
-        const detailUrl = `room.html?room=${detailIdEncoded}`;
-        const starsHtml = buildStarsHtml(room);
+         const detailUrl = `room.html?room=${detailIdEncoded}`;
+         const starsHtml = buildStarsHtml(room);
 
         const videoIconHtml = room.video
-          ? `<button class="icon-btn" title="Xem video"
-               onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
-          : "";
+        ? `<button class="icon-btn" title="Xem video"
+             onclick="openVideoModal('${encodeURIComponent(room.video)}')">▶</button>`
+        : "";
+
+        card.innerHTML = `
+        <!-- Dòng 1: tên phòng + trạng thái -->
+        <div class="room-line">
+          <div>
+            ${roomId || ""}${room.loaiPhong ? " · " + room.loaiPhong : ""}
+          </div>
+          <span class="room-status-chip ${statusClass}">
+            ${statusText}
+          </span>
+        </div>
+
+        <!-- Dòng 2: Tầng -->
+        <div class="room-line">
+          <span>${room.tang ? "Tầng " + room.tang : ""}</span>
+        </div>
+
+        <!-- Dòng 3: giá thuê -->
+        <div class="room-line">
+          <span>
+            ${room.giaThue ? formatVND(room.giaThue) + " /tháng" : "-/tháng"}
+          </span>
+        </div>
+
+        <!-- Dòng 4: ⭐⭐⭐⭐⭐ + số lượt đánh giá -->
+        <div class="room-line">
+          ${starsHtml}
+        </div>
+
+        <!-- Footer: like / link / xem / đăng nhập -->
+        <div class="room-footer">
+          <div class="room-actions">
+            <button class="icon-btn${likeBtnExtraClass}"
+              onclick="toggleLike('${roomId}')">♥</button>
+            <button class="icon-btn"
+              onclick="copyRoomLink('${detailIdEncoded}')">🔗</button>
+            ${videoIconHtml || ""}
+            <span class="like-count">${likeData.count || 0}</span>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <a class="room-btn" href="${detailUrl}">Xem chi tiết</a>
+            <button type="button"
+                    class="room-btn-secondary"
+                    onclick="openRoomLoginModal('${roomId}')">
+              Đăng nhập
+            </button>
+          </div>
+          </div>
+        `;
+
 
         card.innerHTML = `
           <!-- Dòng 1: tên phòng + trạng thái -->
@@ -2612,6 +2823,207 @@
       return html;
     }
 
+    // ====== ĐĂNG NHẬP THEO MÃ PHÒNG & PORTAL CHI TIẾT ======
+    let CURRENT_LOGIN_ROOM_ID = null;
+
+    function openRoomLoginModal(roomId) {
+      CURRENT_LOGIN_ROOM_ID = roomId || "";
+      const modal = document.getElementById("roomLoginModal");
+      const roomInput = document.getElementById("loginRoomId");
+      const phoneInput = document.getElementById("loginPhone");
+      const statusEl = document.getElementById("roomLoginStatus");
+
+      if (roomInput) roomInput.value = roomId || "";
+      if (phoneInput) phoneInput.value = "";
+      if (statusEl) statusEl.textContent = "";
+
+      if (modal) modal.classList.add("show");
+    }
+
+    function closeRoomLoginModal() {
+      const modal = document.getElementById("roomLoginModal");
+      if (modal) modal.classList.remove("show");
+    }
+
+    function openRoomPortalModal(roomId, phone, portalData) {
+      const modal = document.getElementById("roomPortalModal");
+      if (!modal) return;
+      renderRoomPortal(roomId, phone, portalData || {});
+      modal.classList.add("show");
+    }
+
+    function closeRoomPortalModal() {
+      const modal = document.getElementById("roomPortalModal");
+      if (modal) modal.classList.remove("show");
+    }
+
+    // portalData (gợi ý cấu trúc backend trả về):
+    // {
+    //   contract: { soHopDong, ngayKy, ngayHetHan, trangThai },
+    //   invoices: [
+    //     { Tháng, Năm, PhảiThu, TrangThai }
+    //   ],
+    //   tamTru: [
+    //     { hoTen, tuNgay, denNgayDuKien, trangThai }
+    //   ],
+    //   baoHong: [
+    //     { tieuDe, loaiSuCo, trangThai, createdAt }
+    //   ]
+    // }
+    function renderRoomPortal(roomId, phone, portalData) {
+      const header = document.getElementById("portalRoomHeader");
+      const phoneSpan = document.getElementById("portalPhone");
+      const invBox = document.getElementById("portalInvoices");
+      const contractBox = document.getElementById("portalContract");
+      const tamTruBox = document.getElementById("portalTamTru");
+      const baoHongBox = document.getElementById("portalBaoHong");
+
+      if (header) header.textContent = "Tài khoản phòng " + (roomId || "");
+      if (phoneSpan) phoneSpan.textContent = phone || "";
+
+      // Hoá đơn
+      const invoices = portalData.invoices || [];
+      if (invBox) {
+        if (!invoices.length) {
+          invBox.textContent = "Chưa có hoá đơn nào được ghi nhận.";
+        } else {
+          invBox.innerHTML = invoices
+            .map((iv) => {
+              const thang = iv["Tháng"] || iv.thang || "";
+              const nam = iv["Năm"] || iv.nam || "";
+              const phaiThu = iv["Phải thu"] || iv.phaiThu || iv.soTien || "";
+              const trangThai = iv["Trạng thái"] || iv.trangThai || "";
+              return `
+                <div class="portal-list-item">
+                  Tháng ${thang}/${nam} – Phải thu: <strong>${formatVND(phaiThu)}</strong>
+                  ${trangThai ? ` – Trạng thái: <strong>${trangThai}</strong>` : ""}
+                </div>
+              `;
+            })
+            .join("");
+        }
+      }
+
+      // Hợp đồng
+      const hd = portalData.contract || {};
+      if (contractBox) {
+        if (!Object.keys(hd).length) {
+          contractBox.textContent = "Không tìm thấy hợp đồng còn hiệu lực.";
+        } else {
+          const soHD = hd.soHopDong || hd["Số hợp đồng"] || "--";
+          const ngayKy = hd.ngayKy || hd["Ngày ký"] || "--";
+          const ngayHetHan = hd.ngayHetHan || hd["Ngày hết hạn"] || "--";
+          const trangThaiHD = hd.trangThai || hd["Trạng thái"] || "--";
+
+          contractBox.innerHTML = `
+            <div class="portal-list-item">
+              Số hợp đồng: <strong>${soHD}</strong><br/>
+              Ngày ký: <strong>${ngayKy}</strong><br/>
+              Ngày hết hạn: <strong>${ngayHetHan}</strong><br/>
+              Trạng thái: <strong>${trangThaiHD}</strong>
+            </div>
+          `;
+        }
+      }
+
+      // Tạm trú
+      const tamTru = portalData.tamTru || [];
+      if (tamTruBox) {
+        if (!tamTru.length) {
+          tamTruBox.textContent = "Chưa có đăng ký tạm trú.";
+        } else {
+          tamTruBox.innerHTML = tamTru
+            .map((tt) => {
+              const ten = tt.hoTen || tt["Họ tên"] || "--";
+              const tuNgay = tt.tuNgay || tt["Từ ngày"] || "--";
+              const denNgay = tt.denNgayDuKien || tt["Đến ngày dự kiến"] || "--";
+              const stt = tt.trangThai || tt["Trạng thái"] || "";
+              return `
+                <div class="portal-list-item">
+                  ${ten} – từ ${tuNgay} đến ${denNgay}
+                  ${stt ? ` – Trạng thái: <strong>${stt}</strong>` : ""}
+                </div>
+              `;
+            })
+            .join("");
+        }
+      }
+
+      // Báo hỏng
+      const baoHong = portalData.baoHong || [];
+      if (baoHongBox) {
+        if (!baoHong.length) {
+          baoHongBox.textContent = "Chưa có báo hỏng nào.";
+        } else {
+          baoHongBox.innerHTML = baoHong
+            .map((bh) => {
+              const tieuDe = bh.tieuDe || bh["Tiêu đề"] || "--";
+              const loai = bh.loaiSuCo || bh["Loại sự cố"] || "";
+              const tt = bh.trangThai || bh["Trạng thái"] || "";
+              const created = bh.createdAt || bh["Ngày gửi"] || "";
+              return `
+                <div class="portal-list-item">
+                  <strong>${tieuDe}</strong>${loai ? ` (${loai})` : ""}<br/>
+                  Gửi lúc: ${created || "--"}
+                  ${tt ? ` – Trạng thái: <strong>${tt}</strong>` : ""}
+                </div>
+              `;
+            })
+            .join("");
+        }
+      }
+    }
+
+    async function handleRoomLoginSubmit(event) {
+      event.preventDefault();
+      const statusEl = document.getElementById("roomLoginStatus");
+      const roomId = (document.getElementById("loginRoomId").value || CURRENT_LOGIN_ROOM_ID || "").trim();
+      const phone = (document.getElementById("loginPhone").value || "").trim();
+
+      if (!roomId || !phone) {
+        if (statusEl) statusEl.textContent = "Vui lòng nhập đủ Mã phòng và Số điện thoại.";
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = "Đang kiểm tra hợp đồng...";
+
+      try {
+        const body = new URLSearchParams({
+          action: "roomLogin",       // 👉 Backend đọc action này
+          maPhong: roomId,
+          phone: phone
+        });
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body
+        });
+
+        const data = await res.json();
+
+        if (!data || !data.success) {
+          if (statusEl) {
+            statusEl.textContent =
+              (data && data.message) ||
+              "Không tìm thấy Hợp đồng còn hiệu lực với mã phòng và số điện thoại này.";
+          }
+          return;
+        }
+
+        if (statusEl) statusEl.textContent = "Đăng nhập thành công.";
+        closeRoomLoginModal();
+        // data.portal chứa dữ liệu hoá đơn, hợp đồng, tạm trú, báo hỏng
+        openRoomPortalModal(roomId, phone, data.portal || {});
+      } catch (e) {
+        console.error("roomLogin error:", e);
+        if (statusEl) statusEl.textContent = "Có lỗi khi kiểm tra hợp đồng. Vui lòng thử lại.";
+      }
+    }
+
+    
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("year").textContent = new Date().getFullYear();
       loadLikesFromStorage();
@@ -2626,7 +3038,10 @@
       if (loginForm) {
         loginForm.addEventListener("submit", handleTenantLogin);
       }
-
+      const roomLoginForm = document.getElementById("roomLoginForm");
+      if (roomLoginForm) {
+        roomLoginForm.addEventListener("submit", handleRoomLoginSubmit);
+      }
       const mForm = document.getElementById("maintenanceForm");
       if (mForm) {
         mForm.addEventListener("submit", handleMaintenanceSubmit);
@@ -2648,3 +3063,4 @@
   </script>
 </body>
 </html>
+
