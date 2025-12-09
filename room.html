@@ -11,209 +11,321 @@
       --bg: #0b1120;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing:border-box; margin:0; padding:0; }
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 50%),
-        radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 55%),
-        radial-gradient(circle at bottom, rgba(45, 212, 191, 0.25), transparent 55%),
+        radial-gradient(circle at top left, rgba(56,189,248,0.2), transparent 50%),
+        radial-gradient(circle at top right, rgba(129,140,248,0.2), transparent 55%),
+        radial-gradient(circle at bottom, rgba(45,212,191,0.25), transparent 55%),
         var(--bg);
-      color: #e5e7eb;
-      min-height: 100vh;
+      color:#e5e7eb;
+      min-height:100vh;
     }
 
-    a { color: inherit; text-decoration: none; }
+    a { color:inherit; text-decoration:none; }
 
     .container {
-      width: 100%;
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 16px;
+      width:100%;
+      max-width:1120px;
+      margin:0 auto;
+      padding:16px;
     }
 
     header {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      border-bottom:1px solid rgba(148,163,184,0.5);
+      margin-bottom:16px;
+      padding-bottom:8px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
     }
 
     .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:700;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
     }
 
     .logo-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
-      background: conic-gradient(from 120deg, #38bdf8, #22c55e, #6366f1, #38bdf8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0b1120;
-      font-size: 0.9rem;
-      font-weight: 800;
+      width:32px;
+      height:32px;
+      border-radius:999px;
+      background:conic-gradient(from 120deg,#38bdf8,#22c55e,#6366f1,#38bdf8);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#0b1120;
+      font-size:0.9rem;
+      font-weight:800;
+    }
+
+    .logo-sub {
+      font-size:0.7rem;
+      font-weight:500;
+      color:rgba(148,163,184,0.9);
     }
 
     .btn {
-      border-radius: 999px;
-      padding: 8px 16px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      background: radial-gradient(circle at top left, #38bdf8, #2563eb);
-      color: #f9fafb;
-      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.5);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+      border-radius:999px;
+      padding:8px 16px;
+      font-size:0.85rem;
+      font-weight:600;
+      border:none;
+      cursor:pointer;
+      background:radial-gradient(circle at top left,#38bdf8,#2563eb);
+      color:#f9fafb;
+      box-shadow:0 10px 25px rgba(37,99,235,0.5);
+      transition:transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
     }
 
     .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 16px 40px rgba(37, 99, 235, 0.8);
-      filter: brightness(1.05);
+      transform:translateY(-2px);
+      box-shadow:0 16px 40px rgba(37,99,235,0.8);
+      filter:brightness(1.05);
     }
 
     .btn-outline {
-      background: transparent;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-      box-shadow: none;
+      background:transparent;
+      border:1px solid rgba(148,163,184,0.8);
+      box-shadow:none;
     }
 
-    main { padding-bottom: 24px; }
+    main { padding-bottom:24px; }
 
     .breadcrumb {
-      font-size: 0.8rem;
-      color: rgba(148, 163, 184, 0.9);
-      margin-bottom: 12px;
+      font-size:0.8rem;
+      color:rgba(148,163,184,0.9);
+      margin-bottom:12px;
     }
 
-    .breadcrumb a { text-decoration: underline; }
+    .breadcrumb a { text-decoration:underline; }
 
     .layout {
-      display: grid;
-      grid-template-columns: 1.5fr 1fr;
-      gap: 16px;
+      display:grid;
+      grid-template-columns:1.5fr 1fr;
+      gap:16px;
     }
 
     .card {
-      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 1));
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      box-shadow: 0 18px 46px rgba(15, 23, 42, 0.96);
-      padding: 14px;
-      font-size: 0.9rem;
+      background:radial-gradient(circle at top,rgba(15,23,42,0.98),rgba(15,23,42,1));
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,0.7);
+      box-shadow:0 18px 46px rgba(15,23,42,0.96);
+      padding:14px;
+      font-size:0.9rem;
     }
 
     .room-title-line {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 4px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:4px;
     }
 
-    .room-title { font-size: 1.3rem; font-weight: 700; }
-    .room-sub { font-size: 0.85rem; color: rgba(148, 163, 184, 0.95); margin-bottom: 8px; }
+    .room-title { font-size:1.3rem; font-weight:700; }
+    .room-sub { font-size:0.85rem; color:rgba(148,163,184,0.95); margin-bottom:8px; }
 
     .price-row {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 8px; flex-wrap: wrap;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+      flex-wrap:wrap;
     }
 
-    .price { font-size: 1.15rem; font-weight: 700; }
+    .price { font-size:1.15rem; font-weight:700; }
 
     .status-chip {
-      font-size: 0.75rem;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.9);
-      background: rgba(15, 23, 42, 0.95);
-      white-space: nowrap;
+      font-size:0.75rem;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.9);
+      background:rgba(15,23,42,0.95);
+      white-space:nowrap;
     }
 
-    .status-available { background: #22c55e; border-color: #22c55e; color: #022c22; }
-    .status-rented    { background: #4b5563; border-color: #6b7280; color: #e5e7eb; }
+    .status-available { background:#22c55e; border-color:#22c55e; color:#022c22; }
+    .status-rented    { background:#4b5563; border-color:#6b7280; color:#e5e7eb; }
 
     .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 8px;
-      font-size: 0.82rem;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      margin-bottom:8px;
+      font-size:0.82rem;
     }
 
-    .meta-item span { display: block; }
-    .meta-label { color: rgba(148, 163, 184, 0.95); }
-    .meta-value { font-weight: 600; }
+    .meta-item span { display:block; }
+    .meta-label { color:rgba(148,163,184,0.95); }
+    .meta-value { font-weight:600; }
 
-    .section-title { font-size: 1rem; font-weight: 600; margin: 10px 0 6px; }
-    .room-desc { font-size: 0.9rem; color: rgba(209, 213, 219, 0.98); }
+    .section-title { font-size:1rem; font-weight:600; margin:10px 0 6px; }
+    .room-desc { font-size:0.9rem; color:rgba(209,213,219,0.98); }
 
     /* Rating */
-    .rating { display:flex; align-items:center; gap:2px; margin-top:4px; font-size:0.9rem; }
-    .rating .star { cursor:pointer; color:#fbbf24; opacity:0.35; transition:transform .12s,opacity .12s; }
-    .rating .star.active{opacity:1;}
-    .rating .star:hover{transform:translateY(-1px) scale(1.05); opacity:1;}
-
-    .asset-list{padding-left:18px;margin-top:4px;font-size:0.85rem;color:rgba(209,213,219,0.98);}
-    .asset-list li{margin-bottom:2px;}
-
-    .gallery{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:8px;}
-    .gallery-main img,.gallery-thumb img{width:100%;height:100%;object-fit:cover;border-radius:12px;}
-    .gallery-thumb-grid{display:grid;grid-template-columns:1fr;gap:6px;height:100%;}
-    .gallery-placeholder{
-      font-size:0.8rem;color:rgba(148,163,184,0.95);
-      padding:18px;border-radius:12px;border:1px dashed rgba(148,163,184,0.8);text-align:center;
+    .rating {
+      display:flex;
+      align-items:center;
+      gap:2px;
+      margin-top:4px;
+      font-size:0.9rem;
     }
 
-    #videoContainer{position:relative;width:100%;padding-top:56.25%;margin-top:8px;border-radius:12px;overflow:hidden;background:#000;}
-    #videoContainer iframe,#videoContainer video{position:absolute;inset:0;width:100%;height:100%;border:none;}
+    .rating .star {
+      cursor:pointer;
+      color:#fbbf24;
+      opacity:0.35;
+      transition:transform .12s, opacity .12s;
+    }
 
-    .fee-table{width:100%;border-collapse:collapse;font-size:0.85rem;margin-top:6px;}
-    .fee-table th,.fee-table td{border:1px solid rgba(55,65,81,0.9);padding:6px 8px;vertical-align:top;}
-    .fee-table th{background:rgba(15,23,42,0.9);}
-    .fee-table th:nth-child(1),.fee-table td:nth-child(1){width:38%;}
-    .fee-table th:nth-child(2),.fee-table td:nth-child(2){width:27%;white-space:nowrap;text-align:right;}
-    .fee-table th:nth-child(3),.fee-table td:nth-child(3){width:35%;}
+    .rating .star.active { opacity:1; }
+    .rating .star:hover { transform:translateY(-1px) scale(1.05); opacity:1; }
 
-    .service-icon{margin-right:6px;font-size:1rem;display:inline-block;transition:transform .15s;}
-    .fee-table tr:hover .service-icon{transform:scale(1.1);}
+    .asset-list {
+      padding-left:18px;
+      margin-top:4px;
+      font-size:0.85rem;
+      color:rgba(209,213,219,0.98);
+    }
 
-    .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
-    .badge{
-      font-size:0.78rem;padding:4px 9px;border-radius:999px;
-      border:1px dashed rgba(148,163,184,0.9);background:rgba(15,23,42,0.95);
+    .asset-list li { margin-bottom:2px; }
+
+    .gallery {
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:8px;
+      margin-top:8px;
+    }
+
+    .gallery-main img,
+    .gallery-thumb img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      border-radius:12px;
+    }
+
+    .gallery-thumb-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:6px;
+      height:100%;
+    }
+
+    .gallery-placeholder {
+      font-size:0.8rem;
+      color:rgba(148,163,184,0.95);
+      padding:18px;
+      border-radius:12px;
+      border:1px dashed rgba(148,163,184,0.8);
+      text-align:center;
+    }
+
+    #videoContainer {
+      position:relative;
+      width:100%;
+      padding-top:56.25%;
+      margin-top:8px;
+      border-radius:12px;
+      overflow:hidden;
+      background:#000;
+    }
+
+    #videoContainer iframe,
+    #videoContainer video {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:none;
+    }
+
+    .fee-table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:0.85rem;
+      margin-top:6px;
+    }
+
+    .fee-table th,
+    .fee-table td {
+      border:1px solid rgba(55,65,81,0.9);
+      padding:6px 8px;
+      vertical-align:top;
+    }
+
+    .fee-table th { background:rgba(15,23,42,0.9); }
+
+    .fee-table th:nth-child(1),
+    .fee-table td:nth-child(1) { width:38%; }
+
+    .fee-table th:nth-child(2),
+    .fee-table td:nth-child(2) {
+      width:27%;
+      white-space:nowrap;
+      text-align:right;
+    }
+
+    .fee-table th:nth-child(3),
+    .fee-table td:nth-child(3) { width:35%; }
+
+    .service-icon {
+      margin-right:6px;
+      font-size:1rem;
+      display:inline-block;
+      transition:transform .15s;
+    }
+
+    .fee-table tr:hover .service-icon { transform:scale(1.1); }
+
+    .badge-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:6px;
+    }
+
+    .badge {
+      font-size:0.78rem;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px dashed rgba(148,163,184,0.9);
+      background:rgba(15,23,42,0.95);
     }
 
     /* Form liên hệ */
-    .form-group{margin-bottom:8px;font-size:0.85rem;}
-    .form-group label{display:block;margin-bottom:2px;font-weight:600;}
-    .form-control{
-      width:100%;padding:6px 8px;border-radius:10px;
-      border:1px solid rgba(148,163,184,0.8);background:rgba(15,23,42,0.96);
-      color:#e5e7eb;font-size:0.85rem;outline:none;
+    .form-group { margin-bottom:8px; font-size:0.85rem; }
+    .form-group label { display:block; margin-bottom:2px; font-weight:600; }
+
+    .form-control {
+      width:100%;
+      padding:6px 8px;
+      border-radius:10px;
+      border:1px solid rgba(148,163,184,0.8);
+      background:rgba(15,23,42,0.96);
+      color:#e5e7eb;
+      font-size:0.85rem;
+      outline:none;
     }
-    .form-control:focus{border-color:#38bdf8;}
-    textarea.form-control{min-height:80px;resize:vertical;}
-    #formStatus{font-size:0.8rem;margin-top:4px;color:rgba(148,163,184,0.96);}
 
-    .quick-links{margin-top:8px;font-size:0.8rem;color:rgba(148,163,184,0.96);}
-    .quick-links-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+    .form-control:focus { border-color:#38bdf8; }
+    textarea.form-control { min-height:80px; resize:vertical; }
 
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
+    #formStatus { font-size:0.8rem; margin-top:4px; color:rgba(148,163,184,0.96); }
+
+    .quick-links { margin-top:8px; font-size:0.8rem; color:rgba(148,163,184,0.96); }
+    .quick-links-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+
+    @media (max-width:900px) {
+      .layout { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -224,9 +336,7 @@
         <div class="logo-icon">YT</div>
         <div>
           <div>YT Home</div>
-          <div style="font-size:0.7rem; font-weight:500; color:rgba(148,163,184,0.9);">
-            Chi tiết phòng
-          </div>
+          <div class="logo-sub">Chi tiết phòng</div>
         </div>
       </div>
       <button class="btn btn-outline" onclick="window.location.href='index.html'">
@@ -259,13 +369,11 @@
 
         <!-- Cột phải -->
         <div>
-          <!-- Chi phí dịch vụ -->
           <div class="card" id="feeCard">
             <div class="section-title">Chi phí dịch vụ tham khảo</div>
             <p style="font-size:0.85rem;">Đang tải thông tin dịch vụ...</p>
           </div>
 
-          <!-- Lưu ý & chính sách -->
           <div class="card" style="margin-top:12px;">
             <div class="section-title">Lưu ý & chính sách</div>
             <ul style="font-size:0.85rem; padding-left:18px; margin-top:4px;">
@@ -276,7 +384,6 @@
             </ul>
           </div>
 
-          <!-- Đặt lịch xem phòng -->
           <div class="card" style="margin-top:12px;">
             <div class="section-title">Đặt lịch xem phòng này</div>
             <p style="font-size:0.85rem; margin-bottom:6px;">
@@ -303,17 +410,17 @@
             <div class="quick-links">
               Hoặc liên hệ nhanh:
               <div class="quick-links-row">
-                <a id="zaloQuickLink" class="btn btn-outline" href="#"
-                   target="_blank" rel="noopener noreferrer"
+                <a id="zaloQuickLink" class="btn btn-outline"
+                   href="#" target="_blank" rel="noopener noreferrer"
                    style="padding:6px 14px; font-size:0.78rem;">
                   Nhắn Zalo
                 </a>
-                <a id="emailQuickLink" class="btn btn-outline" href="#"
-                   style="padding:6px 14px; font-size:0.78rem;">
+                <a id="emailQuickLink" class="btn btn-outline"
+                   href="#" style="padding:6px 14px; font-size:0.78rem;">
                   Gửi Email
                 </a>
-                <a id="messengerQuickLink" class="btn btn-outline" href="#"
-                   target="_blank" rel="noopener noreferrer"
+                <a id="messengerQuickLink" class="btn btn-outline"
+                   href="#" target="_blank" rel="noopener noreferrer"
                    style="padding:6px 14px; font-size:0.78rem;">
                   Chat Messenger
                 </a>
@@ -338,7 +445,7 @@
     const API_URL =
       "https://script.google.com/macros/s/AKfycbwyqskjnUjwkn95TqRmcFjLem2eSMfKBuh23PHDD0QcL0gCwEnqNLYxd6vmi7xqDzUoow/exec";
 
-    let CONTACT_INFO = { zalo: "", email: "", messenger: "" };
+    let CONTACT_INFO = { zalo:"", email:"", messenger:"" };
     let CURRENT_ROOM = null;
     let SERVICES = [];
 
@@ -349,25 +456,29 @@
       try {
         const raw = localStorage.getItem(RATING_STORAGE_KEY);
         ROOM_RATINGS = raw ? JSON.parse(raw) : {};
-      } catch (e) { ROOM_RATINGS = {}; }
+      } catch (e) {
+        ROOM_RATINGS = {};
+      }
     }
 
     function saveRatingsToStorage() {
       try {
         localStorage.setItem(RATING_STORAGE_KEY, JSON.stringify(ROOM_RATINGS));
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     function getRoomRating(roomId) {
       if (!roomId) return 0;
-      const data = ROOM_RATINGS[roomId] || { rating: 0 };
+      const data = ROOM_RATINGS[roomId] || { rating:0 };
       return data.rating || 0;
     }
 
     function setRoomRating(roomId, rating) {
       if (!roomId) return;
       const r = Math.max(1, Math.min(5, rating));
-      ROOM_RATINGS[roomId] = { rating: r };
+      ROOM_RATINGS[roomId] = { rating:r };
       saveRatingsToStorage();
       renderRoomRating(roomId);
     }
@@ -397,8 +508,7 @@
     }
 
     function getQueryParam(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name);
+      return new URLSearchParams(window.location.search).get(name);
     }
 
     function buildVideoEmbed(url) {
@@ -411,8 +521,7 @@
         const longMatch = u.match(/[?&]v=([^&]+)/);
         if (longMatch) videoId = longMatch[1] || videoId;
         if (!videoId) return `<iframe src="${u}" allowfullscreen></iframe>`;
-        const embedUrl = "https://www.youtube.com/embed/" + videoId;
-        return `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
+        return `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
       }
       return `
         <video controls playsinline>
@@ -424,7 +533,10 @@
     function collectImages(room) {
       const keys = ["anh1","anh2","anh3","hinhAnh1","hinhAnh2","hinhAnh3","image1","image2","image3"];
       const imgs = [];
-      keys.forEach(k => { if (room[k]) imgs.push(room[k]); });
+      keys.forEach(k => {
+        const v = room[k];
+        if (v) imgs.push(v);
+      });
       return imgs;
     }
 
@@ -440,14 +552,14 @@
     }
 
     function renderRoomDetail(room) {
-      const loadingText = document.getElementById("loadingText");
-      const layout = document.getElementById("detailLayout");
-      const breadcrumbRoom = document.getElementById("breadcrumbRoom");
-      const roomInfoCard = document.getElementById("roomInfoCard");
-      const galleryContainer = document.getElementById("galleryContainer");
-      const videoContainer = document.getElementById("videoContainer");
-      const roomIdShort = document.getElementById("roomIdShort");
-      const tenantLink = document.getElementById("tenantPortalLink");
+      const loadingText     = document.getElementById("loadingText");
+      const layout          = document.getElementById("detailLayout");
+      const breadcrumbRoom  = document.getElementById("breadcrumbRoom");
+      const roomInfoCard    = document.getElementById("roomInfoCard");
+      const galleryContainer= document.getElementById("galleryContainer");
+      const videoContainer  = document.getElementById("videoContainer");
+      const roomIdShort     = document.getElementById("roomIdShort");
+      const tenantLink      = document.getElementById("tenantPortalLink");
 
       loadingText.style.display = "none";
       layout.style.display = "grid";
@@ -460,13 +572,13 @@
       const dienTich  = room.dienTich || room.dientich || "Đang cập nhật";
       const note      = room.thongTinPhong || room.ghiChu || "";
 
-      const statusClass =
-        room.trangThaiWebsite === "available" ? "status-available" : "status-rented";
-      const statusText =
-        room.trangThaiWebsite === "available" ? "Còn trống" : "Đang thuê";
+      const available = room.trangThaiWebsite === "available";
+      const statusClass = available ? "status-available" : "status-rented";
+      const statusText  = available ? "Còn trống" : "Đang thuê";
 
       const assets = Array.isArray(room.assets) ? room.assets : [];
       const allowFlag = getPetAllowFlag(room);
+
       let petPolicyHTML = "";
       if (allowFlag === true) {
         petPolicyHTML = `
@@ -550,8 +662,8 @@
               <div class="gallery-thumb-grid"></div>
             </div>`;
         } else {
-          const main = images[0];
-          const thumbs = images.slice(1, 3);
+          const [main, ...rest] = images;
+          const thumbs = rest.slice(0, 2);
           galleryContainer.innerHTML = `
             <div class="gallery">
               <div class="gallery-main">
@@ -572,14 +684,14 @@
           </div>`;
       }
 
-      if (room.video) {
-        videoContainer.innerHTML = buildVideoEmbed(room.video);
-      } else {
-        videoContainer.innerHTML = "";
-      }
+      videoContainer.innerHTML = room.video ? buildVideoEmbed(room.video) : "";
 
       const msgInput = document.getElementById("message");
-      msgInput.value = `Em quan tâm phòng ${maPhong} (${loaiPhong}), xin tư vấn thêm và đặt lịch xem phòng.`;
+      if (msgInput) {
+        msgInput.value =
+          `Em quan tâm phòng ${maPhong} (${loaiPhong}), xin tư vấn thêm và đặt lịch xem phòng.`;
+      }
+
       CURRENT_ROOM = room;
     }
 
@@ -600,7 +712,7 @@
         const ten = s.nhomDichVu || s.maDV || "Dịch vụ";
         const giaText = s.donGia ? formatVND(s.donGia) : "--";
         let ghiChu = s.thongTinDichVu || "";
-        if (s.loai) ghiChu = ghiChu ? ghiChu + " – " + s.loai : s.loai;
+        if (s.loai) ghiChu = ghiChu ? `${ghiChu} – ${s.loai}` : s.loai;
 
         let icon = "💼";
         const keyword = ten.toLowerCase();
@@ -651,7 +763,7 @@
 
       try {
         const res = await fetch(
-          API_URL + "?action=roomDetail&room=" + encodeURIComponent(roomId)
+          `${API_URL}?action=roomDetail&room=${encodeURIComponent(roomId)}`
         );
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
@@ -700,7 +812,9 @@
           mailLink.href = `mailto:${CONTACT_INFO.email}?subject=${subject}`;
         }
         if (msgLink && CONTACT_INFO.messenger) msgLink.href = CONTACT_INFO.messenger;
-      } catch (err) { console.error("loadContactInfo error:", err); }
+      } catch (err) {
+        console.error("loadContactInfo error:", err);
+      }
     }
 
     async function handleSubmit(event) {
@@ -715,7 +829,7 @@
 
       try {
         const body = new URLSearchParams({
-          action: "contact",
+          action : "contact",
           name,
           phone,
           roomType: roomId ? "Quan tâm phòng " + roomId : "",
@@ -723,8 +837,8 @@
         });
 
         const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          method :"POST",
+          headers: { "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
           body
         });
 
