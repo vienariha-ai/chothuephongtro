@@ -1764,7 +1764,7 @@
       <button class="auth-modal-close" type="button" onclick="closeLoginModal()">✕</button>
       <div class="auth-title">Đăng nhập tài khoản phòng</div>
       <div class="auth-subtitle">
-        Nhập <strong>mã phòng</strong> (ví dụ: 301, 4A, Căn hộ 2PN...) và số điện thoại đã đăng ký hợp đồng.
+        Nhập <strong>mã phòng</strong> (ví dụ: P301, P001...) và số điện thoại đã đăng ký hợp đồng.
       </div>
       <form id="tenantLoginForm">
         <div class="form-group">
@@ -2529,7 +2529,7 @@
             </div>
             <div style="display:flex; gap:4px;">
               <a class="room-btn" href="${detailUrl}">Xem phòng</a>
-              <button type="button"
+              <button type="button; justify-content:center"
                       class="room-btn-secondary${loginBtnExtraClass}"
                       ${loginBtnDisabledAttr}
                       onclick="${isAvailable
@@ -3015,6 +3015,7 @@
   </script>
 </body>
 </html>
+
 
 
 
