@@ -2534,7 +2534,7 @@
             <span class="like-count">${likeData.count || 0}</span>
             </div>
             <div class="room-footer-buttons">
-              <a class="room-btn" href="${detailUrl}">Xem phòng</a>
+              <a class="room-btn" href="${detailUrl}">Xem</a>
               ${
             isAvailable
             // 🔒 Phòng TRỐNG: nút Đăng nhập bị disable, không bấm được
@@ -2547,7 +2547,7 @@
               : `<button type="button"
                    class="room-btn-secondary"
                    onclick="openLoginModalWithRoom('${roomId}')">
-             Đăng nhập
+             Login
            </button>`
           }
         </div>
@@ -3029,6 +3029,7 @@
   </script>
 </body>
 </html>
+
 
 
 
