@@ -872,6 +872,195 @@
       border: none;
     }
 
+    /* ========== TÀI KHOẢN PHÒNG / ĐĂNG NHẬP ========== */
+    .auth-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+    }
+
+    .auth-modal.show {
+      display: block;
+    }
+
+    .auth-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(4px);
+    }
+
+    .auth-modal-card {
+      position: relative;
+      max-width: 420px;
+      width: 92%;
+      margin: 60px auto;
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.99));
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.96);
+      padding: 16px 16px 14px;
+      font-size: 0.85rem;
+    }
+
+    .auth-modal-close {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      border: none;
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+    }
+
+    .auth-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #f9fafb;
+    }
+
+    .auth-subtitle {
+      font-size: 0.8rem;
+      color: rgba(148, 163, 184, 0.96);
+      margin-bottom: 8px;
+    }
+
+    #tenantLoginStatus {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: rgba(148, 163, 184, 0.96);
+      min-height: 16px;
+    }
+
+    /* ========== PORTAL TÀI KHOẢN PHÒNG ========== */
+    .tenant-portal {
+      border-top: 1px solid rgba(148, 163, 184, 0.45);
+      padding-top: 24px;
+    }
+
+    .tenant-welcome {
+      font-size: 0.9rem;
+      color: rgba(226, 232, 240, 0.98);
+      margin-bottom: 10px;
+    }
+
+    .tenant-welcome strong {
+      color: #f9fafb;
+    }
+
+    .tenant-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .tenant-tab {
+      font-size: 0.8rem;
+      padding: 6px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.96);
+      color: rgba(226, 232, 240, 0.96);
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+
+    .tenant-tab:hover {
+      border-color: #38bdf8;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.22), rgba(15, 23, 42, 0.99));
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.95);
+    }
+
+    .tenant-tab.active {
+      border-color: #38bdf8;
+      background: linear-gradient(120deg, rgba(56, 189, 248, 0.28), rgba(15, 23, 42, 0.98));
+      color: #e0f2fe;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.98);
+    }
+
+    .tenant-panel {
+      display: none;
+      margin-top: 4px;
+    }
+
+    .tenant-panel.active {
+      display: block;
+    }
+
+    .tenant-status-text {
+      font-size: 0.8rem;
+      color: rgba(148, 163, 184, 0.98);
+      margin-top: 2px;
+    }
+
+    .tenant-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 6px;
+    }
+
+    .tenant-table th,
+    .tenant-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+      text-align: left;
+    }
+
+    .tenant-table th {
+      font-weight: 600;
+      color: rgba(226, 232, 240, 0.98);
+    }
+
+    .tenant-table td {
+      color: rgba(203, 213, 225, 0.98);
+    }
+
+    .tenant-history-list {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.8rem;
+    }
+
+    .tenant-history-item {
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    .tenant-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      font-size: 0.7rem;
+      margin-right: 4px;
+    }
+
+    .tenant-form-note {
+      font-size: 0.78rem;
+      color: rgba(148, 163, 184, 0.96);
+      margin-top: 4px;
+    }
+
+    #maintenanceStatus,
+    #tempStayStatus {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: rgba(148, 163, 184, 0.96);
+      min-height: 16px;
+    }
+
     @media (max-width: 900px) {
       .hero-grid,
       .contact-grid {
@@ -925,8 +1114,12 @@
           <a href="#contact">Liên hệ</a>
         </nav>
         <div class="nav-cta">
-          <button class="btn-outline btn" onclick="scrollToSection('contact')">Gọi tư vấn</button>
-          <button class="btn" onclick="scrollToSection('rooms')">Xem phòng</button>
+          <!-- Nút tài khoản phòng -->
+          <button class="btn-outline btn" type="button" id="tenantLoginBtn" onclick="openLoginModal()">
+            <span id="tenantLoginBtnLabel">Tài khoản phòng</span>
+          </button>
+          <button class="btn-outline btn" type="button" onclick="scrollToSection('contact')">Gọi tư vấn</button>
+          <button class="btn" type="button" onclick="scrollToSection('rooms')">Xem phòng</button>
         </div>
       </div>
     </div>
@@ -1183,6 +1376,124 @@
       </div>
     </section>
 
+    <!-- TENANT PORTAL: Tài khoản phòng -->
+    <section id="tenantPortal" class="tenant-portal" style="display:none;">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Tài khoản phòng</div>
+            <p class="section-subtitle">
+              Sau khi đăng nhập bằng mã phòng, cư dân có thể xem hóa đơn, báo hỏng và đăng ký tạm trú trực tuyến.
+            </p>
+          </div>
+          <div>
+            <button class="btn-outline btn" type="button" onclick="logoutTenant()">Đăng xuất</button>
+          </div>
+        </div>
+
+        <div class="tenant-welcome">
+          Xin chào <strong id="tenantWelcomeName"></strong> · Phòng <span id="tenantWelcomeRoom"></span>
+        </div>
+
+        <div class="tenant-tabs">
+          <button class="tenant-tab active" data-tab="tenantBills">Hóa đơn & thanh toán</button>
+          <button class="tenant-tab" data-tab="tenantMaintenance">Báo hỏng / sửa chữa</button>
+          <button class="tenant-tab" data-tab="tenantTempStay">Đăng ký tạm trú</button>
+          <button class="tenant-tab" data-tab="tenantHistory">Yêu cầu đã gửi</button>
+        </div>
+
+        <div class="tenant-tab-panels">
+          <!-- Hóa đơn -->
+          <div id="tenantBills" class="tenant-panel active">
+            <div id="tenantBillsStatus" class="tenant-status-text">Đang tải hóa đơn...</div>
+            <table class="tenant-table" id="tenantBillsTable">
+              <thead>
+                <tr>
+                  <th>Tháng</th>
+                  <th>Tổng tiền</th>
+                  <th>Trạng thái</th>
+                  <th>Hạn thanh toán</th>
+                  <th>Chi tiết</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Báo hỏng -->
+          <div id="tenantMaintenance" class="tenant-panel">
+            <form id="maintenanceForm">
+              <div class="form-group">
+                <label for="maintenanceCategory">Hạng mục hư hỏng</label>
+                <select id="maintenanceCategory" class="form-control" required>
+                  <option value="">-- Chọn hạng mục --</option>
+                  <option>Điện</option>
+                  <option>Nước</option>
+                  <option>Nội thất (giường, tủ...)</option>
+                  <option>Thiết bị (máy lạnh, máy nước nóng...)</option>
+                  <option>Khác</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="maintenanceDesc">Mô tả chi tiết</label>
+                <textarea id="maintenanceDesc" class="form-control" required
+                  placeholder="Ví dụ: Vòi nước trong nhà tắm bị rò, chảy liên tục từ tối qua..."></textarea>
+              </div>
+              <div class="form-group">
+                <label for="maintenanceTime">Thời gian thuận tiện để kiểm tra (dự kiến)</label>
+                <input id="maintenanceTime" class="form-control" type="text"
+                       placeholder="Ví dụ: Sau 18h các ngày trong tuần hoặc sáng Chủ Nhật" />
+              </div>
+              <button type="submit" class="btn" style="width:100%; justify-content:center;">
+                Gửi yêu cầu sửa chữa
+              </button>
+              <p id="maintenanceStatus"></p>
+              <p class="tenant-form-note">
+                Yêu cầu của bạn sẽ được ghi nhận trên hệ thống. Quản lý sẽ liên hệ lại để xác nhận thời gian sửa chữa.
+              </p>
+            </form>
+          </div>
+
+          <!-- Đăng ký tạm trú -->
+          <div id="tenantTempStay" class="tenant-panel">
+            <form id="tempStayForm">
+              <div class="form-group">
+                <label for="tempGuestName">Họ tên người tạm trú</label>
+                <input id="tempGuestName" class="form-control" type="text" required />
+              </div>
+              <div class="form-group">
+                <label for="tempGuestId">Số CCCD/CMND</label>
+                <input id="tempGuestId" class="form-control" type="text" required />
+              </div>
+              <div class="form-group">
+                <label for="tempStayFrom">Thời gian tạm trú</label>
+                <input id="tempStayFrom" class="form-control" type="text"
+                       placeholder="Ví dụ: từ 10/12/2025 đến 15/12/2025" required />
+              </div>
+              <div class="form-group">
+                <label for="tempStayNote">Ghi chú thêm (nếu có)</label>
+                <textarea id="tempStayNote" class="form-control"
+                          placeholder="Ví dụ: Người thân ở quê lên khám bệnh..."></textarea>
+              </div>
+              <button type="submit" class="btn" style="width:100%; justify-content:center;">
+                Gửi đăng ký tạm trú
+              </button>
+              <p id="tempStayStatus"></p>
+              <p class="tenant-form-note">
+                YT Home sẽ dùng thông tin này để hỗ trợ khai báo tạm trú/tạm vắng theo quy định địa phương.
+              </p>
+            </form>
+          </div>
+
+          <!-- Lịch sử yêu cầu -->
+          <div id="tenantHistory" class="tenant-panel">
+            <div id="tenantHistoryStatus" class="tenant-status-text">Đang tải dữ liệu...</div>
+            <div id="tenantHistoryList" class="tenant-history-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CONTACT -->
     <section id="contact">
       <div class="container">
@@ -1284,6 +1595,34 @@
     </div>
   </div>
 
+  <!-- MODAL ĐĂNG NHẬP TÀI KHOẢN PHÒNG -->
+  <div id="authModal" class="auth-modal">
+    <div class="auth-modal-backdrop" onclick="closeLoginModal()"></div>
+    <div class="auth-modal-card">
+      <button class="auth-modal-close" type="button" onclick="closeLoginModal()">✕</button>
+      <div class="auth-title">Đăng nhập tài khoản phòng</div>
+      <div class="auth-subtitle">
+        Nhập <strong>mã phòng</strong> (ví dụ: 301, 4A, Căn hộ 2PN...) và số điện thoại đã đăng ký hợp đồng.
+      </div>
+      <form id="tenantLoginForm">
+        <div class="form-group">
+          <label for="loginRoomCode">Mã phòng</label>
+          <input id="loginRoomCode" class="form-control" type="text" required
+                 placeholder="Ví dụ: 301, 4A, CH-502..." />
+        </div>
+        <div class="form-group">
+          <label for="loginPhone">Số điện thoại người thuê</label>
+          <input id="loginPhone" class="form-control" type="tel" required
+                 placeholder="Số điện thoại trên hợp đồng" />
+        </div>
+        <button type="submit" class="btn" style="width:100%; justify-content:center;">
+          Đăng nhập
+        </button>
+        <p id="tenantLoginStatus"></p>
+      </form>
+    </div>
+  </div>
+
   <script>
     // 👉 DÁN URL WEB APP API CỦA BẠN Ở ĐÂY
     const API_URL = "https://script.google.com/macros/s/AKfycbxLTPhZH10mJPtmBxgIfOreFDLXN5oI8ebGZYrZLbeXh6tUKiFETrej-cdGaIMIKceLkw/exec";
@@ -1299,6 +1638,365 @@
     let ROOM_RATINGS = {};
     let CURRENT_FILTER = "all";
 
+    // ====== LƯU THÔNG TIN ĐĂNG NHẬP TÀI KHOẢN PHÒNG ======
+    const TENANT_STORAGE_KEY = "ytHomeTenant";
+    let CURRENT_TENANT = null;
+
+    function loadTenantFromStorage() {
+      try {
+        const raw = localStorage.getItem(TENANT_STORAGE_KEY);
+        CURRENT_TENANT = raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        CURRENT_TENANT = null;
+      }
+    }
+
+    function saveTenantToStorage() {
+      try {
+        if (CURRENT_TENANT) {
+          localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(CURRENT_TENANT));
+        } else {
+          localStorage.removeItem(TENANT_STORAGE_KEY);
+        }
+      } catch (e) {
+        console.error("saveTenantToStorage error:", e);
+      }
+    }
+
+    function logoutTenant() {
+      CURRENT_TENANT = null;
+      saveTenantToStorage();
+      updateTenantUI();
+      alert("Đã đăng xuất tài khoản phòng.");
+    }
+
+    function openLoginModal() {
+      const modal = document.getElementById("authModal");
+      const status = document.getElementById("tenantLoginStatus");
+      if (status) status.textContent = "";
+      const form = document.getElementById("tenantLoginForm");
+      if (form) form.reset();
+      if (modal) modal.classList.add("show");
+    }
+
+    function closeLoginModal() {
+      const modal = document.getElementById("authModal");
+      if (modal) modal.classList.remove("show");
+    }
+
+    function updateTenantUI() {
+      const portal = document.getElementById("tenantPortal");
+      const nameEl = document.getElementById("tenantWelcomeName");
+      const roomEl = document.getElementById("tenantWelcomeRoom");
+      const loginBtnLabel = document.getElementById("tenantLoginBtnLabel");
+
+      if (!portal || !loginBtnLabel) return;
+
+      if (CURRENT_TENANT && CURRENT_TENANT.roomCode) {
+        portal.style.display = "block";
+        loginBtnLabel.textContent =
+          "Phòng " + (CURRENT_TENANT.roomCode || CURRENT_TENANT.maPhong || "");
+        if (nameEl) {
+          nameEl.textContent =
+            CURRENT_TENANT.tenantName ||
+            CURRENT_TENANT.tenNguoiThue ||
+            "Cư dân";
+        }
+        if (roomEl) {
+          roomEl.textContent = CURRENT_TENANT.roomCode || CURRENT_TENANT.maPhong || "";
+        }
+        loadTenantDashboard();
+      } else {
+        portal.style.display = "none";
+        loginBtnLabel.textContent = "Tài khoản phòng";
+      }
+    }
+
+    // Đăng nhập tài khoản phòng
+    async function handleTenantLogin(event) {
+      event.preventDefault();
+      const roomCode = document.getElementById("loginRoomCode").value.trim();
+      const phone = document.getElementById("loginPhone").value.trim();
+      const statusEl = document.getElementById("tenantLoginStatus");
+      if (!roomCode || !phone) {
+        if (statusEl) statusEl.textContent = "Vui lòng nhập đủ mã phòng và số điện thoại.";
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
+
+      try {
+        // 👉 Backend Apps Script: xử lý action=tenantLogin
+        // Trả về: { success, message, roomCode, tenantName, maPhong, tenNguoiThue, ... }
+        const body = new URLSearchParams({
+          action: "tenantLogin",
+          roomCode: roomCode,
+          phone: phone
+        });
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body
+        });
+
+        const data = await res.json();
+        if (!data || !data.success) {
+          if (statusEl) {
+            statusEl.textContent =
+              (data && data.message) || "Không tìm thấy phòng hoặc số điện thoại không khớp.";
+          }
+          return;
+        }
+
+        CURRENT_TENANT = {
+          roomCode: data.roomCode || roomCode,
+          tenantName: data.tenantName || data.tenNguoiThue || "",
+          maPhong: data.maPhong || roomCode
+        };
+        saveTenantToStorage();
+        if (statusEl) statusEl.textContent = "Đăng nhập thành công.";
+        closeLoginModal();
+        updateTenantUI();
+        scrollToSection("tenantPortal");
+      } catch (e) {
+        console.error("handleTenantLogin error:", e);
+        if (statusEl) {
+          statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
+        }
+      }
+    }
+
+    // Tabs trong portal
+    function initTenantTabs() {
+      const tabs = document.querySelectorAll(".tenant-tab");
+      const panels = document.querySelectorAll(".tenant-panel");
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const target = tab.dataset.tab;
+          tabs.forEach((t) => t.classList.remove("active"));
+          panels.forEach((p) => p.classList.remove("active"));
+          tab.classList.add("active");
+          const panel = document.getElementById(target);
+          if (panel) panel.classList.add("active");
+        });
+      });
+    }
+
+    // Render hóa đơn
+    function renderTenantBills(invoices) {
+      const tbody = document.querySelector("#tenantBillsTable tbody");
+      const statusEl = document.getElementById("tenantBillsStatus");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      if (!invoices || !invoices.length) {
+        if (statusEl) statusEl.textContent = "Chưa có hóa đơn trên hệ thống.";
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = "Có " + invoices.length + " hóa đơn.";
+
+      invoices.forEach((inv) => {
+        const tr = document.createElement("tr");
+        const monthText =
+          inv.monthYear ||
+          inv.thangNam ||
+          (inv.month && inv.year ? inv.month + "/" + inv.year : "");
+        const totalText = formatVND(inv.total || inv.tongTien || inv.tienThanhToan || 0);
+        const statusText = inv.status || inv.trangThai || inv.tinhTrang || "";
+        const dueText = inv.dueDate || inv.hanThanhToan || "";
+
+        const detailLink = inv.detailUrl || inv.link || "";
+        const detailHtml = detailLink
+          ? `<a href="${detailLink}" target="_blank" rel="noopener noreferrer">Xem</a>`
+          : "";
+
+        tr.innerHTML = `
+          <td>${monthText || ""}</td>
+          <td>${totalText}</td>
+          <td>${statusText}</td>
+          <td>${dueText}</td>
+          <td>${detailHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render lịch sử yêu cầu
+    function renderTenantHistory(items) {
+      const list = document.getElementById("tenantHistoryList");
+      const statusEl = document.getElementById("tenantHistoryStatus");
+      if (!list) return;
+      list.innerHTML = "";
+
+      if (!items || !items.length) {
+        if (statusEl) statusEl.textContent = "Chưa có yêu cầu nào được ghi nhận.";
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = "Tổng " + items.length + " yêu cầu.";
+
+      items.forEach((it) => {
+        const div = document.createElement("div");
+        div.className = "tenant-history-item";
+
+        const typeText = it.type || it.loai || "";
+        const dateText = it.createdAt || it.ngay || "";
+        const statusText = it.status || it.trangThai || "";
+        const contentText = it.content || it.noiDung || it.moTa || "";
+
+        div.innerHTML = `
+          <div style="margin-bottom:2px;">
+            <span class="tenant-badge">${typeText}</span>
+            <span style="font-size:0.76rem; color:rgba(148,163,184,0.95);">${dateText}</span>
+          </div>
+          <div style="margin-bottom:2px;">
+            ${contentText}
+          </div>
+          <div style="font-size:0.76rem; color:rgba(148,163,184,0.96);">
+            Trạng thái: <strong>${statusText}</strong>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // Tải dashboard cho tài khoản phòng
+    async function loadTenantDashboard() {
+      if (!CURRENT_TENANT || !CURRENT_TENANT.roomCode) return;
+      const roomCode = CURRENT_TENANT.roomCode;
+      const billsStatus = document.getElementById("tenantBillsStatus");
+      const historyStatus = document.getElementById("tenantHistoryStatus");
+
+      if (billsStatus) billsStatus.textContent = "Đang tải hóa đơn...";
+      if (historyStatus) historyStatus.textContent = "Đang tải dữ liệu...";
+
+      try {
+        // 👉 Backend Apps Script: xử lý action=tenantDashboard&roomCode=...
+        // Trả về: { success, invoices: [...], history: [...] }
+        const res = await fetch(
+          API_URL + "?action=tenantDashboard&roomCode=" + encodeURIComponent(roomCode)
+        );
+        const data = await res.json();
+        if (!data || !data.success) {
+          if (billsStatus) billsStatus.textContent = "Không tải được dữ liệu hóa đơn.";
+          if (historyStatus) historyStatus.textContent = "Không tải được lịch sử yêu cầu.";
+          return;
+        }
+        renderTenantBills(data.invoices || []);
+        renderTenantHistory(data.history || []);
+      } catch (e) {
+        console.error("loadTenantDashboard error:", e);
+        if (billsStatus) billsStatus.textContent = "Lỗi kết nối khi tải hóa đơn.";
+        if (historyStatus) historyStatus.textContent = "Lỗi kết nối khi tải lịch sử yêu cầu.";
+      }
+    }
+
+    // Gửi báo hỏng
+    async function handleMaintenanceSubmit(event) {
+      event.preventDefault();
+      if (!CURRENT_TENANT || !CURRENT_TENANT.roomCode) {
+        alert("Vui lòng đăng nhập tài khoản phòng trước khi báo hỏng.");
+        openLoginModal();
+        return;
+      }
+      const category = document.getElementById("maintenanceCategory").value.trim();
+      const desc = document.getElementById("maintenanceDesc").value.trim();
+      const time = document.getElementById("maintenanceTime").value.trim();
+      const statusEl = document.getElementById("maintenanceStatus");
+
+      if (statusEl) statusEl.textContent = "Đang gửi yêu cầu...";
+
+      try {
+        // 👉 Backend Apps Script: action=tenantMaintenance
+        const body = new URLSearchParams({
+          action: "tenantMaintenance",
+          roomCode: CURRENT_TENANT.roomCode,
+          category,
+          description: desc,
+          preferredTime: time
+        });
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body
+        });
+
+        const data = await res.json();
+        if (!data || !data.success) {
+          if (statusEl) statusEl.textContent =
+            (data && data.message) || "Không gửi được yêu cầu. Vui lòng thử lại.";
+          return;
+        }
+
+        if (statusEl) statusEl.textContent = "Đã gửi yêu cầu sửa chữa. Cảm ơn bạn.";
+        document.getElementById("maintenanceForm").reset();
+        loadTenantDashboard(); // cập nhật lịch sử
+      } catch (e) {
+        console.error("handleMaintenanceSubmit error:", e);
+        if (statusEl) statusEl.textContent = "Có lỗi khi gửi yêu cầu. Vui lòng thử lại.";
+      }
+    }
+
+    // Gửi đăng ký tạm trú
+    async function handleTempStaySubmit(event) {
+      event.preventDefault();
+      if (!CURRENT_TENANT || !CURRENT_TENANT.roomCode) {
+        alert("Vui lòng đăng nhập tài khoản phòng trước khi đăng ký tạm trú.");
+        openLoginModal();
+        return;
+      }
+
+      const guestName = document.getElementById("tempGuestName").value.trim();
+      const guestId = document.getElementById("tempGuestId").value.trim();
+      const stayFrom = document.getElementById("tempStayFrom").value.trim();
+      const note = document.getElementById("tempStayNote").value.trim();
+      const statusEl = document.getElementById("tempStayStatus");
+
+      if (statusEl) statusEl.textContent = "Đang gửi đăng ký...";
+
+      try {
+        // 👉 Backend Apps Script: action=tenantTempStay
+        const body = new URLSearchParams({
+          action: "tenantTempStay",
+          roomCode: CURRENT_TENANT.roomCode,
+          guestName,
+          guestId,
+          stayTime: stayFrom,
+          note
+        });
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body
+        });
+
+        const data = await res.json();
+        if (!data || !data.success) {
+          if (statusEl) statusEl.textContent =
+            (data && data.message) || "Không gửi được đăng ký. Vui lòng thử lại.";
+          return;
+        }
+
+        if (statusEl) statusEl.textContent = "Đã gửi đăng ký tạm trú. Cảm ơn bạn.";
+        document.getElementById("tempStayForm").reset();
+        loadTenantDashboard(); // cập nhật lịch sử
+      } catch (e) {
+        console.error("handleTempStaySubmit error:", e);
+        if (statusEl) statusEl.textContent = "Có lỗi khi gửi đăng ký. Vui lòng thử lại.";
+      }
+    }
+
+    // ====== PHẦN LIKE / RATING / PHÒNG (giữ nguyên gốc) ======
     function loadLikesFromStorage() {
       try {
         const raw = localStorage.getItem(LIKE_STORAGE_KEY);
@@ -1919,8 +2617,30 @@
       loadLikesFromStorage();
       loadRatingsFromStorage();
       initFilters();
+      initTenantTabs();
       loadRoomsFromServer();
       loadContactInfo();
+
+      // Đăng nhập tài khoản phòng
+      const loginForm = document.getElementById("tenantLoginForm");
+      if (loginForm) {
+        loginForm.addEventListener("submit", handleTenantLogin);
+      }
+
+      const mForm = document.getElementById("maintenanceForm");
+      if (mForm) {
+        mForm.addEventListener("submit", handleMaintenanceSubmit);
+      }
+
+      const tForm = document.getElementById("tempStayForm");
+      if (tForm) {
+        tForm.addEventListener("submit", handleTempStaySubmit);
+      }
+
+      // Khôi phục trạng thái đăng nhập
+      loadTenantFromStorage();
+      updateTenantUI();
+
       document
         .getElementById("contactForm")
         .addEventListener("submit", handleSubmit);
