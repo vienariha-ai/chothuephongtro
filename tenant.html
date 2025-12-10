@@ -5,7 +5,199 @@
   <title>YT Home – Đăng nhập tài khoản phòng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <body class="tenant-body">
- 
+ <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    .page-wrapper {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 1));
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.98);
+      padding: 16px 18px 18px;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      background: conic-gradient(from 120deg, #38bdf8, #22c55e, #6366f1, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #0b1120;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8), 0 10px 30px rgba(15, 23, 42, 0.8);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .logo-text-main {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .logo-text-sub {
+      font-size: 0.75rem;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: rgba(148, 163, 184, 0.95);
+      margin-bottom: 10px;
+    }
+
+    .badge-room {
+      display: inline-block;
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.85);
+      background: rgba(15, 23, 42, 0.96);
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: rgba(209, 213, 219, 0.96);
+    }
+
+    .form-control {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      padding: 7px 9px;
+      font-size: 0.86rem;
+      outline: none;
+      background: rgba(15, 23, 42, 0.96);
+      color: #e5e7eb;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .form-control:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
+      background: rgba(15, 23, 42, 0.98);
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: radial-gradient(circle at top left, #38bdf8, #2563eb);
+      color: #f9fafb;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+      width: 100%;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        filter 0.16s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(37, 99, 235, 0.7);
+      filter: brightness(1.03);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.9);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: rgba(148, 163, 184, 0.8);
+      box-shadow: none;
+      color: #e5e7eb;
+    }
+
+    .btn-outline:hover {
+      background: rgba(15, 23, 42, 0.98);
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 1);
+    }
+
+    .status {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: rgba(148, 163, 184, 0.96);
+      min-height: 16px;
+    }
+
+    .note {
+      margin-top: 6px;
+      font-size: 0.76rem;
+      color: rgba(148, 163, 184, 0.96);
+    }
+
+    .link-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    a {
+      color: #38bdf8;
+      text-decoration: none;
+      font-size: 0.8rem;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 14px 14px 16px;
+      }
+    }
+  </style> 
 </head>
 <body>
   <div class="page-wrapper">
@@ -190,6 +382,7 @@
   </script>
 </body>
 </html>
+
 
 
 
