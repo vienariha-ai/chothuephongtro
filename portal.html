@@ -5,10 +5,10 @@
   <title>YT Home – Portal tài khoản phòng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- CSS dùng chung -->
+  <!-- CSS chung -->
   <link rel="stylesheet" href="yt-home-common.css" />
 
-  <!-- CSS riêng cho portal (layout tab + 2 cột) -->
+  <!-- CSS layout 2 cột + tab -->
   <style>
     body.portal-body .portal-grid {
       display: grid;
@@ -20,16 +20,16 @@
     .portal-card {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
-    /* Tab navigation */
+    /* Tab */
     .tab-nav {
       display: flex;
       gap: 6px;
       overflow-x: auto;
       padding-bottom: 4px;
-      border-bottom: 1px solid rgba(255,255,255,0.12);
+      border-bottom: 1px solid rgba(148,163,184,0.5);
     }
 
     .tab-btn {
@@ -37,10 +37,11 @@
       font-size: 0.8rem;
       border-radius: 999px;
       cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.25);
-      background: rgba(255,255,255,0.06);
-      transition: 0.2s;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.9);
+      color: rgba(229,231,235,0.94);
       white-space: nowrap;
+      transition: 0.18s;
     }
 
     .tab-btn.active {
@@ -50,19 +51,50 @@
       font-weight: 600;
     }
 
-    .tab-content { margin-top: 10px; display: none; }
+    .tab-content {
+      margin-top: 10px;
+      display: none;
+    }
     .tab-content.active { display: block; }
 
-    /* Responsive mobile */
+    /* Một số table nhỏ */
+    .table-small th, .table-small td {
+      padding: 4px 6px !important;
+      font-size: 0.8rem;
+    }
+
+    .badge-soft {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.9);
+      margin-left: 4px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid rgba(148,163,184,0.7);
+    }
+    .status-pill.ok { border-color:#22c55e; color:#bbf7d0; }
+    .status-pill.warn { border-color:#eab308; color:#fef9c3; }
+    .status-pill.expired { border-color:#f97316; color:#fed7aa; }
+
     @media (max-width: 768px) {
-      body.portal-body .portal-grid { grid-template-columns: 1fr; }
+      body.portal-body .portal-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body class="portal-body">
   <div class="container">
-    
     <!-- HEADER -->
     <header class="header">
       <div class="logo-row">
@@ -80,136 +112,705 @@
 
     <main>
       <div class="page-title">Xin chào, cư dân YT Home 🏡</div>
-      <div id="portalStatusNote" class="portal-status">Đang tải dữ liệu...</div>
+      <div class="page-subtitle">
+        Portal nội bộ tài khoản phòng. Dữ liệu lấy từ Google Sheet qua Apps Script.
+      </div>
+      <div id="portalStatusNote" class="portal-status">Đang tải dữ liệu phòng...</div>
 
-      <!-- === LAYOUT 2 CỘT === -->
+      <!-- ===== LAYOUT 2 CỘT ===== -->
       <div class="portal-grid">
 
-        <!-- ------ CỘT TRÁI ------ -->
-        <div class="portal-col portal-card">
-
-          <!-- 📌 CARD 1: THÔNG TIN -->
+        <!-- ================= CỘT TRÁI ================= -->
+        <div class="portal-card">
+          <!-- CARD 1: THÔNG TIN PHÒNG -->
           <section class="card">
-            <div class="card-title">Thông tin phòng</div>
+            <div class="card-title">
+              Thông tin phòng
+              <span id="roomBadge" class="badge-soft">Phòng: --</span>
+            </div>
 
             <div class="tab-nav">
               <button class="tab-btn active" data-tab="info-owner">Chủ phòng</button>
               <button class="tab-btn" data-tab="info-contract">Hợp đồng</button>
-              <button class="tab-btn" data-tab="info-members">Người & Xe</button>
-              <button class="tab-btn" data-tab="info-temp">Tạm trú</button>
+              <button class="tab-btn" data-tab="info-members">Người &amp; xe</button>
             </div>
 
+            <!-- TAB: CHỦ PHÒNG -->
             <div class="tab-content active" id="info-owner">
-              <div class="badge" id="roomBadge">Phòng: --</div>
-              <p><strong>Chủ phòng:</strong> <span id="tenantName">--</span></p>
-              <p><strong>CCCD:</strong> <span id="tenantIdentity">--</span></p>
+              <div class="info-row">
+                <span class="info-label">Tên chủ phòng:</span>
+                <span class="info-value" id="ownerName">--</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Số CCCD:</span>
+                <span class="info-value" id="ownerCccd">--</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Số điện thoại:</span>
+                <span class="info-value" id="ownerPhone">--</span>
+              </div>
+              <div class="small-note">
+                Thông tin lấy từ sheet <strong>Hợp đồng</strong> (cột “Tên khách”) 
+                và sheet <strong>Khách thuê</strong> với hàng có <code>Trạng thái = "Đang ở"</code>,
+                <code>Loại = "Chủ phòng"</code>.
+              </div>
             </div>
 
+            <!-- TAB: HỢP ĐỒNG -->
             <div class="tab-content" id="info-contract">
-              <ul class="list">
-                <li>Trạng thái: <strong id="contractStatus">--</strong></li>
-                <li>Hạn hợp đồng: <strong id="contractPeriod">--</strong></li>
-                <li>Giá thuê: <strong id="contractRent">--</strong></li>
-                <li>Cọc: <strong id="contractDeposit">--</strong></li>
-                <li>Công nợ: <strong id="contractDebt">--</strong></li>
-              </ul>
+              <div class="info-row">
+                <span class="info-label">Trạng thái:</span>
+                <span class="info-value" id="contractStatus">--</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Loại HĐ:</span>
+                <span class="info-value" id="contractType">--</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Ngày BĐ - KT:</span>
+                <span class="info-value" id="contractPeriod">--</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Tiền thuê:</span>
+                <span class="info-value" id="contractRent">--</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Tiền cọc:</span>
+                <span class="info-value" id="contractDeposit">--</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Ngày thu tiền:</span>
+                <span class="info-value" id="contractPayDate">--</span>
+              </div>
+
+              <hr style="margin:8px 0;border-color:rgba(55,65,81,0.8);" />
+
+              <div class="section-title" style="font-size:0.85rem;margin-bottom:4px;">Dịch vụ theo hợp đồng</div>
+              <table class="table-like table-small">
+                <thead>
+                  <tr>
+                    <th>Dịch vụ</th>
+                    <th>Mã</th>
+                    <th>Đơn giá</th>
+                  </tr>
+                </thead>
+                <tbody id="contractServicesBody">
+                  <tr><td colspan="3" class="muted">Chưa cấu hình DV.</td></tr>
+                </tbody>
+              </table>
+
+              <div style="margin-top:8px;">
+                <button id="extendContractBtn" class="btn" style="display:none;width:auto;">
+                  Ký tiếp hợp đồng
+                </button>
+                <span id="extendHint" class="small-note">
+                  Nút “Ký tiếp hợp đồng” sẽ xuất hiện nếu còn ≤ 30 ngày đến Ngày KT.
+                </span>
+              </div>
             </div>
 
+            <!-- TAB: NGƯỜI & XE -->
             <div class="tab-content" id="info-members">
-              <div id="memberList">Chưa có dữ liệu người trong phòng.</div>
-            </div>
-
-            <div class="tab-content" id="info-temp">
-              <p>Thời gian tạm trú gần nhất: <strong id="tempStayInfo">--</strong></p>
-              <button class="btn" style="margin-top:10px;">Đăng ký tạm trú</button>
+              <table class="table-like table-small">
+                <thead>
+                  <tr>
+                    <th>Họ tên</th>
+                    <th>CCCD</th>
+                    <th>Điện thoại</th>
+                    <th>Biển số</th>
+                    <th>Ngày tạm trú</th>
+                    <th>TT tạm trú</th>
+                  </tr>
+                </thead>
+                <tbody id="memberTableBody">
+                  <tr><td colspan="6" class="muted">Đang tải danh sách cư dân...</td></tr>
+                </tbody>
+              </table>
+              <div class="small-note">
+                Dữ liệu từ sheet <strong>Khách thuê</strong> (Họ và tên, Số điện thoại, Số CCCD, Biển số, Ngày tạm trú).  
+                Nếu không có Ngày tạm trú → trạng thái tạm trú hiển thị “Chưa đăng ký”.
+              </div>
             </div>
           </section>
 
-          <!-- 📌 CARD 2: HÓA ĐƠN -->
+          <!-- CARD 2: THANH TOÁN -->
           <section class="card">
             <div class="card-title">Thanh toán</div>
 
             <div class="tab-nav">
-              <button class="tab-btn active" data-tab="invoice-history">Lịch sử</button>
-              <button class="tab-btn" data-tab="invoice-detail">Chi tiết hóa đơn</button>
+              <button class="tab-btn active" data-tab="pay-history">Lịch sử thanh toán</button>
+              <button class="tab-btn" data-tab="pay-detail">Chi tiết hóa đơn</button>
             </div>
 
-            <div class="tab-content active" id="invoice-history">
-              <table class="table-like">
+            <!-- TAB: LỊCH SỬ THANH TOÁN -->
+            <div class="tab-content active" id="pay-history">
+              <table class="table-like table-small">
                 <thead>
-                  <tr><th>Kỳ</th><th>Mô tả</th><th>Số tiền</th><th>Trạng thái</th></tr>
+                  <tr>
+                    <th style="width:80px;">Kỳ</th>
+                    <th>Tổng ĐN + DV</th>
+                    <th>Tổng phải thu</th>
+                    <th>Trạng thái</th>
+                    <th style="width:90px;"></th>
+                  </tr>
                 </thead>
-                <tbody id="invoiceTableBody">
-                  <tr><td colspan="4">Đang tải...</td></tr>
+                <tbody id="paymentHistoryBody">
+                  <tr><td colspan="5" class="muted">Đang tải lịch sử thanh toán...</td></tr>
                 </tbody>
               </table>
+              <div class="small-note">
+                Chỉ hiển thị nếu Hợp đồng còn hiệu lực.  
+                Mỗi dòng tương ứng một kỳ <strong>Năm tháng</strong> trong sheet <strong>Hóa đơn</strong>.
+              </div>
             </div>
 
-            <div class="tab-content" id="invoice-detail">
-              <table class="table-like">
+            <!-- TAB: CHI TIẾT HÓA ĐƠN -->
+            <div class="tab-content" id="pay-detail">
+              <div id="invoiceSummary">
+                <div class="info-row">
+                  <span class="info-label">Ngày tính HĐ:</span>
+                  <span class="info-value" id="invNgayTinh">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Tiền phòng TT:</span>
+                  <span class="info-value" id="invTienPhongTT">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Tổng DV (ĐN + DV):</span>
+                  <span class="info-value" id="invTongDv">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Phát sinh khác:</span>
+                  <span class="info-value" id="invPhatSinh">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Giảm trừ khác:</span>
+                  <span class="info-value" id="invGiamTru">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Thiếu kỳ trước:</span>
+                  <span class="info-value" id="invThieuTruoc">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Phải thu kỳ này:</span>
+                  <span class="info-value" id="invPhaiThu">--</span>
+                </div>
+              </div>
+
+              <hr style="margin:8px 0;border-color:rgba(55,65,81,0.8);" />
+
+              <div class="section-title" style="font-size:0.85rem;margin-bottom:4px;">Chi tiết dịch vụ</div>
+              <table class="table-like table-small">
                 <thead>
-                  <tr><th>Kỳ</th><th>Điện</th><th>Nước</th><th>Tổng</th></tr>
+                  <tr>
+                    <th>#</th>
+                    <th>Dịch vụ</th>
+                    <th>Số đầu</th>
+                    <th>Số cuối</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Thành tiền</th>
+                  </tr>
                 </thead>
-                <tbody id="utilitiesTableBody">
-                  <tr><td colspan="4">Đang tải...</td></tr>
+                <tbody id="serviceTableBody">
+                  <tr><td colspan="7" class="muted">Chưa có chi tiết hóa đơn.</td></tr>
                 </tbody>
               </table>
+
+              <div class="section-title" style="font-size:0.85rem;margin:8px 0 4px;">Thông tin chuyển khoản</div>
+              <div id="bankInfoBlock" class="small-note">
+                <div>Số TK: <strong id="bankSoTk">--</strong></div>
+                <div>Chủ TK: <strong id="bankChuTk">--</strong></div>
+                <div>Ngân hàng: <strong id="bankNganHang">--</strong></div>
+                <div>Chi nhánh: <strong id="bankChiNhanh">--</strong></div>
+                <div id="bankQrWrapper" style="margin-top:6px;display:none;">
+                  QR Code:
+                  <img id="bankQrImg" src="" alt="QR Code" style="max-width:130px;margin-top:4px;border-radius:6px;border:1px solid rgba(148,163,184,0.5);" />
+                </div>
+              </div>
             </div>
           </section>
         </div>
 
-        <!-- ------ CỘT PHẢI ------ -->
-        <div class="portal-col portal-card">
-
-          <!-- 📌 CARD 3: BẢO TRÌ -->
+        <!-- ================= CỘT PHẢI ================= -->
+        <div class="portal-card">
+          <!-- CARD 3: BẢO TRÌ -->
           <section class="card">
-            <div class="card-title">Bảo trì</div>
+            <div class="card-title">Bảo trì &amp; bảo dưỡng</div>
+            <button class="btn" style="width:auto;margin-bottom:8px;" onclick="onReportIssue()">
+              📢 Báo hỏng
+            </button>
 
-            <button class="btn" onclick="alert('Chức năng báo hỏng đang mở')">📢 Báo hỏng</button>
-
-            <table class="table-like" style="margin-top:10px;">
+            <table class="table-like table-small">
               <thead>
-                <tr><th>Ngày</th><th>Hạng mục</th><th>Trạng thái</th></tr>
+                <tr>
+                  <th>Ngày dự kiến</th>
+                  <th>Ngày thực hiện</th>
+                  <th>Tên tài sản</th>
+                  <th>Loại CV</th>
+                  <th>Trạng thái</th>
+                  <th>Ghi chú</th>
+                </tr>
               </thead>
-              <tbody id="maintenanceTable">
-                <tr><td colspan="3">Đang tải...</td></tr>
+              <tbody id="maintenanceTableBody">
+                <tr><td colspan="6" class="muted">Đang tải lịch bảo trì...</td></tr>
               </tbody>
             </table>
-          </section>
-
-          <!-- 📌 CARD 4: TIN NHẮN -->
-          <section class="card">
-            <div class="card-title">Tin nhắn</div>
-            <div id="messagesList" class="list">
-              <li class="muted">Chưa có tin nhắn.</li>
+            <div class="small-note">
+              Map từ sheet <strong>Lịch bảo trì</strong>: Ngày dự kiến, Ngày thực hiện, Tên tài sản,
+              Loại công việc, Trạng thái, Ghi chú.
             </div>
           </section>
-        </div>
 
+          <!-- CARD 4: TIN NHẮN -->
+          <section class="card">
+            <div class="card-title">Tin nhắn &amp; thông báo</div>
+            <ul id="messagesList" class="list">
+              <li class="muted">Chưa có tin nhắn nào.</li>
+            </ul>
+          </section>
+        </div>
       </div>
     </main>
   </div>
 
-<script>
-// (GIỮ NGUYÊN TOÀN BỘ SCRIPT CŨ)
-</script>
+  <script>
+    const TENANT_STORAGE_KEY = "ytHomeTenant";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwyqskjnUjwkn95TqRmcFjLem2eSMfKBuh23PHDD0QcL0gCwEnqNLYxd6vmi7xqDzUoow/exec";
 
-<script>
-  // Simple Tab Logic
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const tab = btn.dataset.tab;
-      
-      // remove active
-      btn.parentNode.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
+    function logoutTenant() {
+      try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch (e) {}
+      window.location.href = "tenant.html";
+    }
 
-      const parentCard = btn.closest(".card");
-      parentCard.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-      parentCard.querySelector(`#${tab}`).classList.add("active");
+    function onReportIssue() {
+      alert("Chức năng báo hỏng: bạn có thể làm form popup + ghi vào sheet Lịch bảo trì.\nHiện tại chỉ là nút minh họa.");
+    }
+
+    function maskIdentity(identity) {
+      if (!identity) return "--";
+      const s = String(identity);
+      if (s.length <= 4) return "***" + s;
+      return "**** " + s.slice(-4);
+    }
+
+    function formatVND(amount) {
+      if (amount === null || amount === undefined || amount === "") return "--";
+      const num = Number(String(amount).replace(/[^\d.-]/g, ""));
+      if (isNaN(num)) return String(amount);
+      return num.toLocaleString("vi-VN") + " đ";
+    }
+
+    // ====== SET OWNER INFO ======
+    function setOwnerInfo(owner, tenant) {
+      const nameEl  = document.getElementById("ownerName");
+      const cccdEl  = document.getElementById("ownerCccd");
+      const phoneEl = document.getElementById("ownerPhone");
+
+      const name  = owner?.name || owner?.tenKhach || owner?.hoTen || tenant?.name || "Chủ phòng";
+      const cccd  = owner?.cccd || owner?.soCccd || tenant?.identity || "";
+      const phone = owner?.phone || owner?.soDienThoai || owner?.dienThoai || "--";
+
+      if (nameEl) nameEl.textContent  = name;
+      if (cccdEl) cccdEl.textContent  = cccd ? maskIdentity(cccd) : "--";
+      if (phoneEl) phoneEl.textContent = phone;
+    }
+
+    // ====== CONTRACT SUMMARY & EXTEND BUTTON ======
+    function setContractSummary(contract) {
+      const statusEl  = document.getElementById("contractStatus");
+      const typeEl    = document.getElementById("contractType");
+      const periodEl  = document.getElementById("contractPeriod");
+      const rentEl    = document.getElementById("contractRent");
+      const depositEl = document.getElementById("contractDeposit");
+      const payDateEl = document.getElementById("contractPayDate");
+      const svBody    = document.getElementById("contractServicesBody");
+      const extendBtn = document.getElementById("extendContractBtn");
+
+      if (!contract) {
+        if (statusEl)  statusEl.textContent  = "Chưa có hợp đồng trong hệ thống";
+        if (typeEl)    typeEl.textContent    = "--";
+        if (periodEl)  periodEl.textContent  = "--";
+        if (rentEl)    rentEl.textContent    = "--";
+        if (depositEl) depositEl.textContent = "--";
+        if (payDateEl) payDateEl.textContent = "--";
+        if (svBody) svBody.innerHTML = `<tr><td colspan="3" class="muted">Chưa cấu hình DV.</td></tr>`;
+        if (extendBtn) extendBtn.style.display = "none";
+        return;
+      }
+
+      const status = contract.trangThai || contract.status || "Đang hiệu lực";
+      const type   = contract.loaiHD || contract.loaiHopDong || contract.type || "--";
+      const start  = contract.ngayBD || contract.ngayBatDau || contract.startDate || "";
+      const end    = contract.ngayKT || contract.ngayKetThuc || contract.endDate || "";
+
+      if (statusEl)  statusEl.textContent  = status;
+      if (typeEl)    typeEl.textContent    = type;
+      if (periodEl)  periodEl.textContent  = start && end ? `${start} – ${end}` : (start || end || "--");
+      if (rentEl)    rentEl.textContent    = formatVND(contract.tienThue || contract.rentAmount);
+      if (depositEl) depositEl.textContent = formatVND(contract.tienCoc || contract.deposit);
+      if (payDateEl) payDateEl.textContent = contract.ngayThuTien || contract.paymentDate || "--";
+
+      if (svBody) {
+        const rows = [];
+        const svc = [
+          { label: "DV1", code: contract.maDV1 || contract.maDv1, price: contract.donGiaDV1 || contract.donGiaDv1 },
+          { label: "DV2", code: contract.maDV2 || contract.maDv2, price: contract.donGiaDV2 || contract.donGiaDv2 },
+          { label: "DV3", code: contract.maDV3 || contract.maDv3, price: contract.donGiaDV3 || contract.donGiaDv3 }
+        ];
+        svc.forEach(s => {
+          if (s.code) {
+            rows.push(`
+              <tr>
+                <td>${s.label}</td>
+                <td>${s.code}</td>
+                <td>${formatVND(s.price)}</td>
+              </tr>
+            `);
+          }
+        });
+        svBody.innerHTML = rows.length
+          ? rows.join("")
+          : `<tr><td colspan="3" class="muted">Chưa cấu hình DV.</td></tr>`;
+      }
+
+      // Hiện nút Ký tiếp nếu còn <= 30 ngày đến Ngày KT
+      if (extendBtn && end) {
+        const parts = end.split(/[\/\-]/); // dd/MM/yyyy hoặc yyyy-MM-dd
+        let endDate = null;
+        if (parts.length === 3) {
+          if (parts[2].length === 4) {
+            // dd/MM/yyyy
+            endDate = new Date(+parts[2], +parts[1]-1, +parts[0]);
+          } else {
+            // yyyy-MM-dd
+            endDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
+          }
+        }
+        if (endDate) {
+          const today = new Date();
+          const diffMs = endDate - today;
+          const diffDays = diffMs / (1000*60*60*24);
+          if (diffDays <= 30 && diffDays >= -5) {
+            extendBtn.style.display = "inline-flex";
+            extendBtn.onclick = () => {
+              alert("Nút 'Ký tiếp hợp đồng' – bạn có thể mở form chi tiết hoặc chuyển sang link ký HĐ mới.");
+            };
+          } else {
+            extendBtn.style.display = "none";
+          }
+        }
+      }
+    }
+
+    // ====== NGƯỜI & XE ======
+    function setMembersTable(members) {
+      const body = document.getElementById("memberTableBody");
+      if (!body) return;
+      body.innerHTML = "";
+
+      if (!Array.isArray(members) || !members.length) {
+        body.innerHTML = `<tr><td colspan="6" class="muted">Chưa có dữ liệu cư dân cho phòng này.</td></tr>`;
+        return;
+      }
+
+      members.forEach((m, idx) => {
+        const name  = m.hoTen || m.tenKhach || m.name || "--";
+        const cccd  = m.soCccd || m.cccd || "";
+        const phone = m.soDienThoai || m.dienThoai || m.phone || "--";
+        const plate = m.bienSo || m.bienSoXe || "--";
+        const ngayTamTru = m.ngayTamTru || m.ngayDangKyTamTru || "";
+        let ttTamTru = m.trangThaiTamTru || "";
+
+        if (!ngayTamTru) {
+          ttTamTru = "Chưa đăng ký";
+        } else if (!ttTamTru) {
+          ttTamTru = "Đã đăng ký";
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${name}</td>
+          <td>${cccd ? maskIdentity(cccd) : "--"}</td>
+          <td>${phone}</td>
+          <td>${plate}</td>
+          <td>${ngayTamTru || "--"}</td>
+          <td>${ttTamTru}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // ====== LỊCH SỬ THANH TOÁN ======
+    function setPaymentHistory(payments, contractStatus) {
+      const body = document.getElementById("paymentHistoryBody");
+      if (!body) return;
+      body.innerHTML = "";
+
+      const isActive = contractStatus && /đang/i.test(contractStatus);
+      if (!isActive) {
+        body.innerHTML = `<tr><td colspan="5" class="muted">Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.</td></tr>`;
+        return;
+      }
+
+      if (!Array.isArray(payments) || !payments.length) {
+        body.innerHTML = `<tr><td colspan="5" class="muted">Chưa có kỳ thanh toán nào.</td></tr>`;
+        return;
+      }
+
+      payments.forEach(p => {
+        const period  = p.namThang || p.period || p.ky || "--";
+        const tongDv  = formatVND(p.tongDienNuocDv || p.tongDichVu || p.totalService);
+        const tong    = formatVND(p.phaiThu || p.tongTien || p.total);
+        const status  = p.trangThai || p.status || "Chưa đóng";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${period}</td>
+          <td>${tongDv}</td>
+          <td>${tong}</td>
+          <td>${status}</td>
+          <td>
+            <button class="room-btn-secondary" style="font-size:0.72rem;padding:3px 8px;"
+                    onclick="onSendInvoice('${encodeURIComponent(period)}')">
+              Gửi HĐ
+            </button>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function onSendInvoice(period) {
+      const real = decodeURIComponent(period || "");
+      alert("Nút 'Gửi hóa đơn thanh toán' – bạn có thể dùng Apps Script gửi email/Zalo.\nKỳ: " + real);
+    }
+
+    // ====== CHI TIẾT HÓA ĐƠN ======
+    function setInvoiceDetail(detail) {
+      if (!detail) detail = {};
+
+      const ngayTinh   = detail.ngayTinhHD || detail.ngayTinh || "--";
+      const tienPhong  = formatVND(detail.tienPhongTT || detail.tienPhongThanhToan);
+      const tongDv     = formatVND(detail.tongDichVu || detail.tongDv || detail.tongDienNuocDv);
+      const phatSinh   = formatVND(detail.phatSinhKhac || detail.phatSinh);
+      const giamTru    = formatVND(detail.giamTruKhac || detail.giamTru);
+      const thieuTruoc = formatVND(detail.thieuKyTruoc || detail.conThieuKyTruoc);
+      const phaiThu    = formatVND(detail.phaiThu || detail.tongPhaiThu);
+
+      document.getElementById("invNgayTinh").textContent   = ngayTinh;
+      document.getElementById("invTienPhongTT").textContent= tienPhong;
+      document.getElementById("invTongDv").textContent     = tongDv;
+      document.getElementById("invPhatSinh").textContent   = phatSinh;
+      document.getElementById("invGiamTru").textContent    = giamTru;
+      document.getElementById("invThieuTruoc").textContent = thieuTruoc;
+      document.getElementById("invPhaiThu").textContent    = phaiThu;
+
+      // Dịch vụ chi tiết
+      const svBody = document.getElementById("serviceTableBody");
+      svBody.innerHTML = "";
+      const services = detail.services || detail.chiTietDichVu || [];
+
+      if (!services.length) {
+        svBody.innerHTML = `<tr><td colspan="7" class="muted">Không có chi tiết dịch vụ cho kỳ đang chọn.</td></tr>`;
+      } else {
+        services.forEach((s, idx) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${s.stt || idx+1}</td>
+            <td>${s.tenDichVu || s.tenDV || s.serviceName || ""}</td>
+            <td>${s.soDau   ?? s.chiSoDau   ?? ""}</td>
+            <td>${s.soCuoi  ?? s.chiSoCuoi  ?? ""}</td>
+            <td>${s.soLuong ?? s.quantity   ?? ""}</td>
+            <td>${formatVND(s.donGia)}</td>
+            <td>${formatVND(s.thanhTien)}</td>
+          `;
+          svBody.appendChild(tr);
+        });
+      }
+
+      // Thông tin ngân hàng
+      const bank = detail.bankInfo || detail.bank || {};
+      document.getElementById("bankSoTk").textContent      = bank.soTk || bank.soTaiKhoan || "--";
+      document.getElementById("bankChuTk").textContent     = bank.chuTk || bank.chuTaiKhoan || "--";
+      document.getElementById("bankNganHang").textContent  = bank.nganHang || "--";
+      document.getElementById("bankChiNhanh").textContent  = bank.chiNhanh || "--";
+
+      const qrWrapper = document.getElementById("bankQrWrapper");
+      const qrImg     = document.getElementById("bankQrImg");
+      if (bank.qrCodeUrl || bank.qrImage) {
+        qrImg.src = bank.qrCodeUrl || bank.qrImage;
+        qrWrapper.style.display = "block";
+      } else {
+        qrWrapper.style.display = "none";
+      }
+    }
+
+    // ====== BẢO TRÌ ======
+    function setMaintenanceTable(rows) {
+      const body = document.getElementById("maintenanceTableBody");
+      if (!body) return;
+      body.innerHTML = "";
+
+      if (!Array.isArray(rows) || !rows.length) {
+        body.innerHTML = `<tr><td colspan="6" class="muted">Chưa có lịch bảo trì cho phòng này.</td></tr>`;
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.ngayDuKien   || r.ngayDuKienBaoTri   || ""}</td>
+          <td>${r.ngayThucHien || r.ngayBaoTri         || ""}</td>
+          <td>${r.tenTaiSan    || r.taiSan             || ""}</td>
+          <td>${r.loaiCongViec || r.loaiCV             || ""}</td>
+          <td>${r.trangThai    || ""}</td>
+          <td>${r.ghiChu       || ""}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // ====== TIN NHẮN ======
+    function setMessages(messages) {
+      const ul = document.getElementById("messagesList");
+      if (!ul) return;
+      ul.innerHTML = "";
+
+      if (!Array.isArray(messages) || !messages.length) {
+        ul.innerHTML = `<li class="muted">Chưa có tin nhắn nào.</li>`;
+        return;
+      }
+
+      messages.forEach(msg => {
+        const li = document.createElement("li");
+        li.style.marginBottom = "4px";
+        const status = msg.status || msg.trangThai || "";
+        li.innerHTML = `
+          <strong>${msg.title || msg.chuDe || "Thông báo"}</strong>
+          ${status ? `<span class="badge-soft">${status}</span>` : ""}
+          <div style="font-size:0.8rem;color:rgba(148,163,184,0.9);">
+            ${msg.content || msg.noiDung || ""}
+          </div>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    // ====== FETCH DATA TỪ APPS SCRIPT ======
+    async function fetchTenantPortalData(tenant) {
+      const statusNote = document.getElementById("portalStatusNote");
+      if (statusNote) {
+        statusNote.textContent = "Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...";
+      }
+
+      try {
+        const body = new URLSearchParams({
+          action:   "tenantPortal",
+          roomCode: tenant.maPhong,
+          identity: tenant.identity || ""
+        });
+
+        const res  = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body
+        });
+
+        const data = await res.json();
+
+        if (!data || !data.success) {
+          if (statusNote) statusNote.textContent =
+            (data && data.message) || "Không lấy được dữ liệu portal. Vui lòng liên hệ quản trị.";
+          setContractSummary(null);
+          setMembersTable([]);
+          setPaymentHistory([], null);
+          setInvoiceDetail(null);
+          setMaintenanceTable([]);
+          setMessages([]);
+          return;
+        }
+
+        if (statusNote) {
+          statusNote.textContent = "Dữ liệu đã được tải từ hệ thống.";
+        }
+
+        // GỢI Ý JSON:
+        // data.contract       : từ sheet Hợp đồng (Trạng thái, Loại HĐ, Ngày BĐ, Ngày KT, Tiền thuê, Tiền cọc, Ngày thu tiền, Mã DV1-3, Đơn giá DV1-3)
+        // data.owner          : từ Hợp đồng + Khách thuê (Chủ phòng)
+        // data.members        : từ sheet Khách thuê (Họ và tên, Số CCCD, Số điện thoại, Biển số, Ngày tạm trú, Trạng thái tạm trú)
+        // data.payments       : lịch sử thanh toán tổng hợp theo "Năm tháng"
+        // data.invoiceDetail  : chi tiết hóa đơn kỳ mới nhất hoặc kỳ được chọn
+        // data.maintenance    : từ sheet Lịch bảo trì
+        // data.messages       : tin nhắn/thông báo
+
+        setOwnerInfo(data.owner || null, tenant);
+        setContractSummary(data.contract || null);
+        setMembersTable(data.members || []);
+
+        const contractStatus = (data.contract && (data.contract.trangThai || data.contract.status)) || "";
+        setPaymentHistory(data.payments || data.invoices || [], contractStatus);
+
+        setInvoiceDetail(data.invoiceDetail || null);
+        setMaintenanceTable(data.maintenance || []);
+        setMessages(data.messages || []);
+      } catch (err) {
+        console.error("fetchTenantPortalData error:", err);
+        const statusNote = document.getElementById("portalStatusNote");
+        if (statusNote) statusNote.textContent =
+          "Có lỗi kết nối tới Apps Script. Vui lòng kiểm tra API_URL hoặc thử lại sau.";
+      }
+    }
+
+    // ====== INIT ======
+    document.addEventListener("DOMContentLoaded", () => {
+      // Xử lý tab click (upline vì HTML đã sẵn)
+      document.querySelectorAll(".tab-nav").forEach(nav => {
+        nav.addEventListener("click", (e) => {
+          const btn = e.target.closest(".tab-btn");
+          if (!btn) return;
+          const tabId = btn.dataset.tab;
+          const card = btn.closest(".card");
+          if (!card) return;
+
+          card.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          card.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+          const target = card.querySelector("#" + tabId);
+          if (target) target.classList.add("active");
+        });
+      });
+
+      // Lấy tenant từ localStorage
+      const params = new URLSearchParams(window.location.search);
+      const roomParam = params.get("room");
+
+      let tenant = null;
+      try {
+        const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+        if (saved) tenant = JSON.parse(saved);
+      } catch (e) {
+        console.error("read tenant error:", e);
+      }
+
+      if (!tenant || !tenant.maPhong) {
+        window.location.href = "tenant.html";
+        return;
+      }
+
+      // Đồng bộ room trên URL
+      if (!roomParam || roomParam !== tenant.maPhong) {
+        const newUrl = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+        window.history.replaceState({}, "", newUrl);
+      }
+
+      const roomBadge = document.getElementById("roomBadge");
+      if (roomBadge) roomBadge.textContent = "Phòng: " + tenant.maPhong;
+
+      // Gọi Apps Script
+      fetchTenantPortalData(tenant);
     });
-  });
-</script>
-
+  </script>
 </body>
 </html>
