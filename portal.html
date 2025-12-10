@@ -9,10 +9,10 @@
 
   <!-- CSS layout riêng cho portal -->
   <style>
-    /* Lưới 3 cột cho các card portal */
+    /* Lưới 2 cột cho các card portal */
     body.portal-body .portal-grid {
       display: grid;
-      grid-template-columns: 1.3fr 1fr 1fr; /* cột 1 rộng hơn */
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
       gap: 12px;
       align-items: flex-start;
       margin-top: 12px;
@@ -25,15 +25,8 @@
       gap: 10px;
     }
 
-    /* Responsive: tablet → 2 cột */
-    @media (max-width: 960px) {
-      body.portal-body .portal-grid {
-        grid-template-columns: 1.2fr 1fr;
-      }
-    }
-
-    /* Responsive: mobile → 1 cột */
-    @media (max-width: 640px) {
+    /* Tablet / mobile → 1 cột */
+    @media (max-width: 768px) {
       body.portal-body .portal-grid {
         grid-template-columns: 1fr;
       }
@@ -66,11 +59,11 @@
         Đang tải dữ liệu phòng từ hệ thống...
       </div>
 
-      <!-- LƯỚI 3 CỘT CHỨA 6 CARD -->
+      <!-- LƯỚI 2 CỘT CHỨA 6 CARD -->
       <div class="portal-grid">
-        <!-- CỘT 1: Thông tin phòng + Tóm tắt hợp đồng -->
+        <!-- CỘT TRÁI: (1) Thông tin phòng, (2) Tóm tắt HĐ, (3) Hóa đơn gần đây -->
         <div class="portal-col portal-col-main">
-          <!-- Thông tin tài khoản phòng -->
+          <!-- (1) Thông tin tài khoản phòng -->
           <section class="card">
             <div class="card-title">Thông tin tài khoản phòng</div>
             <div class="badge" id="roomBadge">Phòng: --</div>
@@ -93,7 +86,7 @@
             </div>
           </section>
 
-          <!-- Tóm tắt hợp đồng -->
+          <!-- (2) Tóm tắt hợp đồng -->
           <section class="card">
             <div class="card-title">Tóm tắt hợp đồng</div>
             <ul class="list">
@@ -109,11 +102,8 @@
               Các giá trị trên được map trực tiếp từ JSON <code>contract</code> Apps Script trả về (sheet Hợp đồng).
             </div>
           </section>
-        </div>
 
-        <!-- CỘT 2: Hóa đơn gần đây + Chi tiết hóa đơn (điện nước) -->
-        <div class="portal-col">
-          <!-- Bảng hóa đơn -->
+          <!-- (3) Hóa đơn gần đây -->
           <section class="card">
             <div class="section-title">Hóa đơn gần đây</div>
             <table class="table-like">
@@ -136,8 +126,11 @@
               <code>Kỳ</code>, <code>Mô tả</code>, <code>Số tiền</code>, <code>Trạng thái</code>, đã được lọc theo mã phòng.
             </div>
           </section>
+        </div>
 
-          <!-- Bảng chi tiết hóa đơn / chỉ số điện nước -->
+        <!-- CỘT PHẢI: (4) Chi tiết hóa đơn, (5) Lịch bảo trì, (6) Tin nhắn -->
+        <div class="portal-col">
+          <!-- (4) Chi tiết hóa đơn / chỉ số điện nước -->
           <section class="card">
             <div class="section-title">Chi tiết hóa đơn (chỉ số điện nước)</div>
             <table class="table-like">
@@ -162,11 +155,8 @@
               <code>Kỳ</code>, <code>CS điện đầu/cuối</code>, <code>kWh</code>, <code>CS nước đầu/cuối</code>, <code>m³</code>, <code>Tiền điện</code>, <code>Tiền nước</code>, <code>Tổng</code>.
             </div>
           </section>
-        </div>
 
-        <!-- CỘT 3: Lịch bảo trì + Tin nhắn -->
-        <div class="portal-col">
-          <!-- Lịch bảo trì -->
+          <!-- (5) Lịch bảo trì -->
           <section class="card">
             <div class="section-title">Lịch bảo trì</div>
             <table class="table-like" id="maintenanceTable">
@@ -187,7 +177,7 @@
             </table>
           </section>
 
-          <!-- Tin nhắn -->
+          <!-- (6) Tin nhắn -->
           <section class="card">
             <div class="section-title">Tin nhắn</div>
             <div id="messagesList" class="list">
