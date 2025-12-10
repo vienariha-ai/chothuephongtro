@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
@@ -251,12 +251,15 @@
         Sau khi đăng nhập thành công, hệ thống sẽ lưu tài khoản phòng để những lần sau tự chuyển thẳng vào portal.
       </div>
 
-      <div class="link-row">
-        <a href="index.html">← Quay lại trang xem phòng</a>
-        <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="logoutTenant()">
-          Đăng xuất / Đổi phòng
+      <div class="tenant-footer-actions">
+        <a href="index.html" class="tenant-back-link">← Quay lại trang xem phòng</a>
+
+        <button type="button" id="logoutBtn" class="btn-logout">
+          <span class="btn-logout-icon">⇄</span>
+          <span>Đăng xuất / Đổi phòng</span>
         </button>
       </div>
+
     </div>
   </div>
 
@@ -393,3 +396,4 @@
   </script>
 </body>
 </html>
+
