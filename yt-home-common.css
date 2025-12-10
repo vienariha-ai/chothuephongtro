@@ -1112,6 +1112,8 @@ textarea.form-control {
       border: none;
     }
 
+
+
     @media (max-width: 900px) {
       .hero-grid,
       .contact-grid {
@@ -1715,6 +1717,112 @@ textarea.form-control {
       font-style: italic;
     }
 
+  /* Hàng nút phía dưới form */
+  .tenant-footer-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+  }
+
+  /* Link quay lại */
+  .tenant-back-link {
+    color: #bfdbfe;
+    text-decoration: underline;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  .tenant-back-link:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+
+  /* Nút Đăng xuất / Đổi phòng – style “chip” nổi bật */
+  .btn-logout {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(248, 113, 113, 0.85);
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #fecaca;
+    background:
+      radial-gradient(circle at top left, rgba(248, 113, 113, 0.18), transparent 55%),
+      rgba(15, 23, 42, 0.95);
+    box-shadow:
+      0 0 0 1px rgba(148, 27, 109, 0.5),
+      0 14px 32px rgba(127, 29, 29, 0.6);
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease,
+      background 0.18s ease,
+      color 0.18s ease;
+    }
+
+  /* vòng glow nhẹ */
+  .btn-logout::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 160deg,
+      rgba(248, 113, 113, 0.7),
+      rgba(251, 146, 60, 0.7),
+      rgba(244, 63, 94, 0.7),
+      rgba(248, 113, 113, 0.9)
+    );
+    opacity: 0;
+    z-index: -1;
+    filter: blur(6px);
+    transition: opacity 0.2s ease;
+  }
+
+  .btn-logout-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    background: radial-gradient(circle at top left, #fecaca, #fb7185);
+    color: #111827;
+    box-shadow: 0 6px 14px rgba(248, 113, 113, 0.7);
+  }
+
+    /* Hover effect */
+    .btn-logout:hover {
+      transform: translateY(-2px);
+      background:
+      radial-gradient(circle at top left, rgba(248, 113, 113, 0.25), transparent 55%),
+      rgba(15, 23, 42, 1);
+      color: #fee2e2;
+      box-shadow:
+      0 0 0 1px rgba(248, 113, 113, 0.9),
+      0 18px 40px rgba(127, 29, 29, 0.9);
+    }
+
+  .btn-logout:hover::before {
+    opacity: 1;
+  }
+
+  /* Active */
+  .btn-logout:active {
+    transform: translateY(0);
+    box-shadow:
+      0 0 0 1px rgba(248, 113, 113, 0.9),
+      0 10px 24px rgba(17, 24, 39, 0.9);
+  }
+
     @media (max-width: 768px) {
       .grid {
         grid-template-columns: 1fr;
@@ -1732,6 +1840,7 @@ textarea.form-control {
     }
   
   </style>
+
 
 
 
