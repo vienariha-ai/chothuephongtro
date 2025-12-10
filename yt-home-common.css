@@ -199,7 +199,6 @@ textarea.form-control {
   margin-top: 4px;
 }
 
-<style>
     :root {
       --primary: #2563eb;
       --primary-dark: #1d4ed8;
@@ -1469,377 +1468,384 @@ textarea.form-control {
       .layout { grid-template-columns:1fr; }
     }
 
-    * {
-      
-      margin: 0;
-      padding: 0;
-    }
+   /* =========================================================
+ * TRANG PORTAL TÀI KHOẢN PHÒNG (tenant.html)
+ * Lưu ý: trong tenant.html, dùng <body class="tenant-body">
+ * =======================================================*/
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 50%),
-        radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 55%),
-        radial-gradient(circle at bottom, rgba(45, 212, 191, 0.25), transparent 55%),
-        #0b1120;
-      color: #e5e7eb;
-      min-height: 100vh;
-      padding: 12px 16px 20px;
-    }
+/* Nền & layout chung cho trang tenant */
+body.tenant-body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 50%),
+    radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 55%),
+    radial-gradient(circle at bottom, rgba(45, 212, 191, 0.25), transparent 55%),
+    #0b1120;
+  color: #e5e7eb;
+  min-height: 100vh;
+  padding: 12px 16px 20px;
+}
 
-    .container {
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
-    }
+body.tenant-body .container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
 
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
+/* Header + logo tenant */
+body.tenant-body .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
 
-    .logo-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+body.tenant-body .logo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-    .logo-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 12px;
-      background: conic-gradient(from 120deg, #38bdf8, #22c55e, #6366f1, #38bdf8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 1rem;
-      color: #0b1120;
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8), 0 10px 30px rgba(15, 23, 42, 0.8);
-    }
+body.tenant-body .logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: conic-gradient(from 120deg, #38bdf8, #22c55e, #6366f1, #38bdf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #0b1120;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8), 0 10px 30px rgba(15, 23, 42, 0.8);
+}
 
-    .logo-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+body.tenant-body .logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-    .logo-text-main {
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
+body.tenant-body .logo-text-main {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 
-    .logo-text-sub {
-      font-size: 0.75rem;
-      color: rgba(148, 163, 184, 0.9);
-    }
+body.tenant-body .logo-text-sub {
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.9);
+}
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+body.tenant-body .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
-    .btn {
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border: 1px solid transparent;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      background: radial-gradient(circle at top left, #38bdf8, #2563eb);
-      color: #f9fafb;
-      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.5);
-      transition:
-        transform 0.16s ease,
-        box-shadow 0.16s ease,
-        filter 0.16s ease;
-      white-space: nowrap;
-    }
+/* Nút trên trang tenant (không đụng tới .btn chung của index/room) */
+body.tenant-body .btn {
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: radial-gradient(circle at top left, #38bdf8, #2563eb);
+  color: #f9fafb;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.5);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease;
+  white-space: nowrap;
+}
 
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.75);
-      filter: brightness(1.03);
-    }
+body.tenant-body .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.75);
+  filter: brightness(1.03);
+}
 
-    .btn-outline {
-      background: transparent;
-      border-color: rgba(148, 163, 184, 0.8);
-      box-shadow: none;
-      color: #e5e7eb;
-    }
+body.tenant-body .btn-outline {
+  background: transparent;
+  border-color: rgba(148, 163, 184, 0.8);
+  box-shadow: none;
+  color: #e5e7eb;
+}
 
-    .btn-outline:hover {
-      background: rgba(15, 23, 42, 0.98);
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.98);
-    }
+body.tenant-body .btn-outline:hover {
+  background: rgba(15, 23, 42, 0.98);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.98);
+}
 
-    a {
-      color: #38bdf8;
-      text-decoration: none;
-    }
+/* Text chính */
+body.tenant-body a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+body.tenant-body a:hover {
+  text-decoration: underline;
+}
 
-    a:hover {
-      text-decoration: underline;
-    }
+body.tenant-body .page-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
 
-    .page-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
+body.tenant-body .page-subtitle {
+  font-size: 0.85rem;
+  color: rgba(148, 163, 184, 0.96);
+  margin-bottom: 6px;
+}
 
-    .page-subtitle {
-      font-size: 0.85rem;
-      color: rgba(148, 163, 184, 0.96);
-      margin-bottom: 6px;
-    }
+body.tenant-body .portal-status {
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.96);
+  margin-bottom: 14px;
+  min-height: 16px;
+}
 
-    .portal-status {
-      font-size: 0.78rem;
-      color: rgba(148, 163, 184, 0.96);
-      margin-bottom: 14px;
-      min-height: 16px;
-    }
+/* Lưới 2 cột: card login + hướng dẫn */
+body.tenant-body .grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
+/* Card trong tenant (không ảnh hưởng card ở index/room) */
+body.tenant-body .card {
+  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.99));
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.75);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 1);
+  padding: 12px;
+  font-size: 0.85rem;
+}
 
-    .card {
-      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.99));
-      border-radius: 16px;
-      border: 1px solid rgba(148, 163, 184, 0.75);
-      box-shadow: 0 16px 40px rgba(15, 23, 42, 1);
-      padding: 12px;
-      font-size: 0.85rem;
-    }
+body.tenant-body .card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
 
-    .card-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
+/* Badge nhỏ trong card tenant */
+body.tenant-body .badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.85);
+  background: rgba(15, 23, 42, 0.96);
+  margin-bottom: 4px;
+}
 
-    .badge {
-      display: inline-block;
-      font-size: 0.78rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.85);
-      background: rgba(15, 23, 42, 0.96);
-      margin-bottom: 4px;
-    }
+/* Thông tin phụ bên phải */
+body.tenant-body .info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
 
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
+body.tenant-body .info-label {
+  color: rgba(148, 163, 184, 0.96);
+  font-size: 0.8rem;
+}
 
-    .info-label {
-      color: rgba(148, 163, 184, 0.96);
-      font-size: 0.8rem;
-    }
+body.tenant-body .info-value {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
 
-    .info-value {
-      font-weight: 500;
-      font-size: 0.85rem;
-    }
+body.tenant-body .list {
+  margin-top: 4px;
+  padding-left: 16px;
+  font-size: 0.82rem;
+  color: rgba(209, 213, 219, 0.96);
+}
 
-    .list {
-      margin-top: 4px;
-      padding-left: 16px;
-      font-size: 0.82rem;
-      color: rgba(209, 213, 219, 0.96);
-    }
+body.tenant-body .list li {
+  margin-bottom: 2px;
+}
 
-    .list li {
-      margin-bottom: 2px;
-    }
+body.tenant-body .small-note {
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.96);
+  margin-top: 6px;
+}
 
-    .small-note {
-      font-size: 0.75rem;
-      color: rgba(148, 163, 184, 0.96);
-      margin-top: 6px;
-    }
+body.tenant-body .section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 4px;
+}
 
-    .section-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-      margin-top: 4px;
-    }
+body.tenant-body .table-like {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
 
-    .table-like {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-      margin-top: 4px;
-    }
+body.tenant-body .table-like th,
+body.tenant-body .table-like td {
+  padding: 6px 6px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+}
 
-    .table-like th,
-    .table-like td {
-      padding: 6px 6px;
-      border-bottom: 1px solid rgba(51, 65, 85, 0.9);
-    }
+body.tenant-body .table-like th {
+  text-align: left;
+  font-weight: 600;
+  color: rgba(148, 163, 184, 0.98);
+  font-size: 0.78rem;
+}
 
-    .table-like th {
-      text-align: left;
-      font-weight: 600;
-      color: rgba(148, 163, 184, 0.98);
-      font-size: 0.78rem;
-    }
+body.tenant-body .table-like td {
+  color: rgba(229, 231, 235, 0.96);
+}
 
-    .table-like td {
-      color: rgba(229, 231, 235, 0.96);
-    }
+body.tenant-body .muted {
+  color: rgba(148, 163, 184, 0.9);
+  font-style: italic;
+}
 
-    .muted {
-      color: rgba(148, 163, 184, 0.9);
-      font-style: italic;
-    }
+/* ===== Footer dưới form + nút Đăng xuất / Đổi phòng ===== */
 
-  /* Hàng nút phía dưới form */
-  .tenant-footer-actions {
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.8rem;
+body.tenant-body .tenant-footer-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+body.tenant-body .tenant-back-link {
+  color: #bfdbfe;
+  text-decoration: underline;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+body.tenant-body .tenant-back-link:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+/* Nút “Đăng xuất / Đổi phòng” dạng chip nổi bật */
+body.tenant-body .btn-logout {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 113, 113, 0.85);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fecaca;
+  background:
+    radial-gradient(circle at top left, rgba(248, 113, 113, 0.18), transparent 55%),
+    rgba(15, 23, 42, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(148, 27, 109, 0.5),
+    0 14px 32px rgba(127, 29, 29, 0.6);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+/* Glow viền mềm */
+body.tenant-body .btn-logout::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 160deg,
+    rgba(248, 113, 113, 0.7),
+    rgba(251, 146, 60, 0.7),
+    rgba(244, 63, 94, 0.7),
+    rgba(248, 113, 113, 0.9)
+  );
+  opacity: 0;
+  z-index: -1;
+  filter: blur(6px);
+  transition: opacity 0.2s ease;
+}
+
+body.tenant-body .btn-logout-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  background: radial-gradient(circle at top left, #fecaca, #fb7185);
+  color: #111827;
+  box-shadow: 0 6px 14px rgba(248, 113, 113, 0.7);
+}
+
+/* Hover + active */
+body.tenant-body .btn-logout:hover {
+  transform: translateY(-2px);
+  background:
+    radial-gradient(circle at top left, rgba(248, 113, 113, 0.25), transparent 55%),
+    rgba(15, 23, 42, 1);
+  color: #fee2e2;
+  box-shadow:
+    0 0 0 1px rgba(248, 113, 113, 0.9),
+    0 18px 40px rgba(127, 29, 29, 0.9);
+}
+
+body.tenant-body .btn-logout:hover::before {
+  opacity: 1;
+}
+
+body.tenant-body .btn-logout:active {
+  transform: translateY(0);
+  box-shadow:
+    0 0 0 1px rgba(248, 113, 113, 0.9),
+    0 10px 24px rgba(17, 24, 39, 0.9);
+}
+
+/* Responsive riêng cho tenant */
+@media (max-width: 768px) {
+  body.tenant-body .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  body.tenant-body {
+    padding: 10px 10px 18px;
   }
 
-  /* Link quay lại */
-  .tenant-back-link {
-    color: #bfdbfe;
-    text-decoration: underline;
-    cursor: pointer;
-    opacity: 0.9;
-    transition: opacity 0.18s ease, transform 0.18s ease;
+  body.tenant-body .card {
+    padding: 10px;
   }
+}
 
-  .tenant-back-link:hover {
-    opacity: 1;
-    transform: translateY(-1px);
-  }
-
-  /* Nút Đăng xuất / Đổi phòng – style “chip” nổi bật */
-  .btn-logout {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(248, 113, 113, 0.85);
-    cursor: pointer;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #fecaca;
-    background:
-      radial-gradient(circle at top left, rgba(248, 113, 113, 0.18), transparent 55%),
-      rgba(15, 23, 42, 0.95);
-    box-shadow:
-      0 0 0 1px rgba(148, 27, 109, 0.5),
-      0 14px 32px rgba(127, 29, 29, 0.6);
-    transition:
-      transform 0.18s ease,
-      box-shadow 0.18s ease,
-      background 0.18s ease,
-      color 0.18s ease;
-    }
-
-  /* vòng glow nhẹ */
-  .btn-logout::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    background: conic-gradient(
-      from 160deg,
-      rgba(248, 113, 113, 0.7),
-      rgba(251, 146, 60, 0.7),
-      rgba(244, 63, 94, 0.7),
-      rgba(248, 113, 113, 0.9)
-    );
-    opacity: 0;
-    z-index: -1;
-    filter: blur(6px);
-    transition: opacity 0.2s ease;
-  }
-
-  .btn-logout-icon {
-    width: 20px;
-    height: 20px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    background: radial-gradient(circle at top left, #fecaca, #fb7185);
-    color: #111827;
-    box-shadow: 0 6px 14px rgba(248, 113, 113, 0.7);
-  }
-
-    /* Hover effect */
-    .btn-logout:hover {
-      transform: translateY(-2px);
-      background:
-      radial-gradient(circle at top left, rgba(248, 113, 113, 0.25), transparent 55%),
-      rgba(15, 23, 42, 1);
-      color: #fee2e2;
-      box-shadow:
-      0 0 0 1px rgba(248, 113, 113, 0.9),
-      0 18px 40px rgba(127, 29, 29, 0.9);
-    }
-
-  .btn-logout:hover::before {
-    opacity: 1;
-  }
-
-  /* Active */
-  .btn-logout:active {
-    transform: translateY(0);
-    box-shadow:
-      0 0 0 1px rgba(248, 113, 113, 0.9),
-      0 10px 24px rgba(17, 24, 39, 0.9);
-  }
-
-    @media (max-width: 768px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 10px 10px 18px;
-      }
-
-      .card {
-        padding: 10px;
-      }
-    }
   
-  </style>
+
 
 
 
