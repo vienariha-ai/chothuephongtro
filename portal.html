@@ -146,25 +146,51 @@
           </div>
 
           <!-- TAB CHI TIẾT HÓA ĐƠN (kỳ mới nhất) -->
-          <div class="tab-pane tab-pane-pay hidden" id="tab-detail">
-            <div id="invoiceSummary">
-              <p><span class="inv-label">Ngày tính HĐ:</span> <span class="inv-value" id="invNgayTinh">--</span></p>
-              <p><span class="inv-label">Tiền phòng thanh toán:</span> <span class="inv-value" id="invTienPhong">--</span></p>
-              <p><span class="inv-label">Tổng dịch vụ (ĐN + DV):</span> <span class="inv-value" id="invTongDV">--</span></p>
-              <p><span class="inv-label">Phát sinh khác:</span> <span class="inv-value" id="invPhatSinh">--</span></p>
-              <p><span class="inv-label">Giảm trừ khác:</span> <span class="inv-value" id="invGiamTru">--</span></p>
-              <p><span class="inv-label">Thiếu kỳ trước:</span> <span class="inv-value" id="invThieuTruoc">--</span></p>
-              <p class="inv-total-row">
-                <span class="inv-label">Phải thu:</span>
-                <span class="inv-total" id="invPhaiThu">--</span>
-              </p>
-            </div>
-            <div class="section-title">Thông tin chuyển khoản</div>
-            <p class="small-note" id="invBankInfo">--</p>
-
-            <div class="section-title">QR thanh toán</div>
-            <div id="qrContainer" class="gallery-placeholder">Chưa có QR Code.</div>
+        <div class="tab-pane tab-pane-pay hidden" id="tab-detail">
+          <div id="invoiceSummary">
+            <p><span class="inv-label">Ngày tính HĐ:</span> <span class="inv-value" id="invNgayTinh">--</span></p>
+            <p><span class="inv-label">Tiền phòng thanh toán:</span> <span class="inv-value" id="invTienPhong">--</span></p>
+            <p><span class="inv-label">Tổng dịch vụ (ĐN + DV):</span> <span class="inv-value" id="invTongDV">--</span></p>
+            <p><span class="inv-label">Phát sinh khác:</span> <span class="inv-value" id="invPhatSinh">--</span></p>
+            <p><span class="inv-label">Giảm trừ khác:</span> <span class="inv-value" id="invGiamTru">--</span></p>
+            <p><span class="inv-label">Thiếu kỳ trước:</span> <span class="inv-value" id="invThieuTruoc">--</span></p>
+            <p class="inv-total-row">
+              <span class="inv-label">Phải thu:</span>
+              <span class="inv-total" id="invPhaiThu">--</span>
+            </p>
           </div>
+        
+          <!-- 🔹 BẢNG CHI TIẾT DỊCH VỤ -->
+          <div class="section-title" style="margin-top:12px;">Chi tiết dịch vụ</div>
+          <table class="table-like" id="invoiceServiceTable">
+            <thead>
+              <tr>
+                <th>Tên dịch vụ</th>
+                <th>Số đầu</th>
+                <th>Số cuối</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody id="invoiceServiceBody">
+              <tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5" style="text-align:right;font-weight:600;">Tổng cộng:</td>
+                <td id="invoiceServiceTotal" style="font-weight:600;">0 đ</td>
+              </tr>
+            </tfoot>
+          </table>
+        
+          <div class="section-title" style="margin-top:12px;">Thông tin chuyển khoản</div>
+          <p class="small-note" id="invBankInfo">--</p>
+        
+          <div class="section-title">QR thanh toán</div>
+          <div id="qrContainer" class="gallery-placeholder">Chưa có QR Code.</div>
+        </div>
+
         </section>
       </div>
 
@@ -218,6 +244,7 @@
   <script>
     const TENANT_STORAGE_KEY = "ytHomeTenant";
     const API_URL = "https://script.google.com/macros/s/AKfycbyrVC40zXWMybOxz4fsmG7XKF8sXQlSIlafX5LWISuU3uiRTYJWBsfP6qkutAmudy3VAw/exec";
+    let CURRENT_INVOICES = [];
 
     function logoutTenant() {
       try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
@@ -605,13 +632,117 @@
       }
     }
 
-    function renderPaymentCard(data){
+      function showInvoiceDetail(inv){
+      // Nếu không có hóa đơn → reset
+      if (!inv || !inv.chiTiet) {
+        document.getElementById('invNgayTinh').textContent   = '--';
+        document.getElementById('invTienPhong').textContent  = '--';
+        document.getElementById('invTongDV').textContent     = '--';
+        document.getElementById('invPhatSinh').textContent   = '--';
+        document.getElementById('invGiamTru').textContent    = '--';
+        document.getElementById('invThieuTruoc').textContent = '--';
+        document.getElementById('invPhaiThu').textContent    = '--';
+        document.getElementById('invBankInfo').textContent   = '--';
+    
+        const tbody = document.getElementById('invoiceServiceBody');
+        if (tbody){
+          tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>';
+        }
+        const totalCell = document.getElementById('invoiceServiceTotal');
+        if (totalCell) totalCell.textContent = '0 đ';
+    
+        const qrContainer = document.getElementById('qrContainer');
+        if (qrContainer){
+          qrContainer.innerHTML = 'Chưa có QR Code.';
+        }
+        return;
+      }
+    
+      const c = inv.chiTiet;
+    
+      // Ngày tính HĐ: xx ngày (đã sửa ở turn trước)
+      document.getElementById('invNgayTinh').textContent =
+        Number.isFinite(Number(c.ngayTinhHD))
+          ? `${parseInt(c.ngayTinhHD)} ngày`
+          : '--';
+    
+      document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
+      document.getElementById('invTongDV').textContent     = formatVND(c.tongDichVu);
+      document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
+      document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
+      document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
+      document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
+    
+      // 🔹 Thông tin chuyển khoản: mỗi mục 1 dòng
+      const bankInfo = c.bankInfo || {};
+      const bankLines = [];
+      if (bankInfo.soTaiKhoan)  bankLines.push('Số tài khoản: ' + bankInfo.soTaiKhoan);
+      if (bankInfo.chuTaiKhoan) bankLines.push('Chủ tài khoản: ' + bankInfo.chuTaiKhoan);
+      if (bankInfo.nganHang)    bankLines.push('Ngân hàng: ' + bankInfo.nganHang);
+      if (bankInfo.chiNhanh)    bankLines.push('Chi nhánh: ' + bankInfo.chiNhanh);
+    
+      const bankEl = document.getElementById('invBankInfo');
+      if (bankEl) bankEl.innerHTML = bankLines.length ? bankLines.join('<br>') : '--';
+    
+      // 🔹 QR
+      const qrContainer = document.getElementById('qrContainer');
+      if (qrContainer) {
+        qrContainer.innerHTML = '';
+        if (c.qrCode){
+          const img = document.createElement('img');
+          img.src = c.qrCode;
+          img.alt = 'QR thanh toán';
+          img.style.maxWidth = '160px';
+          img.style.marginTop = '4px';
+          qrContainer.appendChild(img);
+        } else {
+          qrContainer.textContent = 'Chưa có QR Code.';
+        }
+      }
+    
+      // 🔹 Bảng dịch vụ chi tiết
+      const tbody = document.getElementById('invoiceServiceBody');
+      const totalCell = document.getElementById('invoiceServiceTotal');
+      if (!tbody || !totalCell) return;
+    
+      tbody.innerHTML = '';
+    
+      const services = Array.isArray(c.services) ? c.services : [];
+      if (!services.length){
+        tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>';
+        totalCell.textContent = formatVND(c.tongDichVu || 0);
+        return;
+      }
+    
+      let total = 0;
+      services.forEach(s => {
+        const thanhTien = Number(s.thanhTien || s.thanhTienDV || 0);
+        total += thanhTien;
+    
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${s.tenDV   || s.tenDichVu || ''}</td>
+          <td>${s.soDau   ?? s.chiSoDau  ?? ''}</td>
+          <td>${s.soCuoi  ?? s.chiSoCuoi ?? ''}</td>
+          <td>${s.soLuong ?? ''}</td>
+          <td>${formatVND(s.donGia)}</td>
+          <td>${formatVND(thanhTien)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    
+      totalCell.textContent = formatVND(total || c.tongDichVu || 0);
+    }
+
+     function renderPaymentCard(data){
       const historyBody = document.getElementById('paymentHistoryBody');
       if (!historyBody) return;
       historyBody.innerHTML = '';
-
+    
       const invoices = (data && Array.isArray(data.invoices)) ? data.invoices : [];
-
+      CURRENT_INVOICES = invoices; // 🔹 lưu lại để dùng nếu cần
+    
+      // Nếu HĐ không hiệu lực → chỉ message, không render chi tiết
       if (!data || !data.contract || !String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực')) {
         historyBody.innerHTML = `
           <tr>
@@ -619,9 +750,10 @@
               Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.
             </td>
           </tr>`;
+        showInvoiceDetail(null);
         return;
       }
-
+    
       if (!invoices.length){
         historyBody.innerHTML = `
           <tr>
@@ -629,56 +761,40 @@
               Chưa có hóa đơn nào cho phòng này.
             </td>
           </tr>`;
-      } else {
-        invoices.forEach(inv=>{
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${inv.namThang || ''}</td>
-            <td>${formatVND(inv.tongDN_DV)}</td>
-            <td>${formatVND(inv.tongPhaiThu)}</td>
-            <td>${renderStatusHTML(inv.trangThai, 'invoice')}</td>
-          `;
-          historyBody.appendChild(tr);
+        showInvoiceDetail(null);
+        return;
+      }
+    
+      // 🔹 Vẽ danh sách lịch sử + click chọn dòng
+      invoices.forEach((inv, idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${inv.namThang || ''}</td>
+          <td>${formatVND(inv.tongDN_DV)}</td>
+          <td>${formatVND(inv.tongPhaiThu)}</td>
+          <td>${renderStatusHTML(inv.trangThai, 'invoice')}</td>
+        `;
+        tr.dataset.index = idx;
+    
+        tr.addEventListener('click', ()=>{
+          // bỏ active cũ
+          historyBody.querySelectorAll('tr').forEach(row=>{
+            row.classList.remove('row-active');
+          });
+          tr.classList.add('row-active');
+    
+          showInvoiceDetail(invoices[idx]);
+          // tự động chuyển sang tab "Chi tiết hóa đơn"
+          setActiveTab('pay', 'detail');
         });
-      }
-
-      // Chi tiết hóa đơn = bản ghi mới nhất
-      const latest = invoices[0];
-      if (!latest) return;
-      const c = latest.chiTiet || {};
-
-      document.getElementById('invNgayTinh').textContent =     Number.isFinite(Number(c.ngayTinhHD))
-      ? `${parseInt(c.ngayTinhHD)} ngày`: "--";
-      document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
-      document.getElementById('invTongDV').textContent     = formatVND(c.tongDichVu);
-      document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
-      document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
-      document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
-      document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
-
-      const bankInfo = c.bankInfo || {};
-      const bankText = [
-        bankInfo.soTaiKhoan ? ('STK: ' + bankInfo.soTaiKhoan) : '',
-        bankInfo.chuTaiKhoan ? ('Chủ TK: ' + bankInfo.chuTaiKhoan) : '',
-        bankInfo.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
-        bankInfo.chiNhanh ? ('Chi nhánh: ' + bankInfo.chiNhanh) : ''
-      ].filter(Boolean).join(' • ');
-
-      document.getElementById('invBankInfo').textContent = bankText || '--';
-
-      const qrContainer = document.getElementById('qrContainer');
-      if (!qrContainer) return;
-      qrContainer.innerHTML = '';
-      if (c.qrCode){
-        const img = document.createElement('img');
-        img.src = c.qrCode;
-        img.alt = 'QR thanh toán';
-        img.style.maxWidth = '160px';
-        img.style.marginTop = '4px';
-        qrContainer.appendChild(img);
-      } else {
-        qrContainer.textContent = 'Chưa có QR Code.';
-      }
+    
+        historyBody.appendChild(tr);
+      });
+    
+      // 🔹 Mặc định show hóa đơn mới nhất (dòng đầu)
+      const firstRow = historyBody.querySelector('tr');
+      if (firstRow) firstRow.classList.add('row-active');
+      showInvoiceDetail(invoices[0]);
     }
 
     function renderMaintenance(data){
@@ -806,6 +922,7 @@
   </script>
 </body>
 </html>
+
 
 
 
