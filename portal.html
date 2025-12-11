@@ -456,19 +456,48 @@
       }
 
       // Thời gian HĐ
+     // Thời gian HĐ (format + số ngày còn lại)
       if (contractPeriodEl) {
+        let baseText = '--';
+        let daysLeftText = '';
+      
         if (contract && (contract.ngayBD || contract.ngayKT)) {
           const startRaw = contract.ngayBD ? contract.ngayBD : '';
           const endRaw   = contract.ngayKT ? contract.ngayKT : '';
+      
           const start = startRaw ? formatDateDDMMYYYY(startRaw) : '';
           const end   = endRaw   ? formatDateDDMMYYYY(endRaw)   : '';
-          contractPeriodEl.textContent =
-            (start && end) ? (start + ' – ' + end) : (start || end || '--');
-         } else {
-            contractPeriodEl.textContent = '--';
-         }
-       }        
-
+      
+          baseText = (start && end) ? (start + ' – ' + end) : (start || end || '--');
+      
+          // 🔢 Tính số ngày còn lại đến ngày KT
+          const endDateObj = toDateObject(endRaw);
+          if (endDateObj) {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const diffMs   = endDateObj.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24)); // làm tròn lên
+      
+            if (diffDays >= 0) {
+              let cls = '';
+              if (diffDays < 30)      cls = 'days-left-red';    // < 1 tháng → đỏ
+              else if (diffDays < 60) cls = 'days-left-yellow'; // < 2 tháng → vàng
+      
+              if (cls) {
+                daysLeftText =
+                  ` <span class="${cls}">(còn ${diffDays} ngày)</span>`;
+              } else {
+                // Nếu muốn thì có thể để trung tính, còn không thì để chuỗi rỗng
+                // daysLeftText = ` <span class="days-left-neutral">(còn ${diffDays} ngày)</span>`;
+              }
+            }
+          }
+        }
+      
+        // dùng innerHTML để gắn thêm span màu
+        contractPeriodEl.innerHTML = baseText + daysLeftText;
+      }
+     
       // Tiền thuê, cọc, ngày thu
       if (contractRentEl) {
         contractRentEl.textContent = (contract && contract.tienThue != null)
@@ -777,6 +806,7 @@
   </script>
 </body>
 </html>
+
 
 
 
