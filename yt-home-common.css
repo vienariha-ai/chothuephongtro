@@ -1640,24 +1640,6 @@ tr .skeleton {
   color: #15803d;                        /* xanh lá đậm */
 }
 
-.days-left-yellow {
-  color: #f59e0b;       /* vàng đậm */
-  font-weight: 600;
-}
-
-.days-left-red {
-  color: #dc2626;       /* đỏ đậm */
-  font-weight: 700;
-}
-
-/* Nếu muốn thêm dạng trung tính thì mở comment: */
-/*
-.days-left-neutral {
-  color: #64748b;
-  font-weight: 500;
-}
-*/
-
 /* Trạng thái: Sắp hết hạn, Chờ gia hạn */
 .badge-warning {
   background: rgba(249, 115, 22, 0.12); /* cam nhạt */
@@ -1708,6 +1690,22 @@ tr .skeleton {
 .btn-disabled {
   opacity: 0.6;
   pointer-events: none;
+}
+
+.days-left-yellow {
+  color: #f59e0b;       /* vàng đậm */
+  font-weight: 600;
+}
+
+.days-left-red {
+  color: #dc2626;       /* đỏ đậm */
+  font-weight: 700;
+}
+
+/* Nếu muốn thêm dạng trung tính thì mở comment: */
+.days-left-neutral {
+  color: #64748b;
+  font-weight: 500;
 }
 
 /************************************************************
@@ -1809,4 +1807,5 @@ tr .skeleton {
   background-color: #2563eb;
   border-color: #2563eb;
 }
+
 
