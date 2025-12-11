@@ -1577,3 +1577,127 @@ body.tenant-body .btn-logout:active {
     grid-template-columns: 1fr;
   }
 }
+
+/************************************************************
+ * SKELETON LOADING – hiệu ứng "đang tải" cho text & ô dữ liệu
+ ************************************************************/
+/* Dùng class .skeleton cho những vùng đang loading (span, td, li, v.v.) */
+.skeleton {
+  position: relative;
+  background: #e5e7eb;          /* nền xám nhạt, hợp với theme trắng xanh */
+  color: transparent !important; /* ẩn chữ thực đi */
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 1em;              /* tránh bị co lại quá thấp */
+}
+
+/* Hiệu ứng ánh sáng quét ngang */
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+  animation: skeleton-loading 1.2s infinite;
+}
+
+@keyframes skeleton-loading {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Nếu cần skeleton cho cả dòng table (tr), có thể dùng thêm: */
+tr .skeleton {
+  display: block;
+  width: 100%;
+}
+
+/************************************************************
+ * BADGE TRẠNG THÁI HỢP ĐỒNG – đồng bộ phong cách YT Home
+ ************************************************************/
+/* Badge gốc – có sẵn (.badge) – mình nhẹ nhàng tinh chỉnh lại một chút */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;        /* pill */
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: rgba(37, 99, 235, 0.06); /* xanh primary nhạt */
+  color: #1d4ed8;              /* xanh primary đậm */
+}
+
+/* Trạng thái hợp đồng: Còn hiệu lực / Đang thuê */
+.badge-success {
+  background: rgba(34, 197, 94, 0.12);  /* xanh lá nhạt */
+  color: #15803d;                        /* xanh lá đậm */
+}
+
+/* Trạng thái: Sắp hết hạn, Chờ gia hạn */
+.badge-warning {
+  background: rgba(249, 115, 22, 0.12); /* cam nhạt */
+  color: #c2410c;                        /* cam đậm */
+}
+
+/* Trạng thái: Hết hạn, Thanh lý, Ngưng */
+.badge-danger {
+  background: rgba(239, 68, 68, 0.12);  /* đỏ nhạt */
+  color: #b91c1c;                        /* đỏ đậm */
+}
+
+/* Trạng thái mặc định / không xác định */
+.badge-neutral {
+  background: rgba(107, 114, 128, 0.12); /* xám nhạt */
+  color: #4b5563;                         /* xám trung tính */
+}
+
+/************************************************************
+ * NÚT GIA HẠN HỢP ĐỒNG – biến thể theo trạng thái
+ * (dùng kèm với class .btn gốc đang có)
+ ************************************************************/
+/* Mặc định .btn đã có style chung, chỉ thêm màu trạng thái */
+
+.btn-warning {
+  background-color: #f97316;
+  border-color: #f97316;
+  color: #ffffff;
+}
+
+.btn-warning:hover {
+  background-color: #ea580c;
+  border-color: #ea580c;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Nếu muốn trạng thái "không bấm được" dùng cho nút khác */
+.btn-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/************************************************************
+ * GỢI Ý: tinh chỉnh nhỏ cho info-value để skeleton đẹp hơn
+ ************************************************************/
+.info-value.skeleton,
+.list li.skeleton,
+.muted.skeleton {
+  display: inline-block;
+  width: 100%;
+}
