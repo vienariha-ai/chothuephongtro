@@ -647,8 +647,8 @@
       if (!latest) return;
       const c = latest.chiTiet || {};
 
-      document.getElementById('invNgayTinh').textContent   =
-          c.ngayTinhHD ? formatDateDDMMYYYY(c.ngayTinhHD) : '--';
+      document.getElementById('invNgayTinh').textContent =     Number.isFinite(Number(c.ngayTinhHD))
+      ? `${parseInt(c.ngayTinhHD)} ngày`: "--";
       document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
       document.getElementById('invTongDV').textContent     = formatVND(c.tongDichVu);
       document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
@@ -806,6 +806,7 @@
   </script>
 </body>
 </html>
+
 
 
 
