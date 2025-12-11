@@ -148,15 +148,17 @@
           <!-- TAB CHI TIẾT HÓA ĐƠN (kỳ mới nhất) -->
           <div class="tab-pane tab-pane-pay hidden" id="tab-detail">
             <div id="invoiceSummary">
-              <p><strong>Ngày tính HĐ:</strong> <span id="invNgayTinh">--</span></p>
-              <p><strong>Tiền phòng thanh toán:</strong> <span id="invTienPhong">--</span></p>
-              <p><strong>Tổng dịch vụ (ĐN + DV):</strong> <span id="invTongDV">--</span></p>
-              <p><strong>Phát sinh khác:</strong> <span id="invPhatSinh">--</span></p>
-              <p><strong>Giảm trừ khác:</strong> <span id="invGiamTru">--</span></p>
-              <p><strong>Thiếu kỳ trước:</strong> <span id="invThieuTruoc">--</span></p>
-              <p><strong>Phải thu:</strong> <span id="invPhaiThu">--</span></p>
+              <p><span class="inv-label">Ngày tính HĐ:</span> <span class="inv-value" id="invNgayTinh">--</span></p>
+              <p><span class="inv-label">Tiền phòng thanh toán:</span> <span class="inv-value" id="invTienPhong">--</span></p>
+              <p><span class="inv-label">Tổng dịch vụ (ĐN + DV):</span> <span class="inv-value" id="invTongDV">--</span></p>
+              <p><span class="inv-label">Phát sinh khác:</span> <span class="inv-value" id="invPhatSinh">--</span></p>
+              <p><span class="inv-label">Giảm trừ khác:</span> <span class="inv-value" id="invGiamTru">--</span></p>
+              <p><span class="inv-label">Thiếu kỳ trước:</span> <span class="inv-value" id="invThieuTruoc">--</span></p>
+              <p class="inv-total-row">
+                <span class="inv-label">Phải thu:</span>
+                <span class="inv-total" id="invPhaiThu">--</span>
+              </p>
             </div>
-
             <div class="section-title">Thông tin chuyển khoản</div>
             <p class="small-note" id="invBankInfo">--</p>
 
@@ -237,6 +239,57 @@
         pane.classList.toggle('hidden', pane.id !== 'tab-' + tabName);
       });
     }
+    // Đổi mọi kiểu ngày về Date rồi format DD/MM/YYYY
+    function toDateObject(value) {
+      if (!value) return null;
+      if (value instanceof Date) return value;
+      const d = new Date(value);
+      return isNaN(d) ? null : d;
+     }
+
+     function formatDateDDMMYYYY(value) {
+        const d = toDateObject(value);
+        if (!d) return value || '';
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
+
+      // Render trạng thái dạng text hoặc nút "xem chi tiết"
+      function renderStatusHTML(text, context) {
+        const raw = (text == null) ? '' : String(text).trim();
+        if (!raw) {
+          return '<span class="status-text muted">--</span>';
+        }
+
+          const lower = raw.toLowerCase();
+          const isIncomplete =
+            lower.includes('chưa') ||
+            lower.includes('chua') ||
+            lower.includes('còn thiếu') ||
+            lower.includes('con thieu');
+
+         if (!isIncomplete) {
+            return `<span class="status-text">${raw}</span>`;
+          }
+
+          const safeStatus = raw.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+          const safeContext = (context || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+          return `
+          <button type="button"
+            class="status-chip status-chip-warning"
+            onclick="openStatusDetail('${safeContext}','${safeStatus}')">
+            ${raw}
+          </button>`;
+         }
+
+        // Popup chi tiết – hiện tại chỉ alert, sau bà muốn có modal đẹp thì mình làm thêm
+        function openStatusDetail(context, statusText) {
+          const ctx = context ? `Ngữ cảnh: ${context}\n` : '';
+          alert(ctx + 'Trạng thái: ' + statusText);
+        }
 
     // 🔧 BẢN MỚI: renderInfoCard với skeleton + kiểm tra null + đổi màu trạng thái
     function renderInfoCard(data){
@@ -370,13 +423,17 @@
       // Thời gian HĐ
       if (contractPeriodEl) {
         if (contract && (contract.ngayBD || contract.ngayKT)) {
-          const start = contract.ngayBD ? contract.ngayBD : '';
-          const end   = contract.ngayKT ? contract.ngayKT : '';
+          const startRaw = contract.ngayBD ? contract.ngayBD : '';
+          const endRaw   = contract.ngayKT ? contract.ngayKT : '';
+          const start = startRaw ? formatDateDDMMYYYY(startRaw) : '';
+          const end   = endRaw   ? formatDateDDMMYYYY(endRaw)   : '';
           contractPeriodEl.textContent =
             (start && end) ? (start + ' – ' + end) : (start || end || '--');
-        } else {
-          contractPeriodEl.textContent = '--';
-        }
+         } else {
+            contractPeriodEl.textContent = '--';
+         }
+       }        
+
       }
 
       // Tiền thuê, cọc, ngày thu
@@ -462,8 +519,8 @@
               <td>${m.dienThoai || ''}</td>
               <td>${m.cccd || ''}</td>
               <td>${m.bienSo || ''}</td>
-              <td>${m.ngayTamTru || ''}</td>
-              <td>${m.trangThaiTamTru || ''}</td>
+              <td>${m.ngayTamTru ? formatDateDDMMYYYY(m.ngayTamTru) : ''}</td>
+              <td>${renderStatusHTML(m.trangThaiTamTru, 'tamtru')}</td>
             `;
             membersBody.appendChild(tr);
           });
@@ -502,7 +559,7 @@
             <td>${inv.namThang || ''}</td>
             <td>${formatVND(inv.tongDN_DV)}</td>
             <td>${formatVND(inv.tongPhaiThu)}</td>
-            <td>${inv.trangThai || ''}</td>
+            <td>${renderStatusHTML(inv.trangThai, 'invoice')}</td>
           `;
           historyBody.appendChild(tr);
         });
@@ -513,7 +570,8 @@
       if (!latest) return;
       const c = latest.chiTiet || {};
 
-      document.getElementById('invNgayTinh').textContent   = c.ngayTinhHD || '--';
+      document.getElementById('invNgayTinh').textContent   =
+          c.ngayTinhHD ? formatDateDDMMYYYY(c.ngayTinhHD) : '--';
       document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
       document.getElementById('invTongDV').textContent     = formatVND(c.tongDichVu);
       document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
@@ -560,8 +618,8 @@
         tr.innerHTML = `
           <td>${m.tenTaiSan || ''}</td>
           <td>${m.loaiCongViec || ''}</td>
-          <td>${m.ngayDuKien || ''}</td>
-          <td>${m.ngayThucHien || ''}</td>
+          <td>${m.ngayDuKien ? formatDateDDMMYYYY(m.ngayDuKien) : ''}</td>
+          <td>${m.ngayThucHien ? formatDateDDMMYYYY(m.ngayThucHien) : ''}</td>
           <td>${m.trangThai || ''}</td>
           <td>${m.ghiChu || ''}</td>
         `;
@@ -584,7 +642,7 @@
           <td>${m.type || m.loai || ''}</td>
           <td>${m.createdAt || m.ngay || ''}</td>
           <td>${m.content || m.noiDung || ''}</td>
-          <td>${m.status || m.trangThai || ''}</td>
+          <td>${renderStatusHTML(m.status || m.trangThai || '', 'message')}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -666,10 +724,10 @@
         window.location.href = 'tenant.html';
         return;
       }
-
       fetchTenantPortalData(tenant.maPhong, tenant.identity || '');
     });
   </script>
 </body>
 </html>
+
 
