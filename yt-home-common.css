@@ -1701,3 +1701,73 @@ tr .skeleton {
   display: inline-block;
   width: 100%;
 }
+/************************************************************
+ * TÊN CHỦ PHÒNG – nổi bật hơn
+ ************************************************************/
+#ownerName {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent); /* dùng màu xanh lá accent của YT Home */
+}
+
+/************************************************************
+ * STATUS DƯỚI DẠNG NÚT / CHIP
+ ************************************************************/
+.status-text {
+  font-size: 0.9rem;
+}
+
+.status-chip {
+  border: none;
+  outline: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.05s ease, box-shadow 0.1s ease, background-color 0.1s ease;
+}
+
+/* trạng thái "chưa", "còn thiếu", "chưa đăng ký" */
+.status-chip-warning {
+  background: rgba(248, 250, 252, 0.1);
+  color: #facc15; /* vàng nổi bật trên nền tối */
+  border: 1px solid rgba(250, 204, 21, 0.4);
+}
+
+.status-chip-warning:hover {
+  background: rgba(250, 204, 21, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.35);
+}
+
+/************************************************************
+ * THÔNG TIN HÓA ĐƠN – label thường, Phải thu nổi bật
+ ************************************************************/
+#invoiceSummary p {
+  margin: 2px 0;
+}
+
+.inv-label {
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+.inv-value {
+  font-weight: 500;
+}
+
+.inv-total-row {
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.5);
+}
+
+.inv-total {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent); /* hoặc dùng #38bdf8 nếu muốn xanh dương sáng hơn */
+}
+
