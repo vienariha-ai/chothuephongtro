@@ -1768,6 +1768,9 @@ tr .skeleton {
 .inv-total {
   font-weight: 700;
   font-size: 1.05rem;
-  color: var(--accent); /* hoặc dùng #38bdf8 nếu muốn xanh dương sáng hơn */
+  color: #f97373;   /* đỏ tươi kiểu warning */
+  /* hoặc đơn giản: color: #ff4d4f;  hay color: red; */
 }
+
+
 
