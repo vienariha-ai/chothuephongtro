@@ -290,7 +290,22 @@
           const ctx = context ? `Ngữ cảnh: ${context}\n` : '';
           alert(ctx + 'Trạng thái: ' + statusText);
         }
-
+        // Tính số tháng còn lại giữa 2 ngày
+        function monthsBetween(from, to) {
+          const d1 = new Date(from);
+          const d2 = new Date(to);
+          if (isNaN(d1) || isNaN(d2)) return null;
+        
+          let months =
+            (d2.getFullYear() - d1.getFullYear()) * 12 +
+            (d2.getMonth() - d1.getMonth());
+        
+          // Nếu ngày trong tháng còn chưa tới → trừ 1
+          if (d2.getDate() < d1.getDate()) months -= 1;
+        
+          return months;
+        }
+    
     // 🔧 BẢN MỚI: renderInfoCard với skeleton + kiểm tra null + đổi màu trạng thái
     function renderInfoCard(data){
       const $ = (id) => document.getElementById(id);
@@ -385,6 +400,27 @@
        * 4. THÔNG TIN HỢP ĐỒNG
        ********************************************************/
       const contract = (data && data.contract) ? data.contract : null;
+      const contract = (data && data.contract) ? data.contract : null;
+        
+        /********************************************************
+         * CẢNH BÁO SẮP HẾT HẠN HỢP ĐỒNG
+         ********************************************************/
+        let monthsLeft = null;
+        if (contract && contract.ngayKT) {
+          monthsLeft = monthsBetween(new Date(), contract.ngayKT);
+        }
+        
+        let warningClass = "";
+        if (monthsLeft != null) {
+          if (monthsLeft <= 1) warningClass = "contract-alert-red";
+          else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
+        }
+        
+        // Thêm màu cảnh báo vào contractStatusEl
+        if (contractStatusEl) {
+          contractStatusEl.classList.remove("contract-alert-red","contract-alert-yellow");
+          if (warningClass) contractStatusEl.classList.add(warningClass);
+        }
 
       // Map trạng thái → class màu
       function getStatusClass(statusText) {
@@ -486,7 +522,22 @@
       if (extendBtn) {
         if (contract && contract.coTheGiaHan) {
           extendBtn.style.display = 'inline-flex';
-          extendBtn.classList.remove('btn-disabled','btn-warning','btn-danger');
+          extendBtn.textContent = "Gia hạn hợp đồng";  // 🔥 đổi tên nút
+          
+          extendBtn.classList.remove(
+            'btn-disabled','btn-warning','btn-danger','btn-accent'
+          );
+          
+          if (monthsLeft != null) {
+            if (monthsLeft <= 1) {
+              extendBtn.classList.add("btn-danger"); // đỏ
+            } else if (monthsLeft <= 2) {
+              extendBtn.classList.add("btn-warning"); // vàng
+            } else {
+              extendBtn.classList.add("btn-accent"); // màu nổi bật chung
+            }
+          }
+
 
           const statusText = contract.trangThai ? contract.trangThai.toString().toLowerCase() : '';
           if (statusText.includes('hết hạn')) {
@@ -727,6 +778,7 @@
   </script>
 </body>
 </html>
+
 
 
 
