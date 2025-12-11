@@ -1771,6 +1771,23 @@ tr .skeleton {
   color: #f97373;   /* đỏ tươi kiểu warning */
   /* hoặc đơn giản: color: #ff4d4f;  hay color: red; */
 }
+/* Cảnh báo hợp đồng sắp hết hạn */
+.contract-alert-yellow {
+  color: #facc15 !important; /* vàng */
+}
 
+.contract-alert-red {
+  color: #ef4444 !important; /* đỏ */
+}
 
+/* Nút gia hạn màu nổi */
+.btn-accent {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
 
+.btn-accent:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
