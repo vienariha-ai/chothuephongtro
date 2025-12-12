@@ -974,8 +974,7 @@
 
       // summary
       const c = inv.chiTiet || {};
-      document.getElementById('invNgayTinh').textContent   =
-        c.ngayTinhHD ? formatDateDDMMYYYY(c.ngayTinhHD) : '--';
+      document.getElementById('invNgayTinh').textContent = (c.ngayTinhHD != null && c.ngayTinhHD !== '') ? (parseInt(c.ngayTinhHD,10) + ' ngày') : '--';
       document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
       document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
       document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
