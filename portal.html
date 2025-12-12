@@ -165,6 +165,7 @@
             <div id="invoiceSummary">
               <p><span class="inv-label">Ngày tính HĐ:</span> <span class="inv-value" id="invNgayTinh">--</span></p>
               <p><span class="inv-label">Tiền phòng thanh toán:</span> <span class="inv-value" id="invTienPhong">--</span></p>
+              <p><span class="inv-label">Tổng tiền dịch vụ:</span> <span class="inv-value" id="invTongDV">--</span></p>
               <p><span class="inv-label">Phát sinh khác:</span> <span class="inv-value" id="invPhatSinh">--</span></p>
               <p><span class="inv-label">Giảm trừ khác:</span> <span class="inv-value" id="invGiamTru">--</span></p>
               <p><span class="inv-label">Thiếu kỳ trước:</span> <span class="inv-value" id="invThieuTruoc">--</span></p>
@@ -309,6 +310,13 @@
       const num = Number(String(amount).replace(/[^\d.-]/g,''));
       if(isNaN(num)) return String(amount);
       return num.toLocaleString('vi-VN') + ' đ';
+    }
+   
+    function maskLast4Digits(v){
+      const s = String(v || '').replace(/\s+/g,'').trim();
+      if (!s) return '--';
+      const last4 = s.slice(-4);
+      return '****' + last4;
     }
 
     function setActiveTab(group, tabName){
@@ -476,8 +484,8 @@
       // 3. Chủ phòng
       const chuPhong = (data && data.chuPhong) ? data.chuPhong : {};
       if (ownerName)  ownerName.textContent  = chuPhong.hoTen     || '--';
-      if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd      || '--';
-      if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai || '--';
+      if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd ? maskLast4Digits(chuPhong.cccd) : '--';
+      if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai ? maskLast4Digits(chuPhong.dienThoai) : '--';
 
       // 4. Hợp đồng
       const contract = (data && data.contract) ? data.contract : null;
@@ -988,56 +996,74 @@
       const c = inv.chiTiet || {};
       document.getElementById('invNgayTinh').textContent = (c.ngayTinhHD != null && c.ngayTinhHD !== '') ? (parseInt(c.ngayTinhHD,10) + ' ngày') : '--';
       document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
+      document.getElementById('invTongDV').textContent = formatVND(
+       (c.tongDichVu != null && c.tongDichVu !== '') ? c.tongDichVu : (inv.tongDN_DV || 0));
       document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
       document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
       document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
       document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
 
-      // =========================
-      // BẢNG DỊCH VỤ (Tên DV = Mã DV | Bỏ dòng rỗng & = 0)
-      // =========================
-      const tbody = document.getElementById('invoiceServiceBody');
-      const totalCell = document.getElementById('invServiceTotal');
+      // bảng dịch vụ
+      const dvBody = document.getElementById('invoiceServiceBody');
+      const dvTotalEl = document.getElementById('invServiceTotal');
       
-      if (tbody && totalCell) {
-        tbody.innerHTML = '';
+      if (dvBody){
+        dvBody.innerHTML = '';
       
-        const servicesRaw = Array.isArray(inv?.services) ? inv.services : [];
-        const rows = servicesRaw
-          .map(s => {
-            const maDV = (s.maDV || '').toString().trim();
-            const soDau = Number(s.soDau ?? 0);
-            const soCuoi = Number(s.soCuoi ?? 0);
-            const soLuong = Number(s.soLuong ?? 0);
-            const donGia = Number(s.donGia ?? 0);
-            const thanhTien = Number(s.thanhTien ?? 0);
+        const services = Array.isArray(inv.services) ? inv.services : [];
+        // map meta dịch vụ từ server (nếu có)
+        const serviceMap =
+          (__portalDataCache && (__portalDataCache.serviceMap || __portalDataCache.servicesMap || __portalDataCache.serviceMetaMap))
+          ? (__portalDataCache.serviceMap || __portalDataCache.servicesMap || __portalDataCache.serviceMetaMap)
+          : {};
       
-            return { maDV, soDau, soCuoi, soLuong, donGia, thanhTien };
-          })
-          .filter(x =>
-            x.maDV && x.thanhTien > 0
-          );
+        let total = 0;
       
-        if (!rows.length) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
-          totalCell.textContent = formatVND(0);
+        // lọc bỏ dòng rỗng hoặc = 0
+        const filtered = services.filter(s=>{
+          const maDV = String(s.maDV || s.tenDichVu || '').trim();
+          const thanhTien = Number(s.thanhTien || 0);
+          if (!maDV) return false;
+          if (thanhTien === 0) return false;
+          return true;
+        });
+      
+        if (!filtered.length){
+          dvBody.innerHTML = '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
+          if (dvTotalEl) dvTotalEl.textContent = formatVND(0);
         } else {
-          let total = 0;
-          rows.forEach(x => {
-            total += x.thanhTien;
+          filtered.forEach(s=>{
+            const thanhTien = Number(s.thanhTien || 0) || 0;
+            total += thanhTien;
+      
+            const idDV = String(s.idDV || '').trim();
+            const maDV = String(s.maDV || s.tenDichVu || '').trim();
+      
+            // lấy Loại từ serviceMap (ưu tiên ID, fallback Mã)
+            const metaById = idDV && serviceMap[idDV] ? serviceMap[idDV] : null;
+            const metaByMa = !metaById && maDV && serviceMap[maDV] ? serviceMap[maDV] : null;
+            const meta = metaById || metaByMa || {};
+            const loai = String(meta.loai || meta['Loại'] || meta.type || '').trim().toLowerCase();
+      
+            const isTheoSoLuong = loai === 'theo số lượng' || loai === 'theo so luong';
+      
+            const soDau  = (s.soDau == null ? '' : s.soDau);
+            const soCuoi = (s.soCuoi == null ? '' : s.soCuoi);
+            const soLuong = (s.soLuong == null ? '' : s.soLuong);
+      
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td>${x.maDV}</td>
-              <td>${x.soDau || ''}</td>
-              <td>${x.soCuoi || ''}</td>
-              <td>${x.soLuong || ''}</td>
-              <td>${formatVND(x.donGia)}</td>
-              <td>${formatVND(x.thanhTien)}</td>
+              <td class="dv-name">${maDV}</td>
+              <td>${isTheoSoLuong ? '-' : soDau}</td>
+              <td>${isTheoSoLuong ? '-' : soCuoi}</td>
+              <td>${soLuong}</td>
+              <td class="dv-money">${formatVND(s.donGia)}</td>
+              <td class="dv-money">${formatVND(thanhTien)}</td>
             `;
-            tbody.appendChild(tr);
+            dvBody.appendChild(tr);
           });
-          totalCell.textContent = formatVND(total);
+      
+          if (dvTotalEl) dvTotalEl.textContent = formatVND(total);
         }
       }
 
@@ -1327,6 +1353,7 @@
   </script>
 </body>
 </html>
+
 
 
 
