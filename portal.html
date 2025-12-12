@@ -51,7 +51,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Tên chủ phòng:</span>
-              <span class="info-value" id="ownerName">--</span>
+              <span class="info-value owner-name" id="ownerName">--</span>
             </div>
             <div class="info-row">
               <span class="info-label">Số CCCD:</span>
@@ -112,15 +112,17 @@
           </div>
         </section>
 
+        
         <!-- CỘT PHẢI: THANH TOÁN -->
         <section class="card">
           <div class="card-title">Thanh toán</div>
+
           <div class="tab-row">
             <button class="tab-btn tab-pay active" data-tab="history">Lịch sử thanh toán</button>
             <button class="tab-btn tab-pay" data-tab="detail">Chi tiết hóa đơn</button>
           </div>
 
-          <!-- TAB LỊCH SỬ THANH TOÁN -->
+          <!-- TAB (1) LỊCH SỬ THANH TOÁN -->
           <div class="tab-pane tab-pane-pay" id="tab-history">
             <table class="table-like">
               <thead>
@@ -139,18 +141,30 @@
                 </tr>
               </tbody>
             </table>
+
             <div class="tenant-footer-actions">
               <span class="muted">Chỉ hiển thị nếu Hợp đồng còn hiệu lực.</span>
               <button class="btn" type="button" onclick="downloadInvoicePdf()">Tải / In hóa đơn</button>
             </div>
           </div>
 
-          <!-- TAB CHI TIẾT HÓA ĐƠN -->
+          <!-- TAB (2) CHI TIẾT HÓA ĐƠN -->
           <div class="tab-pane tab-pane-pay hidden" id="tab-detail">
+            <div class="detail-head">
+              <div class="detail-title">
+                <div class="muted" id="invKy">Kỳ: --</div>
+              </div>
+              <div class="detail-actions">
+                <span id="invStatusPill" class="pill pill-neutral">--</span>
+                <button id="invPayBtn" type="button" class="btn btn-danger btn-sm" style="display:none;" onclick="openPaymentModal()">
+                  Thanh toán
+                </button>
+              </div>
+            </div>
+
             <div id="invoiceSummary">
               <p><span class="inv-label">Ngày tính HĐ:</span> <span class="inv-value" id="invNgayTinh">--</span></p>
               <p><span class="inv-label">Tiền phòng thanh toán:</span> <span class="inv-value" id="invTienPhong">--</span></p>
-              <p><span class="inv-label">Tổng dịch vụ (ĐN + DV):</span> <span class="inv-value" id="invTongDV">--</span></p>
               <p><span class="inv-label">Phát sinh khác:</span> <span class="inv-value" id="invPhatSinh">--</span></p>
               <p><span class="inv-label">Giảm trừ khác:</span> <span class="inv-value" id="invGiamTru">--</span></p>
               <p><span class="inv-label">Thiếu kỳ trước:</span> <span class="inv-value" id="invThieuTruoc">--</span></p>
@@ -158,42 +172,44 @@
                 <span class="inv-label">Phải thu:</span>
                 <span class="inv-total" id="invPhaiThu">--</span>
               </p>
-              <!-- Nút trạng thái trong tab chi tiết -->
-              <button id="detailStatusBtn" class="btn" style="margin-top:8px; display:none;"></button>
             </div>
 
-            <!-- BẢNG CHI TIẾT DỊCH VỤ -->
-            <div class="section-title" style="margin-top:12px;">Chi tiết dịch vụ</div>
-            <table class="table-like" id="invoiceServiceTable">
-              <thead>
-                <tr>
-                  <th>Tên dịch vụ</th>
-                  <th>Số đầu</th>
-                  <th>Số cuối</th>
-                  <th>Số lượng</th>
-                  <th>Đơn giá</th>
-                  <th>Thành tiền</th>
-                </tr>
-              </thead>
-              <tbody id="invoiceServiceBody">
-                <tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="5" style="text-align:right;font-weight:600;">Tổng cộng:</td>
-                  <td id="invoiceServiceTotal" style="font-weight:600;">0 đ</td>
-                </tr>
-              </tfoot>
-            </table>
+            <div class="section-title">Bảng dịch vụ</div>
+            <div class="table-wrap">
+              <table class="table-like table-dv">
+                <thead>
+                  <tr>
+                    <th>Tên dịch vụ</th>
+                    <th>Số đầu</th>
+                    <th>Số cuối</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody id="invoiceServiceBody">
+                  <tr><td colspan="6" class="muted">Chưa có dữ liệu dịch vụ.</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr class="dv-total-row">
+                    <td colspan="5" class="dv-total-label">Tổng</td>
+                    <td class="dv-total" id="invServiceTotal">--</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
 
-            <div class="section-title" style="margin-top:12px;">Thông tin chuyển khoản</div>
+          <!-- THÔNG TIN CHUYỂN KHOẢN + QR (luôn nằm bên dưới 2 tab) -->
+          <div class="pay-bottom">
+            <div class="section-title">Thông tin chuyển khoản</div>
             <p class="small-note" id="invBankInfo">--</p>
 
             <div class="section-title">QR thanh toán</div>
             <div id="qrContainer" class="gallery-placeholder">Chưa có QR Code.</div>
           </div>
-
         </section>
+
       </div>
 
       <!-- HÀNG DƯỚI: BẢO TRÌ + TIN NHẮN -->
@@ -242,6 +258,40 @@
       </div>
     </main>
   </div>
+
+  <!-- POPUP THANH TOÁN -->
+  <div class="modal hidden" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+    <div class="modal-backdrop" onclick="closePaymentModal()"></div>
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="paymentModalTitle">Xác nhận thanh toán</div>
+        <button class="modal-x" type="button" onclick="closePaymentModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="small-note" id="paymentModalMeta">Hóa đơn: --</div>
+
+        <label class="field">
+          <div class="field-label">Đính kèm phiếu chuyển khoản (ảnh)</div>
+          <input type="file" id="paymentProofFile" accept="image/*" />
+          <div class="field-help">Có thể chụp màn hình/ảnh biên lai chuyển khoản.</div>
+        </label>
+
+        <label class="field">
+          <div class="field-label">Ghi chú cho chủ nhà (tuỳ chọn)</div>
+          <textarea id="paymentNote" rows="3" placeholder="Ví dụ: Em đã chuyển khoản lúc 20:15, nhờ chủ nhà kiểm tra giúp ạ."></textarea>
+        </label>
+
+        <div id="paymentPreview" class="payment-preview muted">Chưa chọn ảnh.</div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" type="button" onclick="closePaymentModal()">Hủy</button>
+        <button class="btn btn-danger" type="button" onclick="submitPaymentProof()">Gửi xác nhận</button>
+      </div>
+    </div>
+  </div>
+
 
   <script>
     const TENANT_STORAGE_KEY = "ytHomeTenant";
@@ -777,22 +827,61 @@
       }
     }
 
+    
+    // =========================
+    // THANH TOÁN: lịch sử + chi tiết (chọn dòng)
+    // =========================
+    let __selectedInvoiceIndex = 0;
+    let __portalDataCache = null;
+
+    function isInvoicePaid_(inv){
+      const st = String(inv && inv.trangThai || '').toLowerCase();
+      // coi "đủ/đã thu/đã thanh toán/hoàn tất" là đã thanh toán
+      return (
+        st.includes('đủ') ||
+        st.includes('da du') ||
+        st.includes('đã thu') ||
+        st.includes('da thu') ||
+        st.includes('đã thanh toán') ||
+        st.includes('da thanh toan') ||
+        st.includes('hoàn tất') ||
+        st.includes('hoan tat')
+      );
+    }
+
+    function renderInvoiceStatusCell_(inv, index){
+      if (!inv) return '<span class="pill pill-neutral">--</span>';
+
+      const paid = isInvoicePaid_(inv);
+      if (paid){
+        return '<span class="pill pill-success">Đã thanh toán</span>';
+      }
+      // còn thiếu → nút Thanh toán đỏ
+      return `<button type="button" class="btn btn-danger btn-sm" onclick="openPaymentModal(${index})">Thanh toán</button>`;
+    }
+
     function renderPaymentCard(data){
+      __portalDataCache = data || null;
+
       const historyBody = document.getElementById('paymentHistoryBody');
       if (!historyBody) return;
       historyBody.innerHTML = '';
 
       const invoices = (data && Array.isArray(data.invoices)) ? data.invoices : [];
-      CURRENT_INVOICES = invoices;
 
-      if (!data || !data.contract || !String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực')) {
+      // Chỉ hiển thị nếu hợp đồng còn hiệu lực
+      const isContractActive =
+        !!(data && data.contract && String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực'));
+
+      if (!isContractActive) {
         historyBody.innerHTML = `
           <tr>
             <td colspan="4" class="muted">
               Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.
             </td>
           </tr>`;
-        showInvoiceDetail(null);
+        // reset phần chi tiết
+        renderInvoiceDetail_(null);
         return;
       }
 
@@ -803,53 +892,164 @@
               Chưa có hóa đơn nào cho phòng này.
             </td>
           </tr>`;
-        showInvoiceDetail(null);
+        renderInvoiceDetail_(null);
         return;
       }
 
-      // Vẽ danh sách lịch sử
-      invoices.forEach((inv, idx)=>{
-        const mode = getInvoiceStatusMode(inv);
-        let statusHtml = '';
-
-        if (mode === 'need-pay'){
-          statusHtml =
-            `<button type="button" class="btn btn-danger btn-sm" onclick="openPaymentPopup(${idx}); event.stopPropagation();">Thanh toán</button>`;
-        } else if (mode === 'paid'){
-          statusHtml =
-            `<span class="status-pill status-pill-success">Đã thanh toán</span>`;
-        } else {
-          statusHtml =
-            `<span class="status-text">${inv.trangThai || '--'}</span>`;
-        }
-
+      invoices.forEach((inv, i)=>{
         const tr = document.createElement('tr');
+        tr.classList.toggle('row-active', i === __selectedInvoiceIndex);
         tr.innerHTML = `
           <td>${inv.namThang || ''}</td>
           <td>${formatVND(inv.tongPhaiThu)}</td>
-          <td>${statusHtml}</td>
+          <td>${renderInvoiceStatusCell_(inv, i)}</td>
           <td>
-            <button type="button" class="btn btn-outline btn-sm" onclick="selectInvoice(${idx}); event.stopPropagation();">
+            <button type="button" class="btn btn-outline btn-sm" onclick="selectInvoice(${i})">
               Chi tiết
             </button>
           </td>
         `;
-        tr.dataset.index = idx;
-
-        tr.addEventListener('click', (e)=>{
-          // Nếu click vào nút bên trong thì đã xử lý ở onclick riêng
-          if (e.target && e.target.closest('button')) return;
-          selectInvoice(idx);
-        });
-
         historyBody.appendChild(tr);
       });
 
-      // Mặc định chọn hóa đơn mới nhất
-      const firstRow = historyBody.querySelector('tr');
-      if (firstRow) firstRow.classList.add('row-active');
-      showInvoiceDetail(invoices[0]);
+      // mặc định chọn dòng đầu tiên (mới nhất)
+      if (__selectedInvoiceIndex >= invoices.length) __selectedInvoiceIndex = 0;
+      renderInvoiceDetail_(invoices[__selectedInvoiceIndex]);
     }
+
+    function selectInvoice(index){
+      __selectedInvoiceIndex = Number(index) || 0;
+
+      const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
+        ? __portalDataCache.invoices
+        : [];
+
+      // highlight lại dòng
+      const rows = document.querySelectorAll('#paymentHistoryBody tr');
+      rows.forEach((r, i)=> r.classList.toggle('row-active', i === __selectedInvoiceIndex));
+
+      const inv = invoices[__selectedInvoiceIndex] || null;
+      renderInvoiceDetail_(inv);
+      setActiveTab('pay', 'detail');
+    }
+
+    function renderInvoiceDetail_(inv){
+      // pill + nút thanh toán
+      const kyEl = document.getElementById('invKy');
+      const pillEl = document.getElementById('invStatusPill');
+      const payBtn = document.getElementById('invPayBtn');
+
+      const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
+        ? __portalDataCache.invoices
+        : [];
+
+      if (!inv){
+        if (kyEl) kyEl.textContent = 'Kỳ: --';
+        if (pillEl){ pillEl.className = 'pill pill-neutral'; pillEl.textContent = '--'; }
+        if (payBtn) payBtn.style.display = 'none';
+
+        // reset summary
+        ['invNgayTinh','invTienPhong','invPhatSinh','invGiamTru','invThieuTruoc','invPhaiThu','invServiceTotal'].forEach(id=>{
+          const el = document.getElementById(id);
+          if (el) el.textContent = '--';
+        });
+        const dvBody = document.getElementById('invoiceServiceBody');
+        if (dvBody) dvBody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có dữ liệu dịch vụ.</td></tr>';
+
+        // bank + qr
+        updateBankAndQr_(null);
+        return;
+      }
+
+      if (kyEl) kyEl.textContent = 'Kỳ: ' + (inv.namThang || '--');
+
+      const paid = isInvoicePaid_(inv);
+      if (pillEl){
+        pillEl.className = paid ? 'pill pill-success' : 'pill pill-danger';
+        pillEl.textContent = paid ? 'Đã thanh toán' : 'Còn thiếu';
+      }
+      if (payBtn){
+        payBtn.style.display = paid ? 'none' : 'inline-flex';
+      }
+
+      // summary
+      const c = inv.chiTiet || {};
+      document.getElementById('invNgayTinh').textContent   =
+        c.ngayTinhHD ? formatDateDDMMYYYY(c.ngayTinhHD) : '--';
+      document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
+      document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
+      document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
+      document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
+      document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
+
+      // bảng dịch vụ
+      const dvBody = document.getElementById('invoiceServiceBody');
+      const dvTotalEl = document.getElementById('invServiceTotal');
+      if (dvBody){
+        dvBody.innerHTML = '';
+
+        const services = Array.isArray(inv.services) ? inv.services : [];
+        let total = 0;
+
+        if (!services.length){
+          dvBody.innerHTML = '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
+        } else {
+          services.forEach(s=>{
+            const tr = document.createElement('tr');
+            const thanhTien = Number(s.thanhTien || 0) || 0;
+            total += thanhTien;
+
+            tr.innerHTML = `
+              <td>${s.tenDichVu || s.maDV || ''}</td>
+              <td>${(s.soDau == null ? '' : s.soDau)}</td>
+              <td>${(s.soCuoi == null ? '' : s.soCuoi)}</td>
+              <td>${(s.soLuong == null ? '' : s.soLuong)}</td>
+              <td>${formatVND(s.donGia)}</td>
+              <td>${formatVND(thanhTien)}</td>
+            `;
+            dvBody.appendChild(tr);
+          });
+        }
+
+        if (dvTotalEl) dvTotalEl.textContent = formatVND(total);
+      }
+
+      // bank + qr dựa theo dòng được chọn
+      updateBankAndQr_(inv);
+    }
+
+    function updateBankAndQr_(inv){
+      const bankInfoEl = document.getElementById('invBankInfo');
+      const qrContainer = document.getElementById('qrContainer');
+
+      const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
+      const bankInfo = c.bankInfo || {};
+
+      const bankText = [
+        bankInfo.soTaiKhoan ? ('Số tài khoản: ' + bankInfo.soTaiKhoan) : '',
+        bankInfo.chuTaiKhoan ? ('Chủ tài khoản: ' + bankInfo.chuTaiKhoan) : '',
+        bankInfo.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
+        bankInfo.chiNhanh ? ('Chi nhánh: ' + bankInfo.chiNhanh) : ''
+      ].filter(Boolean).join(' • ');
+
+      if (bankInfoEl) bankInfoEl.textContent = bankText || '--';
+
+      if (!qrContainer) return;
+      qrContainer.innerHTML = '';
+      const qr = c.qrCode || (inv && inv.qrCode) || '';
+
+      if (qr){
+        const img = document.createElement('img');
+        img.src = qr;
+        img.alt = 'QR thanh toán';
+        img.style.maxWidth = '160px';
+        img.style.marginTop = '4px';
+        qrContainer.appendChild(img);
+      } else {
+        qrContainer.textContent = 'Chưa có QR Code.';
+      }
+    }
+
 
     function renderMaintenance(data){
       const tbody = document.getElementById('maintenanceBody');
@@ -902,6 +1102,127 @@
     function openTempStayForm(){
       alert('Form đăng ký tạm trú: dùng tenantTempStay API.');
     }
+
+
+    // =========================
+    // POPUP THANH TOÁN (gửi phiếu / báo chủ nhà)
+    // =========================
+    function openPaymentModal(index){
+      // nếu gọi từ tab chi tiết: index có thể undefined → dùng __selectedInvoiceIndex
+      if (index !== undefined && index !== null) {
+        __selectedInvoiceIndex = Number(index) || 0;
+      }
+      const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
+        ? __portalDataCache.invoices
+        : [];
+      const inv = invoices[__selectedInvoiceIndex] || null;
+
+      const modal = document.getElementById('paymentModal');
+      if (!modal) return;
+
+      const meta = document.getElementById('paymentModalMeta');
+      if (meta) meta.textContent = 'Hóa đơn: ' + (inv ? (inv.namThang || '--') : '--');
+
+      const fileInput = document.getElementById('paymentProofFile');
+      const noteInput = document.getElementById('paymentNote');
+      const preview = document.getElementById('paymentPreview');
+
+      if (fileInput) fileInput.value = '';
+      if (noteInput) noteInput.value = '';
+      if (preview) preview.textContent = 'Chưa chọn ảnh.';
+
+      modal.classList.remove('hidden');
+    }
+
+    function closePaymentModal(){
+      const modal = document.getElementById('paymentModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // preview ảnh
+    document.addEventListener('change', (e)=>{
+      if (e.target && e.target.id === 'paymentProofFile'){
+        const file = e.target.files && e.target.files[0];
+        const preview = document.getElementById('paymentPreview');
+        if (!preview) return;
+
+        if (!file){
+          preview.textContent = 'Chưa chọn ảnh.';
+          preview.classList.add('muted');
+          return;
+        }
+
+        preview.classList.remove('muted');
+        preview.innerHTML = '';
+        const img = document.createElement('img');
+        img.alt = 'Phiếu chuyển khoản';
+        img.className = 'payment-proof-img';
+        img.src = URL.createObjectURL(file);
+        preview.appendChild(img);
+      }
+    });
+
+    async function submitPaymentProof(){
+      const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
+        ? __portalDataCache.invoices
+        : [];
+      const inv = invoices[__selectedInvoiceIndex] || null;
+
+      const fileInput = document.getElementById('paymentProofFile');
+      const noteInput = document.getElementById('paymentNote');
+
+      const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+      const note = noteInput ? (noteInput.value || '') : '';
+
+      // Chuẩn payload: base64 ảnh (nếu có)
+      let base64 = '';
+      if (file){
+        base64 = await new Promise((resolve, reject)=>{
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      try{
+        const body = new URLSearchParams({
+          action: 'tenantPaymentProof',
+          roomCode: (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '',
+          invoiceId: inv && (inv.id || inv.invoiceId || inv.maHoaDon) ? (inv.id || inv.invoiceId || inv.maHoaDon) : '',
+          namThang: inv && inv.namThang ? inv.namThang : '',
+          note: note,
+          proofBase64: base64
+        });
+
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+          body
+        });
+
+        let out = null;
+        try { out = await res.json(); } catch(e){}
+
+        if (out && out.success){
+          alert('Đã gửi xác nhận thanh toán cho chủ nhà.');
+          closePaymentModal();
+          // Nếu backend có cập nhật trạng thái, reload lại data để refresh
+          const tenant = JSON.parse(localStorage.getItem(TENANT_STORAGE_KEY) || '{}');
+          if (tenant && tenant.maPhong){
+            fetchTenantPortalData(tenant.maPhong, tenant.identity || '');
+          }
+        } else {
+          // fallback nếu backend chưa có endpoint
+          alert((out && out.message) || 'Đã ghi nhận. Nếu chưa thấy cập nhật, chủ nhà sẽ kiểm tra và xác nhận sau.');
+          closePaymentModal();
+        }
+      } catch(err){
+        console.error('submitPaymentProof error:', err);
+        alert('Không gửi được xác nhận (lỗi kết nối). Vui lòng thử lại.');
+      }
+    }
+
 
     function downloadInvoicePdf(){
       window.print();
