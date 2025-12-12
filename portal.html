@@ -295,7 +295,7 @@
 
   <script>
     const TENANT_STORAGE_KEY = "ytHomeTenant";
-    const API_URL = "https://script.google.com/macros/s/AKfycbzQhX830Ps2J7v-rHWs5yvNU2K485ZoZgHVbbTxM8sfxZEE5SXLFULthkeqi5qQCNWZmA/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyrVC40zXWMybOxz4fsmG7XKF8sXQlSIlafX5LWISuU3uiRTYJWBsfP6qkutAmudy3VAw/exec";
     let CURRENT_INVOICES = [];
     let CURRENT_SELECTED_INVOICE = null;
 
@@ -787,6 +787,16 @@
         let total = 0;
         services.forEach(s => {
           const thanhTien = Number(s.thanhTien || s.thanhTienDV || 0);
+          const ten = (s.tenDV || s.ten || s.maDV || '').toString().trim();
+          const soDau = Number(s.soDau || s.slDau || 0);
+          const soCuoi = Number(s.soCuoi || s.slCuoi || 0);
+          const soLuong = Number(s.slDV || s.soLuong || 0);
+          const donGia = Number(s.donGia || 0);
+
+          // Bỏ dòng trống / 0
+          const hasMeaning = ten || soDau || soCuoi || soLuong || donGia || thanhTien;
+          if (!hasMeaning || thanhTien <= 0) return;
+
           total += thanhTien;
 
           const tr = document.createElement('tr');
@@ -1296,4 +1306,3 @@
   </script>
 </body>
 </html>
-
