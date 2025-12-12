@@ -772,70 +772,71 @@
         }
       }
 
-    // Bảng dịch vụ chi tiết
+    // // Bảng dịch vụ chi tiết (Tên dịch vụ = Mã DV từ sheet Hóa đơn)
       const tbody = document.getElementById('invoiceServiceBody');
       const totalCell = document.getElementById('invoiceServiceTotal');
-      if (!tbody || !totalCell) return;
+      if (tbody && totalCell) {
+        tbody.innerHTML = '';
       
-      tbody.innerHTML = '';
+        // ưu tiên inv.services (Apps Script build), fallback c.services
+        const servicesRaw = Array.isArray(inv?.services)
+          ? inv.services
+          : (Array.isArray(c?.services) ? c.services : []);
       
-      // 1) Lấy services từ inv.services hoặc c.services (nếu Apps Script trả sẵn mảng)
-      const servicesRaw = Array.isArray(inv?.services)
-        ? inv.services
-        : (Array.isArray(c?.services) ? c.services : []);
+        // Chuẩn hoá + lọc bỏ dòng rỗng/0
+        const rows = servicesRaw
+          .map(s => {
+            const maDV = (s.maDV ?? s.ma ?? s.maDichVu ?? s.tenDV ?? '').toString().trim(); // ✅ tên DV lấy từ "Mã DV..."
+            const soDau = Number(s.soDau ?? s.slDau ?? s.chiSoDau ?? 0);
+            const soCuoi = Number(s.soCuoi ?? s.slCuoi ?? s.chiSoCuoi ?? 0);
+            const soLuong = Number(s.soLuong ?? s.slDV ?? 0);
+            const donGia = Number(s.donGia ?? s.donGiaDV ?? 0);
+            const thanhTien = Number(s.thanhTien ?? s.thanhTienDV ?? 0);
       
-      // 2) Chuẩn hoá từng dòng + lọc bỏ dòng rỗng/0
-      const services = servicesRaw
-        .map(s => {
-          const maDV = (s.maDV || s.ma || s.tenDV || s.maDichVu || '').toString().trim(); // ✅ tên DV lấy từ "Mã DV..."
-          const soDau = Number(s.soDau ?? s.slDau ?? s.chiSoDau ?? 0);
-          const soCuoi = Number(s.soCuoi ?? s.slCuoi ?? s.chiSoCuoi ?? 0);
-          const soLuong = Number(s.soLuong ?? s.slDV ?? 0);
-          const donGia = Number(s.donGia ?? s.donGiaDV ?? 0);
-          const thanhTien = Number(s.thanhTien ?? s.thanhTienDV ?? 0);
+            return { maDV, soDau, soCuoi, soLuong, donGia, thanhTien };
+          })
+          .filter(x => {
+            // bỏ dòng rỗng
+            if (!x.maDV) return false;
       
-          return { maDV, soDau, soCuoi, soLuong, donGia, thanhTien };
-        })
-        .filter(x => {
-          // ✅ bỏ dòng rỗng hoặc bằng 0:
-          // - không có mã DV => loại
-          // - hoặc tất cả số liệu đều 0 => loại
-          if (!x.maDV) return false;
-          const allZero =
-            (x.soDau === 0) &&
-            (x.soCuoi === 0) &&
-            (x.soLuong === 0) &&
-            (x.donGia === 0) &&
-            (x.thanhTien === 0);
-          return !allZero;
-        });
+            // bỏ dòng toàn 0
+            const allZero =
+              x.soDau === 0 &&
+              x.soCuoi === 0 &&
+              x.soLuong === 0 &&
+              x.donGia === 0 &&
+              x.thanhTien === 0;
+            if (allZero) return false;
       
-      // 3) Render
-      if (!services.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
-        totalCell.textContent = formatVND(0);
-      } else {
-        let total = 0;
+            // bỏ dòng có thành tiền = 0 (theo yêu cầu "bằng 0" cũng bỏ)
+            if (x.thanhTien === 0) return false;
       
-        services.forEach(x => {
-          // nếu thanhTien chưa có nhưng có soLuong & donGia => tự tính
-          const thanhTien = x.thanhTien || (x.soLuong * x.donGia) || 0;
-          total += thanhTien;
+            return true;
+          });
       
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${x.maDV}</td>
-            <td>${x.soDau ? x.soDau : ''}</td>
-            <td>${x.soCuoi ? x.soCuoi : ''}</td>
-            <td>${x.soLuong ? x.soLuong : ''}</td>
-            <td>${x.donGia ? formatVND(x.donGia) : '--'}</td>
-            <td>${formatVND(thanhTien)}</td>
-          `;
-          tbody.appendChild(tr);
-        });
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
+          totalCell.textContent = formatVND(0);
+        } else {
+          let total = 0;
       
-        // ưu tiên tổng tính được; nếu tổng = 0 thì fallback qua c.tongDichVu (nếu có)
-        totalCell.textContent = formatVND(total || c?.tongDichVu || 0);
+          rows.forEach(x => {
+            total += x.thanhTien;
+      
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${x.maDV}</td>
+              <td>${x.soDau ? x.soDau : ''}</td>
+              <td>${x.soCuoi ? x.soCuoi : ''}</td>
+              <td>${x.soLuong ? x.soLuong : ''}</td>
+              <td>${formatVND(x.donGia)}</td>
+              <td>${formatVND(x.thanhTien)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+      
+          totalCell.textContent = formatVND(total);
+        }
       }
 
     
@@ -960,7 +961,7 @@
         if (payBtn) payBtn.style.display = 'none';
 
         // reset summary
-        ['invNgayTinh','invTienPhong','invPhatSinh','invGiamTru','invThieuTruoc','invPhaiThu','invServiceTotal'].forEach(id=>{
+        ['invNgayTinh','invTienPhong','invPhatSinh','invGiamTru','invThieuTruoc','invPhaiThu','invoiceServiceTotal'].forEach(id=>{
           const el = document.getElementById(id);
           if (el) el.textContent = '--';
         });
@@ -1307,4 +1308,5 @@
   </script>
 </body>
 </html>
+
 
