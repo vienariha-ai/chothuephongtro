@@ -696,7 +696,7 @@
       showInvoiceDetail(inv);
       setActiveTab('pay','detail');
     }
-
+    /*
     function showInvoiceDetail(inv){
       CURRENT_SELECTED_INVOICE = inv || null;
 
@@ -839,7 +839,7 @@
         }
       }
 
-    
+    */
     // =========================
     // THANH TOÁN: lịch sử + chi tiết (chọn dòng)
     // =========================
@@ -993,36 +993,52 @@
       document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
       document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
 
-      // bảng dịch vụ
-      const dvBody = document.getElementById('invoiceServiceBody');
-      const dvTotalEl = document.getElementById('invServiceTotal');
-      if (dvBody){
-        dvBody.innerHTML = '';
-
-        const services = Array.isArray(inv.services) ? inv.services : [];
-        let total = 0;
-
-        if (!services.length){
-          dvBody.innerHTML = '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
+      // =========================
+      // BẢNG DỊCH VỤ (Tên DV = Mã DV | Bỏ dòng rỗng & = 0)
+      // =========================
+      const tbody = document.getElementById('invoiceServiceBody');
+      const totalCell = document.getElementById('invServiceTotal');
+      
+      if (tbody && totalCell) {
+        tbody.innerHTML = '';
+      
+        const servicesRaw = Array.isArray(inv?.services) ? inv.services : [];
+        const rows = servicesRaw
+          .map(s => {
+            const maDV = (s.maDV || '').toString().trim();
+            const soDau = Number(s.soDau ?? 0);
+            const soCuoi = Number(s.soCuoi ?? 0);
+            const soLuong = Number(s.soLuong ?? 0);
+            const donGia = Number(s.donGia ?? 0);
+            const thanhTien = Number(s.thanhTien ?? 0);
+      
+            return { maDV, soDau, soCuoi, soLuong, donGia, thanhTien };
+          })
+          .filter(x =>
+            x.maDV && x.thanhTien > 0
+          );
+      
+        if (!rows.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
+          totalCell.textContent = formatVND(0);
         } else {
-          services.forEach(s=>{
+          let total = 0;
+          rows.forEach(x => {
+            total += x.thanhTien;
             const tr = document.createElement('tr');
-            const thanhTien = Number(s.thanhTien || 0) || 0;
-            total += thanhTien;
-
             tr.innerHTML = `
-              <td>${s.tenDichVu || s.maDV || ''}</td>
-              <td>${(s.soDau == null ? '' : s.soDau)}</td>
-              <td>${(s.soCuoi == null ? '' : s.soCuoi)}</td>
-              <td>${(s.soLuong == null ? '' : s.soLuong)}</td>
-              <td>${formatVND(s.donGia)}</td>
-              <td>${formatVND(thanhTien)}</td>
+              <td>${x.maDV}</td>
+              <td>${x.soDau || ''}</td>
+              <td>${x.soCuoi || ''}</td>
+              <td>${x.soLuong || ''}</td>
+              <td>${formatVND(x.donGia)}</td>
+              <td>${formatVND(x.thanhTien)}</td>
             `;
-            dvBody.appendChild(tr);
+            tbody.appendChild(tr);
           });
+          totalCell.textContent = formatVND(total);
         }
-
-        if (dvTotalEl) dvTotalEl.textContent = formatVND(total);
       }
 
       // bank + qr dựa theo dòng được chọn
@@ -1308,5 +1324,6 @@
   </script>
 </body>
 </html>
+
 
 
