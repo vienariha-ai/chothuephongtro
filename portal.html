@@ -1071,62 +1071,63 @@
       updateBankAndQr_(inv);
     }
 
-    // cache bank info chủ nhà (để tránh gọi nhiều lần)
-    let OWNER_BANK_CACHE = null;
-    
-    function updateBankAndQr_(inv){
-      const bankInfoEl = document.getElementById('invBankInfo');
-      const qrContainer = document.getElementById('qrContainer');
-    
-      // ---------- 1) BANK INFO: luôn lấy của chủ nhà từ Google Sheet ----------
-      const renderBankText = (bankInfo) => {
-        const bankText = [
-          bankInfo?.soTaiKhoan ? ('Số tài khoản: ' + bankInfo.soTaiKhoan) : '',
-          bankInfo?.chuTaiKhoan ? ('Chủ tài khoản: ' + bankInfo.chuTaiKhoan) : '',
-          bankInfo?.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
-          bankInfo?.chiNhanh ? ('CN ngân hàng: ' + bankInfo.chiNhanh) : ''
-        ].filter(Boolean).join(' • ');
-    
-        if (bankInfoEl) bankInfoEl.textContent = bankText || '--';
-      };
-    
-      if (OWNER_BANK_CACHE) {
-        renderBankText(OWNER_BANK_CACHE);
-      } else {
+         let OWNER_BANK_CACHE = null;
+      
+      async function fetchOwnerBankInfo_(){
+        if (OWNER_BANK_CACHE) return OWNER_BANK_CACHE;
+      
+        const body = new URLSearchParams({ action: 'ownerBank' });
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+          body
+        });
+        const out = await res.json();
+        OWNER_BANK_CACHE = (out && out.success && out.bank) ? out.bank : null;
+        return OWNER_BANK_CACHE;
+      }
+      
+      function updateBankAndQr_(inv){
+        const bankInfoEl = document.getElementById('invBankInfo');
+        const qrContainer = document.getElementById('qrContainer');
+      
+        // BANK
         if (bankInfoEl) bankInfoEl.textContent = 'Đang tải...';
-        google.script.run
-          .withSuccessHandler((info) => {
-            OWNER_BANK_CACHE = info || null;
-            renderBankText(OWNER_BANK_CACHE);
+        fetchOwnerBankInfo_()
+          .then(bankInfo=>{
+            const bankText = [
+              bankInfo?.soTaiKhoan ? ('Số tài khoản: ' + bankInfo.soTaiKhoan) : '',
+              bankInfo?.chuTaiKhoan ? ('Chủ tài khoản: ' + bankInfo.chuTaiKhoan) : '',
+              bankInfo?.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
+              bankInfo?.chiNhanh ? ('CN ngân hàng: ' + bankInfo.chiNhanh) : ''
+            ].filter(Boolean).join(' • ');
+            if (bankInfoEl) bankInfoEl.textContent = bankText || '--';
           })
-          .withFailureHandler((err) => {
+          .catch(err=>{
             console.error(err);
             if (bankInfoEl) bankInfoEl.textContent = '--';
-          })
-          .getOwnerBankTransferInfo_(); // <-- Apps Script bạn đã có
+          });
+      
+        // QR giữ nguyên như bạn
+        if (!qrContainer) return;
+        qrContainer.innerHTML = '';
+        const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
+        const qr =
+          (c && (c.qrCode || c.qr || c.qr_code || c["QR Code"])) ||
+          (inv && (inv.qrCode || inv.qr || inv.qr_code || inv["QR Code"])) ||
+          '';
+      
+        if (qr){
+          const img = document.createElement('img');
+          img.src = qr;
+          img.alt = 'QR thanh toán';
+          img.style.maxWidth = '160px';
+          img.style.marginTop = '4px';
+          qrContainer.appendChild(img);
+        } else {
+          qrContainer.textContent = 'Chưa có QR Code.';
+        }
       }
-    
-      // ---------- 2) QR: giữ logic cũ (lấy từ inv/chiTiet) ----------
-      if (!qrContainer) return;
-      qrContainer.innerHTML = '';
-    
-      const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
-      const qr =
-        (c && (c.qrCode || c.qr || c.qr_code || c["QR Code"])) ||
-        (inv && (inv.qrCode || inv.qr || inv.qr_code || inv["QR Code"])) ||
-        '';
-    
-      if (qr){
-        const img = document.createElement('img');
-        img.src = qr;
-        img.alt = 'QR thanh toán';
-        img.style.maxWidth = '160px';
-        img.style.marginTop = '4px';
-        qrContainer.appendChild(img);
-      } else {
-        qrContainer.textContent = 'Chưa có QR Code.';
-      }
-    }
 
 
     function renderMaintenance(data){
@@ -1375,13 +1376,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
