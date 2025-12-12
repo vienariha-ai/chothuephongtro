@@ -2003,3 +2003,126 @@ body.tenant-body #invoiceDetailTable tfoot td {
   font-size: 0.8rem;
   color: rgba(229, 231, 235, 0.96);
 }
+/* ====== BẢNG DỊCH VỤ: font nhỏ hơn, không rớt dòng ====== */
+.table-dv th,
+.table-dv td{
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.table-dv td.dv-name{
+  white-space: normal; /* tên dịch vụ có thể xuống dòng nhẹ */
+  min-width: 140px;
+}
+
+.table-dv td.dv-money{
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dòng tổng in đậm */
+.dv-total-row td{
+  font-weight: 800;
+}
+
+/* ====== PILL "Đã thanh toán" xanh lá đậm ====== */
+.pill-success{
+  background: #16a34a; /* xanh lá đậm */
+  color: #fff;
+  border: 1px solid #15803d;
+  font-weight: 800;
+}
+
+/* ====== Popup thanh toán đẹp + giữa màn hình ====== */
+.modal{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.modal.hidden{
+  display: none;
+}
+
+.modal-backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.modal-card{
+  position: relative;
+  width: min(720px, 96vw);
+  max-height: 88vh;
+  overflow: auto;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 30px 70px rgba(0,0,0,.35);
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+.modal-head{
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+.modal-title{
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.modal-x{
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.modal-body{
+  padding: 14px 16px 6px;
+}
+
+.modal-actions{
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  z-index: 2;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+.payment-preview{
+  margin-top: 10px;
+  border: 1px dashed rgba(0,0,0,.18);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(2,6,23,.02);
+}
+
+.payment-proof-img{
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
