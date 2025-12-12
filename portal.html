@@ -1071,29 +1071,51 @@
       updateBankAndQr_(inv);
     }
 
+    // cache bank info chủ nhà (để tránh gọi nhiều lần)
+    let OWNER_BANK_CACHE = null;
+    
     function updateBankAndQr_(inv){
       const bankInfoEl = document.getElementById('invBankInfo');
       const qrContainer = document.getElementById('qrContainer');
-
-      const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
-      const bankInfo = c.bankInfo || {};
-
-      const bankText = [
-        bankInfo.soTaiKhoan ? ('Số tài khoản: ' + bankInfo.soTaiKhoan) : '',
-        bankInfo.chuTaiKhoan ? ('Chủ tài khoản: ' + bankInfo.chuTaiKhoan) : '',
-        bankInfo.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
-        bankInfo.chiNhanh ? ('Chi nhánh: ' + bankInfo.chiNhanh) : ''
-      ].filter(Boolean).join(' • ');
-
-      if (bankInfoEl) bankInfoEl.textContent = bankText || '--';
-
+    
+      // ---------- 1) BANK INFO: luôn lấy của chủ nhà từ Google Sheet ----------
+      const renderBankText = (bankInfo) => {
+        const bankText = [
+          bankInfo?.soTaiKhoan ? ('Số tài khoản: ' + bankInfo.soTaiKhoan) : '',
+          bankInfo?.chuTaiKhoan ? ('Chủ tài khoản: ' + bankInfo.chuTaiKhoan) : '',
+          bankInfo?.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
+          bankInfo?.chiNhanh ? ('CN ngân hàng: ' + bankInfo.chiNhanh) : ''
+        ].filter(Boolean).join(' • ');
+    
+        if (bankInfoEl) bankInfoEl.textContent = bankText || '--';
+      };
+    
+      if (OWNER_BANK_CACHE) {
+        renderBankText(OWNER_BANK_CACHE);
+      } else {
+        if (bankInfoEl) bankInfoEl.textContent = 'Đang tải...';
+        google.script.run
+          .withSuccessHandler((info) => {
+            OWNER_BANK_CACHE = info || null;
+            renderBankText(OWNER_BANK_CACHE);
+          })
+          .withFailureHandler((err) => {
+            console.error(err);
+            if (bankInfoEl) bankInfoEl.textContent = '--';
+          })
+          .getOwnerBankTransferInfo_(); // <-- Apps Script bạn đã có
+      }
+    
+      // ---------- 2) QR: giữ logic cũ (lấy từ inv/chiTiet) ----------
       if (!qrContainer) return;
       qrContainer.innerHTML = '';
+    
+      const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
       const qr =
         (c && (c.qrCode || c.qr || c.qr_code || c["QR Code"])) ||
         (inv && (inv.qrCode || inv.qr || inv.qr_code || inv["QR Code"])) ||
         '';
-
+    
       if (qr){
         const img = document.createElement('img');
         img.src = qr;
@@ -1353,6 +1375,7 @@
   </script>
 </body>
 </html>
+
 
 
 
