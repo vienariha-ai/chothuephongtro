@@ -7,972 +7,180 @@
   <link rel="stylesheet" href="yt-home-common.css" />
 </head>
 <body class="tenant-body">
-  <div class="container">
-    <header class="header">
-      <div class="logo-row">
-        <div class="logo-icon">YT</div>
-        <div class="logo-text">
-          <div class="logo-text-main">YT Home</div>
-          <div class="logo-text-sub">Portal tài khoản phòng</div>
-        </div>
-      </div>
-      <div class="header-actions">
-        <a href="index.html" class="btn btn-outline">Trang xem phòng</a>
-        <button type="button" class="btn btn-outline" onclick="logoutTenant()">Đăng xuất</button>
-      </div>
-    </header>
 
-    <main>
-      <div class="page-title">Xin chào, cư dân YT Home 🏡</div>
-      <div class="page-subtitle">
-        Đây là portal nội bộ dành cho tài khoản phòng. Dữ liệu được lấy trực tiếp từ Google Sheet qua Apps Script.
-      </div>
-      <div id="portalStatusNote" class="portal-status">
-        Đang tải dữ liệu phòng từ hệ thống...
-      </div>
+<!-- ================= POPUP THANH TOÁN ================= -->
+<div id="paymentModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Gửi phiếu thanh toán</h3>
 
-      <div class="grid">
-        <!-- CỘT TRÁI: THÔNG TIN -->
-        <section class="card">
-          <div class="card-title">Thông tin phòng</div>
-          <div class="badge" id="roomBadge">Phòng: --</div>
+    <div class="form-group">
+      <label>Ảnh phiếu chuyển khoản</label>
+      <input type="file" id="paymentProof" accept="image/*">
+    </div>
 
-          <div class="tab-row">
-            <button class="tab-btn tab-info active" data-tab="owner">Chủ phòng</button>
-            <button class="tab-btn tab-info" data-tab="contract">Tóm tắt hợp đồng</button>
-            <button class="tab-btn tab-info" data-tab="members">Người & xe</button>
-          </div>
+    <div class="form-group">
+      <label>Ghi chú</label>
+      <textarea id="paymentNote" rows="3"
+        placeholder="VD: Đã chuyển khoản lúc 10h ngày 15/12..."></textarea>
+    </div>
 
-          <!-- TAB CHỦ PHÒNG -->
-          <div class="tab-pane tab-pane-info" id="tab-owner">
-            <div class="info-row">
-              <span class="info-label">Phòng:</span>
-              <span class="info-value" id="roomLabel">--</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Tên chủ phòng:</span>
-              <span class="info-value" id="ownerName">--</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Số CCCD:</span>
-              <span class="info-value" id="ownerCCCD">--</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Số điện thoại:</span>
-              <span class="info-value" id="ownerPhone">--</span>
-            </div>
-            <div class="small-note">
-              Thông tin được lấy từ sheet <strong>Khách thuê</strong> (Loại = "Chủ phòng", Trạng thái = "Đang ở").
-            </div>
-          </div>
-
-          <!-- TAB HỢP ĐỒNG -->
-          <div class="tab-pane tab-pane-info hidden" id="tab-contract">
-            <ul class="list">
-              <li>Trạng thái: <strong id="contractStatus">--</strong></li>
-              <li>Loại HĐ: <strong id="contractType">--</strong></li>
-              <li>Thời gian: <strong id="contractPeriod">--</strong></li>
-              <li>Tiền thuê: <strong id="contractRent">--</strong></li>
-              <li>Tiền cọc: <strong id="contractDeposit">--</strong></li>
-              <li>Ngày thu tiền: <strong id="contractDueDay">--</strong></li>
-              <li>Dịch vụ kèm theo:</li>
-            </ul>
-            <ul class="list" id="contractServices"></ul>
-
-            <button id="extendContractBtn" class="btn" style="margin-top:8px; display:none;">
-              Ký tiếp hợp đồng
-            </button>
-
-            <div class="small-note">
-              Hiển thị từ sheet <strong>Hợp đồng</strong>. Nút "Ký tiếp hợp đồng" chỉ hiện khi còn &lt;= 1 tháng trước ngày kết thúc.
-            </div>
-          </div>
-
-          <!-- TAB NGƯỜI & XE -->
-          <div class="tab-pane tab-pane-info hidden" id="tab-members">
-            <table class="table-like">
-              <thead>
-                <tr>
-                  <th>Họ tên</th>
-                  <th>Điện thoại</th>
-                  <th>CCCD</th>
-                  <th>Biển số</th>
-                  <th>Tạm trú</th>
-                  <th>Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody id="membersTableBody">
-                <tr><td colspan="6" class="muted">Chưa có dữ liệu.</td></tr>
-              </tbody>
-            </table>
-            <div class="tenant-footer-actions">
-              <span></span>
-              <button class="btn" type="button" onclick="openTempStayForm()">Đăng ký tạm trú</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- CỘT PHẢI: THANH TOÁN -->
-        <section class="card">
-          <div class="card-title">Thanh toán</div>
-          <div class="tab-row">
-            <button class="tab-btn tab-pay active" data-tab="history">Lịch sử thanh toán</button>
-            <button class="tab-btn tab-pay" data-tab="detail">Chi tiết hóa đơn</button>
-          </div>
-
-          <!-- TAB LỊCH SỬ THANH TOÁN -->
-          <div class="tab-pane tab-pane-pay" id="tab-history">
-            <table class="table-like">
-              <thead>
-                <tr>
-                  <th>Kỳ (Năm tháng)</th>
-                  <th>Tổng phải thu</th>
-                  <th>Trạng thái</th>
-                  <th>Chi tiết</th>
-                </tr>
-              </thead>
-              <tbody id="paymentHistoryBody">
-                <tr>
-                  <td colspan="4" class="muted">
-                    Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="tenant-footer-actions">
-              <span class="muted">Chỉ hiển thị nếu Hợp đồng còn hiệu lực.</span>
-              <button class="btn" type="button" onclick="downloadInvoicePdf()">Tải / In hóa đơn</button>
-            </div>
-          </div>
-
-          <!-- TAB CHI TIẾT HÓA ĐƠN -->
-          <div class="tab-pane tab-pane-pay hidden" id="tab-detail">
-            <div id="invoiceSummary">
-              <p><span class="inv-label">Ngày tính HĐ:</span> <span class="inv-value" id="invNgayTinh">--</span></p>
-              <p><span class="inv-label">Tiền phòng thanh toán:</span> <span class="inv-value" id="invTienPhong">--</span></p>
-              <p><span class="inv-label">Tổng dịch vụ (ĐN + DV):</span> <span class="inv-value" id="invTongDV">--</span></p>
-              <p><span class="inv-label">Phát sinh khác:</span> <span class="inv-value" id="invPhatSinh">--</span></p>
-              <p><span class="inv-label">Giảm trừ khác:</span> <span class="inv-value" id="invGiamTru">--</span></p>
-              <p><span class="inv-label">Thiếu kỳ trước:</span> <span class="inv-value" id="invThieuTruoc">--</span></p>
-              <p class="inv-total-row">
-                <span class="inv-label">Phải thu:</span>
-                <span class="inv-total" id="invPhaiThu">--</span>
-              </p>
-              <!-- Nút trạng thái trong tab chi tiết -->
-              <button id="detailStatusBtn" class="btn" style="margin-top:8px; display:none;"></button>
-            </div>
-
-            <!-- BẢNG CHI TIẾT DỊCH VỤ -->
-            <div class="section-title" style="margin-top:12px;">Chi tiết dịch vụ</div>
-            <table class="table-like" id="invoiceServiceTable">
-              <thead>
-                <tr>
-                  <th>Tên dịch vụ</th>
-                  <th>Số đầu</th>
-                  <th>Số cuối</th>
-                  <th>Số lượng</th>
-                  <th>Đơn giá</th>
-                  <th>Thành tiền</th>
-                </tr>
-              </thead>
-              <tbody id="invoiceServiceBody">
-                <tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="5" style="text-align:right;font-weight:600;">Tổng cộng:</td>
-                  <td id="invoiceServiceTotal" style="font-weight:600;">0 đ</td>
-                </tr>
-              </tfoot>
-            </table>
-
-            <div class="section-title" style="margin-top:12px;">Thông tin chuyển khoản</div>
-            <p class="small-note" id="invBankInfo">--</p>
-
-            <div class="section-title">QR thanh toán</div>
-            <div id="qrContainer" class="gallery-placeholder">Chưa có QR Code.</div>
-          </div>
-
-        </section>
-      </div>
-
-      <!-- HÀNG DƯỚI: BẢO TRÌ + TIN NHẮN -->
-      <div class="grid" style="margin-top:12px;">
-        <!-- Bảo trì -->
-        <section class="card">
-          <div class="card-title">Lịch bảo trì</div>
-          <table class="table-like">
-            <thead>
-              <tr>
-                <th>Tài sản</th>
-                <th>Loại công việc</th>
-                <th>Ngày dự kiến</th>
-                <th>Ngày thực hiện</th>
-                <th>Trạng thái</th>
-                <th>Ghi chú</th>
-              </tr>
-            </thead>
-            <tbody id="maintenanceBody">
-              <tr><td colspan="6" class="muted">Chưa có lịch bảo trì cho phòng.</td></tr>
-            </tbody>
-          </table>
-          <div class="tenant-footer-actions">
-            <span class="muted">Dữ liệu từ sheet "Lịch bảo trì".</span>
-            <button type="button" class="btn" onclick="openMaintenanceForm()">Báo hỏng</button>
-          </div>
-        </section>
-
-        <!-- Tin nhắn / yêu cầu -->
-        <section class="card">
-          <div class="card-title">Tin nhắn & yêu cầu</div>
-          <table class="table-like">
-            <thead>
-              <tr>
-                <th>Loại</th>
-                <th>Ngày</th>
-                <th>Nội dung</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody id="messageBody">
-              <tr><td colspan="4" class="muted">Chưa có báo hỏng / tạm trú nào.</td></tr>
-            </tbody>
-          </table>
-        </section>
-      </div>
-    </main>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closePaymentModal()">Hủy</button>
+      <button class="btn btn-danger" onclick="submitPayment()">Gửi thông báo</button>
+    </div>
   </div>
+</div>
 
-  <script>
-    const TENANT_STORAGE_KEY = "ytHomeTenant";
-    const API_URL = "https://script.google.com/macros/s/AKfycbyrVC40zXWMybOxz4fsmG7XKF8sXQlSIlafX5LWISuU3uiRTYJWBsfP6qkutAmudy3VAw/exec";
-    let CURRENT_INVOICES = [];
-    let CURRENT_SELECTED_INVOICE = null;
+<div class="container">
+  <main>
 
-    function logoutTenant() {
-      try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
-      window.location.href = "tenant.html";
-    }
+    <!-- ================= THANH TOÁN ================= -->
+    <section class="card">
+      <div class="card-title">Thanh toán</div>
 
-    function formatVND(amount){
-      if(amount===null||amount===undefined||amount==='') return '--';
-      const num = Number(String(amount).replace(/[^\d.-]/g,''));
-      if(isNaN(num)) return String(amount);
-      return num.toLocaleString('vi-VN') + ' đ';
-    }
+      <div class="tab-row">
+        <button class="tab-btn tab-pay active" data-tab="history">Lịch sử thanh toán</button>
+        <button class="tab-btn tab-pay" data-tab="detail">Chi tiết hóa đơn</button>
+      </div>
 
-    function setActiveTab(group, tabName){
-      document.querySelectorAll('.tab-btn.tab-' + group).forEach(btn=>{
-        btn.classList.toggle('active', btn.dataset.tab === tabName);
-      });
-      document.querySelectorAll('.tab-pane-' + group).forEach(pane=>{
-        pane.classList.toggle('hidden', pane.id !== 'tab-' + tabName);
-      });
-    }
+      <!-- ===== TAB LỊCH SỬ ===== -->
+      <div class="tab-pane tab-pane-pay" id="tab-history">
+        <table class="table-like">
+          <thead>
+            <tr>
+              <th>Kỳ</th>
+              <th>Phải thu</th>
+              <th>Trạng thái</th>
+              <th>Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody id="paymentHistoryBody"></tbody>
+        </table>
+      </div>
 
-    // Đổi mọi kiểu ngày về Date rồi format DD/MM/YYYY
-    function toDateObject(value) {
-      if (!value) return null;
-      if (value instanceof Date) return value;
-      const d = new Date(value);
-      return isNaN(d) ? null : d;
-    }
+      <!-- ===== TAB CHI TIẾT ===== -->
+      <div class="tab-pane tab-pane-pay hidden" id="tab-detail">
+        <div id="invoiceDetail"></div>
 
-    function formatDateDDMMYYYY(value) {
-      const d = toDateObject(value);
-      if (!d) return value || '';
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const yyyy = d.getFullYear();
-      return `${dd}/${mm}/${yyyy}`;
-    }
+        <div class="section-title">Chi tiết dịch vụ</div>
+        <table class="table-like">
+          <thead>
+            <tr>
+              <th>Dịch vụ</th>
+              <th>Số đầu</th>
+              <th>Số cuối</th>
+              <th>Số lượng</th>
+              <th>Đơn giá</th>
+              <th>Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody id="serviceDetailBody"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5" class="text-right"><strong>Tổng</strong></td>
+              <td id="serviceTotal" class="text-right"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
 
-    // Render trạng thái dạng text hoặc nút "xem chi tiết" (dùng cho các bảng khác)
-    function renderStatusHTML(text, context) {
-      const raw = (text == null) ? '' : String(text).trim();
-      if (!raw) {
-        return '<span class="status-text muted">--</span>';
-      }
+      <!-- ===== THÔNG TIN CHUYỂN KHOẢN ===== -->
+      <div class="section-title">Thông tin chuyển khoản</div>
+      <p id="bankInfo" class="small-note">--</p>
 
-      const lower = raw.toLowerCase();
-      const isIncomplete =
-        lower.includes('chưa') ||
-        lower.includes('chua') ||
-        lower.includes('còn thiếu') ||
-        lower.includes('con thieu');
+      <div class="section-title">QR thanh toán</div>
+      <div id="qrContainer">--</div>
+    </section>
 
-      if (!isIncomplete) {
-        return `<span class="status-text">${raw}</span>`;
-      }
+  </main>
+</div>
 
-      const safeStatus = raw.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      const safeContext = (context || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+<script>
+let selectedInvoice = null;
 
-      return `
-        <button type="button"
-          class="status-chip status-chip-warning"
-          onclick="openStatusDetail('${safeContext}','${safeStatus}')">
-          ${raw}
-        </button>`;
-    }
+function renderPaymentHistory(invoices) {
+  const tbody = document.getElementById("paymentHistoryBody");
+  tbody.innerHTML = "";
 
-    // Popup chi tiết – hiện tại chỉ alert
-    function openStatusDetail(context, statusText) {
-      const ctx = context ? `Ngữ cảnh: ${context}\n` : '';
-      alert(ctx + 'Trạng thái: ' + statusText);
-    }
+  invoices.forEach(inv => {
+    const paid = String(inv.trangThai || "").toLowerCase().includes("đã");
+    const tr = document.createElement("tr");
 
-    // Tính số tháng còn lại giữa 2 ngày
-    function monthsBetween(from, to) {
-      const d1 = new Date(from);
-      const d2 = new Date(to);
-      if (isNaN(d1) || isNaN(d2)) return null;
-
-      let months =
-        (d2.getFullYear() - d1.getFullYear()) * 12 +
-        (d2.getMonth() - d1.getMonth());
-
-      if (d2.getDate() < d1.getDate()) months -= 1;
-      return months;
-    }
-
-    // Xác định mode trạng thái hóa đơn: cần thanh toán / đã thanh toán / khác
-    function getInvoiceStatusMode(inv){
-      const txt = (inv && inv.trangThai ? String(inv.trangThai) : '').toLowerCase();
-      if (!txt) return 'unknown';
-      if (txt.includes('thiếu') || txt.includes('con thieu')) return 'need-pay';
-      if (txt.includes('thu đủ') || txt.includes('thu du') || txt.includes('đã thanh toán') || txt.includes('da thanh toan')) {
-        return 'paid';
-      }
-      return 'unknown';
-    }
-
-    // 🔧 renderInfoCard với skeleton + cảnh báo HĐ
-    function renderInfoCard(data){
-      const $ = (id) => document.getElementById(id);
-
-      const roomBadge   = $('roomBadge');
-      const roomLabel   = $('roomLabel');
-      const ownerName   = $('ownerName');
-      const ownerCCCD   = $('ownerCCCD');
-      const ownerPhone  = $('ownerPhone');
-
-      const contractStatusEl  = $('contractStatus');
-      const contractTypeEl    = $('contractType');
-      const contractPeriodEl  = $('contractPeriod');
-      const contractRentEl    = $('contractRent');
-      const contractDepositEl = $('contractDeposit');
-      const contractDueDayEl  = $('contractDueDay');
-      const contractServices  = $('contractServices');
-      const extendBtn         = $('extendContractBtn');
-
-      const membersBody       = $('membersTableBody');
-
-      const isEmptyData =
-        !data ||
-        typeof data !== 'object' ||
-        Object.keys(data).length === 0;
-
-      if (isEmptyData) {
-        const skeletonTargets = [
-          roomBadge, roomLabel,
-          ownerName, ownerCCCD, ownerPhone,
-          contractStatusEl, contractTypeEl,
-          contractPeriodEl, contractRentEl,
-          contractDepositEl, contractDueDayEl
-        ];
-
-        skeletonTargets.forEach(el => {
-          if (!el) return;
-          el.textContent = '';
-          el.classList.add('skeleton');
-        });
-
-        if (contractServices) {
-          contractServices.innerHTML =
-            '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
+    tr.innerHTML = `
+      <td>${inv.namThang}</td>
+      <td class="text-danger">${formatVND(inv.tongPhaiThu)}</td>
+      <td>
+        ${paid
+          ? '<span class="badge-success">Đã thanh toán</span>'
+          : '<button class="btn btn-danger btn-sm" onclick="openPaymentModal()">Thanh toán</button>'
         }
+      </td>
+      <td>
+        <button class="btn btn-outline btn-sm"
+          onclick='selectInvoice(${JSON.stringify(inv)})'>
+          Xem
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
-        if (membersBody) {
-          membersBody.innerHTML =
-            '<tr><td colspan="6" class="muted skeleton">Đang tải danh sách người ở...</td></tr>';
-        }
+function selectInvoice(inv) {
+  selectedInvoice = inv;
+  setActiveTab("pay", "detail");
 
-        if (extendBtn) {
-          extendBtn.style.display = 'none';
-        }
-
-        return;
-      }
-
-      const allTargets = [
-        roomBadge, roomLabel,
-        ownerName, ownerCCCD, ownerPhone,
-        contractStatusEl, contractTypeEl,
-        contractPeriodEl, contractRentEl,
-        contractDepositEl, contractDueDayEl
-      ];
-      allTargets.forEach(el => {
-        if (el) el.classList.remove('skeleton');
-      });
-      if (membersBody) membersBody.classList.remove('skeleton');
-      if (contractServices) contractServices.classList.remove('skeleton');
-
-      // 2. Thông tin phòng
-      const roomCode = (data && data.roomCode) ? data.roomCode : '--';
-      if (roomBadge) roomBadge.textContent = 'Phòng: ' + roomCode;
-      if (roomLabel) roomLabel.textContent = roomCode;
-
-      // 3. Chủ phòng
-      const chuPhong = (data && data.chuPhong) ? data.chuPhong : {};
-      if (ownerName)  ownerName.textContent  = chuPhong.hoTen     || '--';
-      if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd      || '--';
-      if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai || '--';
-
-      // 4. Hợp đồng
-      const contract = (data && data.contract) ? data.contract : null;
-
-      // Cảnh báo sắp hết hạn
-      let monthsLeft = null;
-      if (contract && contract.ngayKT) {
-        monthsLeft = monthsBetween(new Date(), contract.ngayKT);
-      }
-
-      let warningClass = "";
-      if (monthsLeft != null) {
-        if (monthsLeft <= 1) warningClass = "contract-alert-red";
-        else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
-      }
-
-      if (contractStatusEl) {
-        contractStatusEl.classList.remove("contract-alert-red","contract-alert-yellow");
-        if (warningClass) contractStatusEl.classList.add(warningClass);
-      }
-
-      function getStatusClass(statusText) {
-        if (!statusText) return '';
-        const s = statusText.toString().toLowerCase();
-
-        if (s.includes('hiệu lực') || s.includes('đang thuê')) {
-          return 'badge-success';
-        }
-        if (s.includes('sắp hết') || s.includes('chờ gia hạn')) {
-          return 'badge-warning';
-        }
-        if (s.includes('hết hạn') || s.includes('thanh lý') || s.includes('ngưng')) {
-          return 'badge-danger';
-        }
-        return 'badge-neutral';
-      }
-
-      if (contractStatusEl) {
-        const text = contract ? (contract.trangThai || '--') : '--';
-        contractStatusEl.textContent = text;
-
-        contractStatusEl.classList.remove(
-          'badge-success','badge-warning','badge-danger','badge-neutral'
-        );
-        const statusClass = getStatusClass(text);
-        if (statusClass) contractStatusEl.classList.add(statusClass);
-      }
-
-      if (contractTypeEl) {
-        contractTypeEl.textContent = contract ? (contract.loaiHD || '--') : '--';
-      }
-
-      // Thời gian HĐ + số ngày còn lại
-      if (contractPeriodEl) {
-        let baseText = '--';
-        let daysLeftText = '';
-
-        if (contract && (contract.ngayBD || contract.ngayKT)) {
-          const startRaw = contract.ngayBD ? contract.ngayBD : '';
-          const endRaw   = contract.ngayKT ? contract.ngayKT : '';
-
-          const start = startRaw ? formatDateDDMMYYYY(startRaw) : '';
-          const end   = endRaw   ? formatDateDDMMYYYY(endRaw)   : '';
-
-          baseText = (start && end) ? (start + ' – ' + end) : (start || end || '--');
-
-          const endDateObj = toDateObject(endRaw);
-          if (endDateObj) {
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const diffMs   = endDateObj.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-            if (diffDays >= 0) {
-              let cls = '';
-              if (diffDays < 30)      cls = 'days-left-red';
-              else if (diffDays < 60) cls = 'days-left-yellow';
-
-              if (cls) {
-                daysLeftText = ` <span class="${cls}">(còn ${diffDays} ngày)</span>`;
-              }
-            }
-          }
-        }
-
-        contractPeriodEl.innerHTML = baseText + daysLeftText;
-      }
-
-      if (contractRentEl) {
-        contractRentEl.textContent = (contract && contract.tienThue != null)
-          ? formatVND(contract.tienThue)
-          : '--';
-      }
-
-      if (contractDepositEl) {
-        contractDepositEl.textContent = (contract && contract.tienCoc != null)
-          ? formatVND(contract.tienCoc)
-          : '--';
-      }
-
-      if (contractDueDayEl) {
-        contractDueDayEl.textContent = contract ? (contract.ngayThuTien || '--') : '--';
-      }
-
-      // 5. Dịch vụ trong HĐ
-      if (contractServices) {
-        contractServices.innerHTML = '';
-
-        if (contract) {
-          ['1','2','3'].forEach(n => {
-            const ma = contract['maDV' + n];
-            const dg = contract['donGiaDV' + n];
-            if (ma) {
-              const li = document.createElement('li');
-              li.textContent = ma + (dg != null ? (' – ' + formatVND(dg)) : '');
-              contractServices.appendChild(li);
-            }
-          });
-
-          if (!contractServices.childElementCount) {
-            const li = document.createElement('li');
-            li.textContent = 'Chưa cấu hình dịch vụ.';
-            contractServices.appendChild(li);
-          }
-        } else {
-          const li = document.createElement('li');
-          li.textContent = 'Không có hợp đồng để hiển thị dịch vụ.';
-          contractServices.appendChild(li);
-        }
-      }
-
-      // 6. Nút gia hạn HĐ
-      if (extendBtn) {
-        if (contract && contract.coTheGiaHan) {
-          extendBtn.style.display = 'inline-flex';
-          extendBtn.textContent = "Gia hạn hợp đồng";
-
-          extendBtn.classList.remove(
-            'btn-disabled','btn-warning','btn-danger','btn-accent'
-          );
-
-          if (monthsLeft != null) {
-            if (monthsLeft <= 1) {
-              extendBtn.classList.add("btn-danger");
-            } else if (monthsLeft <= 2) {
-              extendBtn.classList.add("btn-warning");
-            } else {
-              extendBtn.classList.add("btn-accent");
-            }
-          }
-
-          const statusText = contract.trangThai ? contract.trangThai.toString().toLowerCase() : '';
-          if (statusText.includes('hết hạn')) {
-            extendBtn.classList.add('btn-danger');
-          } else if (statusText.includes('sắp hết')) {
-            extendBtn.classList.add('btn-warning');
-          }
-        } else {
-          extendBtn.style.display = 'none';
-        }
-      }
-
-      // 7. Danh sách người ở
-      if (membersBody) {
-        membersBody.innerHTML = '';
-        const members = Array.isArray(data.members) ? data.members : [];
-
-        if (!members.length) {
-          membersBody.innerHTML =
-            '<tr><td colspan="6" class="muted">Chưa có người ở.</td></tr>';
-        } else {
-          members.forEach(m => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${m.hoTen || ''}</td>
-              <td>${m.dienThoai || ''}</td>
-              <td>${m.cccd || ''}</td>
-              <td>${m.bienSo || ''}</td>
-              <td>${m.ngayTamTru ? formatDateDDMMYYYY(m.ngayTamTru) : ''}</td>
-              <td>${renderStatusHTML(m.trangThaiTamTru, 'tamtru')}</td>
-            `;
-            membersBody.appendChild(tr);
-          });
-        }
-      }
+  document.getElementById("invoiceDetail").innerHTML = `
+    <p>Kỳ: <strong>${inv.namThang}</strong></p>
+    <p>Phải thu: <strong class="text-danger">${formatVND(inv.tongPhaiThu)}</strong></p>
+    ${
+      String(inv.trangThai || "").toLowerCase().includes("đã")
+      ? '<span class="badge-success">Đã thanh toán</span>'
+      : '<button class="btn btn-danger" onclick="openPaymentModal()">Thanh toán</button>'
     }
+  `;
 
-    // Hiển thị popup thanh toán (placeholder)
-    function openPaymentPopupByInvoice(inv){
-      if (!inv) return;
-      const code = inv.maHD || inv.namThang || '';
-      alert(
-        'Bạn hãy chụp màn hình/đính kèm phiếu chuyển khoản và gửi cho chủ nhà.\n' +
-        (code ? ('Mã/kỳ hóa đơn: ' + code) : '')
-      );
-    }
+  // dịch vụ
+  const body = document.getElementById("serviceDetailBody");
+  body.innerHTML = "";
+  let total = 0;
 
-    function openPaymentPopup(index){
-      const inv = CURRENT_INVOICES[index];
-      openPaymentPopupByInvoice(inv);
-    }
+  (inv.services || []).forEach(s => {
+    total += Number(s.thanhTien || 0);
+    body.innerHTML += `
+      <tr>
+        <td>${s.tenDV}</td>
+        <td>${s.soDau || ""}</td>
+        <td>${s.soCuoi || ""}</td>
+        <td>${s.soLuong || ""}</td>
+        <td>${formatVND(s.donGia)}</td>
+        <td>${formatVND(s.thanhTien)}</td>
+      </tr>
+    `;
+  });
 
-    // Chọn 1 hóa đơn trong bảng lịch sử
-    function selectInvoice(index){
-      const historyBody = document.getElementById('paymentHistoryBody');
-      if (!historyBody) return;
+  document.getElementById("serviceTotal").textContent = formatVND(total);
 
-      historyBody.querySelectorAll('tr').forEach(row=>{
-        row.classList.remove('row-active');
-      });
+  // ngân hàng + QR
+  document.getElementById("bankInfo").textContent =
+    inv.bankInfoText || "--";
 
-      const tr = historyBody.querySelector(`tr[data-index="${index}"]`);
-      if (tr) tr.classList.add('row-active');
+  const qr = document.getElementById("qrContainer");
+  qr.innerHTML = inv.qrCode
+    ? `<img src="${inv.qrCode}" style="max-width:160px">`
+    : "--";
+}
 
-      const inv = CURRENT_INVOICES[index];
-      showInvoiceDetail(inv);
-      setActiveTab('pay','detail');
-    }
-
-    function showInvoiceDetail(inv){
-      CURRENT_SELECTED_INVOICE = inv || null;
-
-      if (!inv || !inv.chiTiet) {
-        document.getElementById('invNgayTinh').textContent   = '--';
-        document.getElementById('invTienPhong').textContent  = '--';
-        document.getElementById('invTongDV').textContent     = '--';
-        document.getElementById('invPhatSinh').textContent   = '--';
-        document.getElementById('invGiamTru').textContent    = '--';
-        document.getElementById('invThieuTruoc').textContent = '--';
-        document.getElementById('invPhaiThu').textContent    = '--';
-        document.getElementById('invBankInfo').textContent   = '--';
-
-        const tbody = document.getElementById('invoiceServiceBody');
-        if (tbody){
-          tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>';
-        }
-        const totalCell = document.getElementById('invoiceServiceTotal');
-        if (totalCell) totalCell.textContent = '0 đ';
-
-        const qrContainer = document.getElementById('qrContainer');
-        if (qrContainer){
-          qrContainer.innerHTML = 'Chưa có QR Code.';
-        }
-
-        const detailBtn = document.getElementById('detailStatusBtn');
-        if (detailBtn){
-          detailBtn.style.display = 'none';
-          detailBtn.onclick = null;
-        }
-        return;
-      }
-
-      const c = inv.chiTiet;
-
-      // Ngày tính HĐ: xx ngày (số nguyên)
-      document.getElementById('invNgayTinh').textContent =
-        Number.isFinite(Number(c.ngayTinhHD))
-          ? `${parseInt(c.ngayTinhHD)} ngày`
-          : '--';
-
-      document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
-      document.getElementById('invTongDV').textContent     = formatVND(c.tongDichVu);
-      document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
-      document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
-      document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
-      document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
-
-      // Thông tin chuyển khoản: mỗi mục 1 dòng
-      const bankInfo = c.bankInfo || {};
-      const bankLines = [];
-      if (bankInfo.soTaiKhoan)  bankLines.push('Số tài khoản: ' + bankInfo.soTaiKhoan);
-      if (bankInfo.chuTaiKhoan) bankLines.push('Chủ tài khoản: ' + bankInfo.chuTaiKhoan);
-      if (bankInfo.nganHang)    bankLines.push('Ngân hàng: ' + bankInfo.nganHang);
-      if (bankInfo.chiNhanh)    bankLines.push('Chi nhánh: ' + bankInfo.chiNhanh);
-
-      const bankEl = document.getElementById('invBankInfo');
-      if (bankEl) bankEl.innerHTML = bankLines.length ? bankLines.join('<br>') : '--';
-
-      // QR
-      const qrContainer = document.getElementById('qrContainer');
-      if (qrContainer) {
-        qrContainer.innerHTML = '';
-        if (c.qrCode){
-          const img = document.createElement('img');
-          img.src = c.qrCode;
-          img.alt = 'QR thanh toán';
-          img.style.maxWidth = '160px';
-          img.style.marginTop = '4px';
-          qrContainer.appendChild(img);
-        } else {
-          qrContainer.textContent = 'Chưa có QR Code.';
-        }
-      }
-
-      // Bảng dịch vụ chi tiết
-      const tbody = document.getElementById('invoiceServiceBody');
-      const totalCell = document.getElementById('invoiceServiceTotal');
-      if (!tbody || !totalCell) return;
-
-      tbody.innerHTML = '';
-
-      const services = Array.isArray(c.services) ? c.services : [];
-      if (!services.length){
-        tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>';
-        totalCell.textContent = formatVND(c.tongDichVu || 0);
-      } else {
-        let total = 0;
-        services.forEach(s => {
-          const thanhTien = Number(s.thanhTien || s.thanhTienDV || 0);
-          total += thanhTien;
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${s.tenDV   || s.tenDichVu || ''}</td>
-            <td>${s.soDau   ?? s.chiSoDau  ?? ''}</td>
-            <td>${s.soCuoi  ?? s.chiSoCuoi ?? ''}</td>
-            <td>${s.soLuong ?? ''}</td>
-            <td>${formatVND(s.donGia)}</td>
-            <td>${formatVND(thanhTien)}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        totalCell.textContent = formatVND(total || c.tongDichVu || 0);
-      }
-
-      // Nút trạng thái trong tab chi tiết
-      const detailBtn = document.getElementById('detailStatusBtn');
-      if (detailBtn){
-        detailBtn.style.display = 'none';
-        detailBtn.onclick = null;
-        detailBtn.disabled = false;
-        detailBtn.classList.remove('btn-danger','btn-success');
-
-        const mode = getInvoiceStatusMode(inv);
-        if (mode === 'need-pay'){
-          detailBtn.style.display = 'inline-flex';
-          detailBtn.textContent = 'Thanh toán';
-          detailBtn.classList.add('btn-danger');
-          detailBtn.onclick = function(){ openPaymentPopupByInvoice(inv); };
-        } else if (mode === 'paid'){
-          detailBtn.style.display = 'inline-flex';
-          detailBtn.textContent = 'Đã thanh toán';
-          detailBtn.classList.add('btn-success');
-          detailBtn.disabled = true;
-        }
-      }
-    }
-
-    function renderPaymentCard(data){
-      const historyBody = document.getElementById('paymentHistoryBody');
-      if (!historyBody) return;
-      historyBody.innerHTML = '';
-
-      const invoices = (data && Array.isArray(data.invoices)) ? data.invoices : [];
-      CURRENT_INVOICES = invoices;
-
-      if (!data || !data.contract || !String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực')) {
-        historyBody.innerHTML = `
-          <tr>
-            <td colspan="4" class="muted">
-              Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.
-            </td>
-          </tr>`;
-        showInvoiceDetail(null);
-        return;
-      }
-
-      if (!invoices.length){
-        historyBody.innerHTML = `
-          <tr>
-            <td colspan="4" class="muted">
-              Chưa có hóa đơn nào cho phòng này.
-            </td>
-          </tr>`;
-        showInvoiceDetail(null);
-        return;
-      }
-
-      // Vẽ danh sách lịch sử
-      invoices.forEach((inv, idx)=>{
-        const mode = getInvoiceStatusMode(inv);
-        let statusHtml = '';
-
-        if (mode === 'need-pay'){
-          statusHtml =
-            `<button type="button" class="btn btn-danger btn-sm" onclick="openPaymentPopup(${idx}); event.stopPropagation();">Thanh toán</button>`;
-        } else if (mode === 'paid'){
-          statusHtml =
-            `<span class="status-pill status-pill-success">Đã thanh toán</span>`;
-        } else {
-          statusHtml =
-            `<span class="status-text">${inv.trangThai || '--'}</span>`;
-        }
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${inv.namThang || ''}</td>
-          <td>${formatVND(inv.tongPhaiThu)}</td>
-          <td>${statusHtml}</td>
-          <td>
-            <button type="button" class="btn btn-outline btn-sm" onclick="selectInvoice(${idx}); event.stopPropagation();">
-              Chi tiết
-            </button>
-          </td>
-        `;
-        tr.dataset.index = idx;
-
-        tr.addEventListener('click', (e)=>{
-          // Nếu click vào nút bên trong thì đã xử lý ở onclick riêng
-          if (e.target && e.target.closest('button')) return;
-          selectInvoice(idx);
-        });
-
-        historyBody.appendChild(tr);
-      });
-
-      // Mặc định chọn hóa đơn mới nhất
-      const firstRow = historyBody.querySelector('tr');
-      if (firstRow) firstRow.classList.add('row-active');
-      showInvoiceDetail(invoices[0]);
-    }
-
-    function renderMaintenance(data){
-      const tbody = document.getElementById('maintenanceBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      const list = (data && Array.isArray(data.maintenance)) ? data.maintenance : [];
-      if (!list.length){
-        tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có lịch bảo trì cho phòng.</td></tr>';
-        return;
-      }
-      list.forEach(m=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${m.tenTaiSan || ''}</td>
-          <td>${m.loaiCongViec || ''}</td>
-          <td>${m.ngayDuKien ? formatDateDDMMYYYY(m.ngayDuKien) : ''}</td>
-          <td>${m.ngayThucHien ? formatDateDDMMYYYY(m.ngayThucHien) : ''}</td>
-          <td>${m.trangThai || ''}</td>
-          <td>${m.ghiChu || ''}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderMessages(data){
-      const tbody = document.getElementById('messageBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      const msgs = (data && Array.isArray(data.messages)) ? data.messages : [];
-      if (!msgs.length){
-        tbody.innerHTML = '<tr><td colspan="4" class="muted">Chưa có báo hỏng / tạm trú nào.</td></tr>';
-        return;
-      }
-      msgs.forEach(m=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${m.type || m.loai || ''}</td>
-          <td>${m.createdAt || m.ngay || ''}</td>
-          <td>${m.content || m.noiDung || ''}</td>
-          <td>${renderStatusHTML(m.status || m.trangThai || '', 'message')}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Gửi yêu cầu báo hỏng / tạm trú (placeholder)
-    function openMaintenanceForm(){
-      alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.');
-    }
-    function openTempStayForm(){
-      alert('Form đăng ký tạm trú: dùng tenantTempStay API.');
-    }
-
-    function downloadInvoicePdf(){
-      window.print();
-    }
-
-    async function fetchTenantPortalData(roomCode, identity){
-      const note = document.getElementById('portalStatusNote');
-      if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
-
-      // Gọi skeleton trước khi fetch
-      renderInfoCard(null);
-
-      try{
-        const body = new URLSearchParams({
-          action:   'tenantPortal',
-          roomCode: roomCode,
-          identity: identity || ''
-        });
-
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-          body
-        });
-        const data = await res.json();
-
-        if (!data || !data.success){
-          if (note) note.textContent = (data && data.message) || 'Không lấy được dữ liệu portal.';
-          return;
-        }
-
-        if (note) note.textContent = 'Dữ liệu đã được tải từ hệ thống (Google Sheet).';
-
-        renderInfoCard(data);
-        renderPaymentCard(data);
-        renderMaintenance(data);
-        renderMessages(data);
-
-      } catch(err){
-        console.error('fetchTenantPortalData error:',err);
-        const noteEl = document.getElementById('portalStatusNote');
-        if (noteEl) noteEl.textContent = 'Lỗi kết nối tới Apps Script, vui lòng thử lại.';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', ()=>{
-      // Tab handler
-      document.querySelectorAll('.tab-btn.tab-info').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          setActiveTab('info', btn.dataset.tab);
-        });
-      });
-      document.querySelectorAll('.tab-btn.tab-pay').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          setActiveTab('pay', btn.dataset.tab);
-        });
-      });
-
-      // Lấy tenant từ localStorage
-      let tenant = null;
-      try {
-        const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-        if (saved) tenant = JSON.parse(saved);
-      } catch(e){}
-
-      if (!tenant || !tenant.maPhong){
-        window.location.href = 'tenant.html';
-        return;
-      }
-      fetchTenantPortalData(tenant.maPhong, tenant.identity || '');
-    });
-  </script>
+function openPaymentModal() {
+  document.getElementById("paymentModal").classList.remove("hidden");
+}
+function closePaymentModal() {
+  document.getElementById("paymentModal").classList.add("hidden");
+}
+function submitPayment() {
+  alert("Đã gửi thông báo thanh toán cho chủ nhà!");
+  closePaymentModal();
+}
+</script>
 </body>
 </html>
