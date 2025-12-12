@@ -1717,6 +1717,7 @@ tr .skeleton {
   display: inline-block;
   width: 100%;
 }
+
 /************************************************************
  * TÊN CHỦ PHÒNG – nổi bật hơn
  ************************************************************/
@@ -1785,8 +1786,8 @@ tr .skeleton {
   font-weight: 700;
   font-size: 1.05rem;
   color: #f97373;   /* đỏ tươi kiểu warning */
-  /* hoặc đơn giản: color: #ff4d4f;  hay color: red; */
 }
+
 /* Cảnh báo hợp đồng sắp hết hạn */
 .contract-alert-yellow {
   color: #facc15 !important; /* vàng */
@@ -1808,61 +1809,197 @@ tr .skeleton {
   border-color: #2563eb;
 }
 
+/************************************************************
+ * NEW: TAB HỢP ĐỒNG / THANH TOÁN – tenant portal
+ ************************************************************/
+.hidden {
+  display: none !important;
+}
 
-/* =========================
-   PAYMENT UI UPDATES
-   ========================= */
-.btn-sm{ padding:6px 10px; font-size:13px; border-radius:12px; }
-.btn-danger{ background:#dc2626; border-color:#dc2626; color:#fff; }
-.btn-danger:hover{ filter:brightness(0.95); }
-.btn-warning{ background:#f59e0b; border-color:#f59e0b; color:#111827; }
-.btn-warning:hover{ filter:brightness(0.97); }
-.btn-success{ background:#16a34a; border-color:#16a34a; color:#fff; }
-.btn-success:hover{ filter:brightness(0.97); }
-.btn-accent{ background:var(--accent); border-color:var(--accent); color:#052e16; }
-.btn-accent:hover{ filter:brightness(0.97); }
+body.tenant-body .tab-row {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0 8px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+}
 
-.pill{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:13px; font-weight:600; }
-.pill-neutral{ background:#e5e7eb; color:#111827; }
-.pill-danger{ background:#fee2e2; color:#991b1b; }
-.pill-success{ background:#dcfce7; color:#166534; }
-.pill-warning{ background:#fef3c7; color:#92400e; }
+body.tenant-body .tab-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 10px 6px;
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.9);
+  cursor: pointer;
+  border-radius: 999px 999px 0 0;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
 
-.row-active{ outline:2px solid rgba(37, 99, 235, 0.25); border-radius:12px; }
-.table-wrap{ overflow:auto; }
+body.tenant-body .tab-btn:hover {
+  color: #e5e7eb;
+  transform: translateY(-1px);
+}
 
-.inv-label{ font-weight:500; }
-.inv-total{ color:#dc2626; font-weight:800; }
-.dv-total-row td{ font-weight:800; }
-.dv-total{ color:#111827; }
-.dv-total-label{ text-align:right; }
+body.tenant-body .tab-btn.active {
+  color: #e5e7eb;
+  background: rgba(15, 23, 42, 0.98);
+  border-bottom: 2px solid #38bdf8;
+}
 
-.detail-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
-.detail-actions{ display:flex; align-items:center; gap:8px; }
+/************************************************************
+ * NEW: BẢNG CHI TIẾT DỊCH VỤ HÓA ĐƠN
+ ************************************************************/
+body.tenant-body #invoiceDetailTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
 
-.pay-bottom{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); }
+body.tenant-body #invoiceDetailTable th,
+body.tenant-body #invoiceDetailTable td {
+  padding: 6px 6px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+}
 
-/* =========================
-   MODAL (Payment)
-   ========================= */
-.modal{ position:fixed; inset:0; z-index:50; }
-.modal.hidden{ display:none; }
-.modal-backdrop{ position:absolute; inset:0; background:rgba(15,23,42,0.55); }
-.modal-card{ position:relative; width:min(560px, calc(100% - 28px)); margin:60px auto; background:var(--card-bg); border:1px solid var(--border); border-radius:20px; box-shadow: var(--shadow-md); overflow:hidden; }
-.modal-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--border); }
-.modal-title{ font-size:16px; font-weight:800; }
-.modal-x{ width:34px; height:34px; border-radius:12px; border:1px solid var(--border); background:#fff; cursor:pointer; }
-.modal-body{ padding:14px 16px; display:grid; gap:12px; }
-.modal-actions{ padding:14px 16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+body.tenant-body #invoiceDetailTable th {
+  text-align: left;
+  font-weight: 600;
+  color: rgba(148, 163, 184, 0.98);
+  font-size: 0.78rem;
+}
 
-.field{ display:block; }
-.field-label{ font-weight:700; margin-bottom:6px; }
-.field-help{ font-size:12px; color:var(--muted); margin-top:6px; }
-.field input[type="file"], .field textarea{ width:100%; border:1px solid var(--border); border-radius:14px; padding:10px; }
-.field textarea{ resize:vertical; }
+body.tenant-body #invoiceDetailTable td {
+  color: rgba(229, 231, 235, 0.96);
+}
 
-.payment-preview{ border:1px dashed var(--border); border-radius:16px; padding:10px; }
-.payment-proof-img{ display:block; max-width:100%; height:auto; border-radius:14px; }
+body.tenant-body #invoiceDetailTable tfoot td {
+  font-weight: 600;
+  border-top: 1px dashed rgba(148, 163, 184, 0.7);
+}
 
+/************************************************************
+ * NEW: NÚT TRẠNG THÁI THANH TOÁN
+ ************************************************************/
+.pay-status-btn {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
 
-.owner-name{ font-size:18px; font-weight:900; color:#2563eb; }
+.pay-status-btn:hover {
+  transform: translateY(-1px);
+}
+
+.pay-status-unpaid {
+  background: #b91c1c;
+  color: #fee2e2;
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.6);
+}
+
+.pay-status-unpaid:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 10px 24px rgba(185, 28, 28, 0.8);
+}
+
+.pay-status-paid {
+  background: #16a34a;
+  color: #ecfdf5;
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.6);
+  cursor: default;
+}
+
+/* Nút chi tiết hóa đơn nhỏ trong bảng lịch sử */
+.invoice-detail-btn {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.96);
+  color: rgba(229, 231, 235, 0.96);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.invoice-detail-btn:hover {
+  background: rgba(30, 64, 175, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.8);
+}
+
+/************************************************************
+ * NEW: MODAL GỬI PHIẾU THANH TOÁN
+ ************************************************************/
+.payment-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.payment-modal-backdrop.show {
+  display: flex;
+}
+
+.payment-modal {
+  width: 100%;
+  max-width: 420px;
+  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 1));
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.85);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.95);
+  padding: 12px;
+  font-size: 0.85rem;
+}
+
+.payment-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.payment-modal-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.payment-modal-close {
+  border: none;
+  background: transparent;
+  color: rgba(148, 163, 184, 0.95);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.payment-modal-body {
+  font-size: 0.8rem;
+  color: rgba(209, 213, 219, 0.96);
+  margin-bottom: 8px;
+}
+
+.payment-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* Input file trong modal */
+.payment-modal input[type="file"] {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: rgba(229, 231, 235, 0.96);
+}
