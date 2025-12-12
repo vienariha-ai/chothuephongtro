@@ -2003,3 +2003,200 @@ body.tenant-body #invoiceDetailTable tfoot td {
   font-size: 0.8rem;
   color: rgba(229, 231, 235, 0.96);
 }
+/* =====================
+ * PAYMENT MODAL + INVOICE DETAIL
+ * ===================== */
+/* Small button variant (used inside table cells) */
+.btn-sm{
+  padding: 6px 10px;
+  font-size: .9rem;
+  line-height: 1;
+  border-radius: 12px;
+}
+
+/* Status pills for payment table */
+.status-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .9rem;
+  line-height: 1;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+.status-pill--paid{
+  border-color: rgba(34,197,94,.35);
+  background: rgba(34,197,94,.12);
+  color: #166534;
+}
+.status-pill--due{
+  border-color: rgba(239,68,68,.35);
+  background: rgba(239,68,68,.10);
+  color: #991b1b;
+}
+
+/* "Chi tiết" button in payment list */
+.pay-detail-btn{
+  white-space: nowrap;
+}
+
+/* Make invoice labels NOT bold (user request) */
+#invoiceSummary .inv-label{
+  font-weight: 500;
+  color: var(--muted);
+}
+#invoiceSummary .inv-value{
+  font-weight: 650;
+}
+
+/* Phải thu highlight (red, stronger) */
+#invoiceSummary .inv-total-row .inv-label{
+  font-weight: 700;
+  color: #991b1b;
+}
+#invoiceSummary .inv-total{
+  color:#ef4444;
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+
+/* Service detail table inside invoice detail */
+.svc-table{
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.svc-table th,
+.svc-table td{
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  font-size: .95rem;
+}
+.svc-table th{
+  text-align: left;
+  color: var(--muted);
+  font-weight: 700;
+  background: rgba(15, 23, 42, 0.02);
+}
+.svc-table td.num,
+.svc-table th.num{
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.svc-table tfoot td{
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+  font-weight: 900;
+  padding-top: 12px;
+}
+.svc-table tfoot td.total{
+  color: #ef4444;
+}
+
+/* Bank info block sits BELOW the two invoice tabs */
+.bank-block{
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(15, 23, 42, 0.02);
+}
+.bank-block .bank-title{
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.bank-block .bank-line{
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+/* Generic modal (used for "Thanh toán" popup with upload/notify) */
+.yt-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: none;
+}
+.yt-modal.show{ display:block; }
+
+.yt-modal-backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+}
+.yt-modal-dialog{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 24px));
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.yt-modal-header{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.yt-modal-title{
+  font-weight: 900;
+  font-size: 1.05rem;
+}
+.yt-modal-close{
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.yt-modal-body{
+  padding: 14px 16px;
+}
+.yt-modal-footer{
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  display:flex;
+  gap:10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.yt-modal-body .input,
+.yt-modal-body textarea{
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  outline: none;
+}
+.yt-modal-body textarea{
+  min-height: 110px;
+  resize: vertical;
+}
+.yt-modal-note{
+  color: var(--muted);
+  font-size: .95rem;
+  margin-top: 8px;
+}
+.yt-modal-preview{
+  margin-top: 10px;
+  display:flex;
+  gap: 10px;
+  align-items:flex-start;
+}
+.yt-modal-preview img{
+  max-width: 180px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
