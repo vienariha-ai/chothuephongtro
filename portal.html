@@ -779,7 +779,14 @@
 
       tbody.innerHTML = '';
 
-      const services = Array.isArray(c.services) ? c.services : [];
+      const servicesRaw = Array.isArray(inv.services) ? inv.services : (Array.isArray(c.services) ? c.services : []);
+      const services = servicesRaw.filter(s => {
+        const thanhTien = Number(s.thanhTien || 0);
+        const soLuong = Number(s.soLuong || 0);
+        const ten = (s.tenDichVu || s.tenDV || s.ten || '').toString().trim();
+        const ma = (s.maDV || s.idDV || '').toString().trim();
+        return (thanhTien > 0) || (soLuong > 0);
+      });
       if (!services.length){
         tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>';
         totalCell.textContent = formatVND(c.tongDichVu || 0);
