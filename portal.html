@@ -296,7 +296,7 @@
 
   <script>
     const TENANT_STORAGE_KEY = "ytHomeTenant";
-    const API_URL = "https://script.google.com/macros/s/AKfycbx9Wtmq7O-Txzw__vhsJx7LO9yyHhtPHu_eXb1p4njU80h9MZtfbYbSZ0rxC685AaFKoQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxfsQUWq2cMlGRm27rvTokyeLITuisCNTT3sm5tKAlKv-vpLfztYwxxURcpBdPXcF_dGQ/exec";
     let CURRENT_INVOICES = [];
     let CURRENT_SELECTED_INVOICE = null;
 
@@ -1291,7 +1291,7 @@
           // Nếu backend có cập nhật trạng thái, reload lại data để refresh
           const tenant = JSON.parse(localStorage.getItem(TENANT_STORAGE_KEY) || '{}');
           if (tenant && tenant.maPhong){
-            fetchTenantPortalData(tenant.maPhong, tenant.identity || '');
+            fetchData(tenant.maPhong, tenant.identity || '');
           }
         } else {
           // fallback nếu backend chưa có endpoint
@@ -1309,7 +1309,7 @@
       window.print();
     }
 
-    async function fetchTenantPortalData(roomCode, identity){
+    async function fetchData(roomCode, identity){
       const note = document.getElementById('portalStatusNote');
       if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
 
@@ -1378,5 +1378,6 @@
   </script>
 </body>
 </html>
+
 
 
