@@ -1070,8 +1070,8 @@
       // bank + qr dựa theo dòng được chọn
       updateBankAndQr_(inv);
     }
-
-         let OWNER_BANK_CACHE = null;
+      // bank cn
+      let OWNER_BANK_CACHE = null;
       
       async function fetchOwnerBankInfo_(){
         if (OWNER_BANK_CACHE) return OWNER_BANK_CACHE;
@@ -1095,13 +1095,15 @@
         if (bankInfoEl) bankInfoEl.textContent = 'Đang tải...';
         fetchOwnerBankInfo_()
           .then(bankInfo=>{
-            const bankText = [
+           const bankText = [
               bankInfo?.soTaiKhoan ? ('Số tài khoản: ' + bankInfo.soTaiKhoan) : '',
               bankInfo?.chuTaiKhoan ? ('Chủ tài khoản: ' + bankInfo.chuTaiKhoan) : '',
               bankInfo?.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
               bankInfo?.chiNhanh ? ('CN ngân hàng: ' + bankInfo.chiNhanh) : ''
-            ].filter(Boolean).join(' • ');
-            if (bankInfoEl) bankInfoEl.textContent = bankText || '--';
+            ].filter(Boolean).join('<br>');
+            
+            if (bankInfoEl) bankInfoEl.innerHTML = bankText || '--';
+
           })
           .catch(err=>{
             console.error(err);
@@ -1376,3 +1378,4 @@
   </script>
 </body>
 </html>
+
