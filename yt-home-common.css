@@ -2126,4 +2126,33 @@ body.tenant-body #invoiceDetailTable tfoot td {
   object-fit: contain;
   border-radius: 12px;
 }
+/* ==== PATCH ADMIN FORM ==== */
+.form-control{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  outline: none;
+}
+
+.form-control:focus{
+  border-color: rgba(99,179,237,.55);
+  box-shadow: 0 0 0 4px rgba(59,130,246,.18);
+}
+
+.btn{
+  border-radius: 12px;
+}
+
+.card{
+  border-radius: 18px;
+}
+/* ==== ADMIN DARK PATCH ==== */
+.tenant-body{
+  background: radial-gradient(1200px 600px at 10% -10%, #1b2a4a, #0b1220 60%);
+  color: #fff;
+}
+
 
