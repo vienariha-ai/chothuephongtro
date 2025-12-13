@@ -36,6 +36,7 @@
         <section class="card">
           <div class="card-title">Thông tin phòng</div>
           <div class="badge" id="roomBadge">Phòng: --</div>
+          <div id="contractDaysLeftTop" class="contract-days-top hidden">--</div>
           <div id="contractDaysLeft" class="contract-days-left hidden">Còn -- ngày</div>
 
           <div class="tab-row">
@@ -167,7 +168,7 @@
 
             <div class="tenant-footer-actions">
               <span class="muted">Chỉ hiển thị nếu Hợp đồng còn hiệu lực.</span>
-              <button class="btn" type="button" onclick="downloadInvoicePdf()">Tải / In hóa đơn</button>
+              
             </div>
           </div>
 
@@ -258,8 +259,7 @@
           </table>
           <div class="tenant-footer-actions">
             <span class="muted">Dữ liệu từ sheet "Lịch bảo trì".</span>
-            <button type="button" class="btn" onclick="openMaintenanceForm()">Báo hỏng</button>
-          </div>
+            </div>
         </section>
 
         <!-- Tin nhắn / yêu cầu -->
@@ -268,14 +268,13 @@
           <table class="table-like">
             <thead>
               <tr>
-                <th>Loại</th>
                 <th>Ngày</th>
                 <th>Nội dung</th>
                 <th>Trạng thái</th>
               </tr>
             </thead>
             <tbody id="messageBody">
-              <tr><td colspan="4" class="muted">Chưa có báo hỏng / tạm trú nào.</td></tr>
+              <tr><td colspan="3" class="muted">Chưa có tin nhắn nào.</td></tr>
             </tbody>
           </table>
         </section>
@@ -319,7 +318,7 @@
 
 <script>
   const TENANT_STORAGE_KEY = "ytHomeTenant";
-  const API_URL = "https://script.google.com/macros/s/AKfycbyyEkf8UqdJpAJK_XnhIjDZgwnf_Fs__Tkkiet9suNz9k77x8HQgMiEL11d0WXKiVL3Aw/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbzuGL5H2uDxtpXDD8KwL6FvVqjrVS7di6z1o2C77s-m5BdniUF4nHhLtSYg6bFYKGw-dg/exec";
   let CURRENT_INVOICES = [];
   let CURRENT_SELECTED_INVOICE = null;
 
@@ -553,10 +552,26 @@
 
           if (diffDays >= 0) {
             let cls = '';
-            if (diffDays < 30) cls = 'days-left-red';
-            else if (diffDays < 60) cls = 'days-left-yellow';
+            if (__diffDays < 30) cls = 'days-left-red';
+            else if (__diffDays < 60) cls = 'days-left-yellow';
             if (cls) daysLeftText = ` <span class="${cls}">(còn ${diffDays} ngày)</span>`;
           }
+        }
+      }
+
+      // Hiển thị số ngày còn lại nổi bật phía trên (dưới badge Phòng)
+      const topDaysEl = $('contractDaysLeftTop');
+      if (topDaysEl) {
+        topDaysEl.classList.remove('hidden','days-left-red','days-left-yellow');
+        // chỉ hiện khi có ngày kết thúc và còn hạn
+        if (typeof __diffDays === 'number' && !isNaN(diffDays) && __diffDays >= 0) {
+          topDaysEl.textContent = `Còn ${__diffDays} ngày`;
+          // màu nổi bật
+          if (__diffDays < 30) topDaysEl.classList.add('days-left-red');
+          else if (__diffDays < 60) topDaysEl.classList.add('days-left-yellow');
+        } else {
+          topDaysEl.classList.add('hidden');
+          topDaysEl.textContent = '';
         }
       }
 
@@ -670,6 +685,8 @@
   // =========================
   let __selectedInvoiceIndex = 0;
   let __portalDataCache = null;
+  let __maintenanceCache = [];
+  let __selectedMaintenanceIndex = null;
 
   function isInvoicePaid_(inv){
     const st = String(inv && inv.trangThai || '').toLowerCase();
@@ -924,11 +941,57 @@
     const tbody = document.getElementById('messageBody');
     if (!tbody) return;
     tbody.innerHTML = '';
+
     const msgs = (data && Array.isArray(data.messages)) ? data.messages : [];
     if (!msgs.length){
-      tbody.innerHTML = '<tr><td colspan="4" class="muted">Chưa có báo hỏng / tạm trú nào.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" class="muted">Chưa có tin nhắn nào.</td></tr>';
       return;
     }
+
+    msgs.forEach(m=>{
+      const tr = document.createElement('tr');
+
+      const rawDate = m.ngay || m.createdAt || m.date || '';
+      const dateText = rawDate ? formatDateDDMMYY_(rawDate) : '';
+
+      const content = String(m.noiDung || m.content || '').trim();
+      const status  = String(m.tinhTrang || m.status || '').trim();
+
+      tr.innerHTML = `
+        <td>${dateText}</td>
+        <td class="td-ellipsis">${escapeHtml_(content)}</td>
+        <td>${renderMessageStatusPill_(status)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function formatDateDDMMYY_(value){
+    const d = toDateObject(value);
+    if (!d) return String(value || '');
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yy = String(d.getFullYear()).slice(-2);
+    return `${dd}/${mm}/${yy}`;
+  }
+
+  function renderMessageStatusPill_(status){
+    const s = String(status || '').toLowerCase();
+    if (!s) return '<span class="pill pill-neutral">--</span>';
+    if (s.includes('chưa')) return '<span class="pill pill-danger">Chưa đọc</span>';
+    if (s.includes('đã trả') || s.includes('da tra')) return '<span class="pill pill-success">Đã trả lời</span>';
+    if (s.includes('đã đọc') || s.includes('da doc')) return '<span class="pill pill-warning">Đã đọc</span>';
+    return `<span class="pill pill-neutral">${escapeHtml_(status)}</span>`;
+  }
+
+  function escapeHtml_(str){
+    return String(str || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
     msgs.forEach(m=>{
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -947,6 +1010,139 @@
     }
 
     function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
+
+  // =========================
+  // XÁC NHẬN LỊCH BẢO TRÌ
+  // =========================
+  function openMaintenanceConfirmModal(index){
+    __selectedMaintenanceIndex = Number(index);
+    const m = (__maintenanceCache && __maintenanceCache[__selectedMaintenanceIndex]) ? __maintenanceCache[__selectedMaintenanceIndex] : null;
+
+    const modal = document.getElementById('maintenanceConfirmModal');
+    if (!modal) return;
+
+    const meta = document.getElementById('maintenanceConfirmMeta');
+    const note = document.getElementById('maintenanceConfirmNote');
+    if (note) note.value = '';
+
+    const parts = [];
+    if (m?.tenTaiSan) parts.push('Tài sản: ' + m.tenTaiSan);
+    if (m?.loaiCongViec) parts.push('Công việc: ' + m.loaiCongViec);
+    if (m?.ngayDuKien) parts.push('Ngày dự kiến: ' + formatDateDDMMYYYY(m.ngayDuKien));
+    if (meta) meta.textContent = parts.length ? parts.join(' • ') : '--';
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeMaintenanceConfirmModal(){
+    const modal = document.getElementById('maintenanceConfirmModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async function submitMaintenanceConfirm(){
+    const m = (__maintenanceCache && __maintenanceCache[__selectedMaintenanceIndex]) ? __maintenanceCache[__selectedMaintenanceIndex] : null;
+
+    try{
+      const noteEl = document.getElementById('maintenanceConfirmNote');
+      const note = noteEl ? (noteEl.value || '') : '';
+
+      const body = new URLSearchParams({
+        action: 'tenantMaintenanceConfirm',
+        roomCode: (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '',
+        assetName: m?.tenTaiSan || '',
+        workType: m?.loaiCongViec || '',
+        ngayDuKien: m?.ngayDuKien ? String(m.ngayDuKien) : '',
+        note: note
+      });
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body
+      });
+
+      let out = null;
+      try { out = await res.json(); } catch(e){}
+
+      if (out && out.success){
+        alert('Đã gửi xác nhận cho chủ nhà.');
+        closeMaintenanceConfirmModal();
+      } else {
+        alert((out && out.message) || 'Đã ghi nhận xác nhận.');
+        closeMaintenanceConfirmModal();
+      }
+    } catch(err){
+      console.error(err);
+      alert('Không gửi được xác nhận (lỗi kết nối). Vui lòng thử lại.');
+    }
+  }
+
+
+  // =========================
+  // GỬI TIN NHẮN / YÊU CẦU
+  // =========================
+  function openMessageModal(){
+    const modal = document.getElementById('messageModal');
+    if (!modal) return;
+
+    const meta = document.getElementById('messageModalMeta');
+    const content = document.getElementById('messageContent');
+    if (content) content.value = '';
+
+    const room = (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '';
+    if (meta) meta.textContent = room ? ('Phòng: ' + room) : '--';
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeMessageModal(){
+    const modal = document.getElementById('messageModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async function submitMessage(){
+    try{
+      const contentEl = document.getElementById('messageContent');
+      const noiDung = contentEl ? String(contentEl.value || '').trim() : '';
+      if (!noiDung){
+        alert('Bạn chưa nhập nội dung.');
+        return;
+      }
+
+      const body = new URLSearchParams({
+        action: 'tenantSendMessage',
+        roomCode: (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '',
+        hoTen: (__portalDataCache && __portalDataCache.chuPhong && __portalDataCache.chuPhong.hoTen) ? __portalDataCache.chuPhong.hoTen : '',
+        noiDung: noiDung
+      });
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body
+      });
+
+      let out = null;
+      try { out = await res.json(); } catch(e){}
+
+      if (out && out.success){
+        alert('Đã gửi yêu cầu cho chủ nhà.');
+        closeMessageModal();
+        // reload để thấy tin nhắn mới
+        const tenant = JSON.parse(localStorage.getItem(TENANT_STORAGE_KEY) || '{}');
+        if (tenant && tenant.maPhong){
+          fetchData(tenant.maPhong, tenant.identity || '');
+        }
+      } else {
+        alert((out && out.message) || 'Đã ghi nhận. Chủ nhà sẽ xem và phản hồi.');
+        closeMessageModal();
+      }
+    } catch(err){
+      console.error(err);
+      alert('Không gửi được tin nhắn (lỗi kết nối). Vui lòng thử lại.');
+    }
+  }
+
 
   // =========================
   // POPUP THANH TOÁN (giữ nguyên)
