@@ -36,11 +36,12 @@
         <section class="card">
           <div class="card-title">Thông tin phòng</div>
           <div class="badge" id="roomBadge">Phòng: --</div>
+          <div id="contractDaysLeft" class="contract-days-left hidden">Còn -- ngày</div>
 
           <div class="tab-row">
             <button class="tab-btn tab-info active" data-tab="owner">Chủ phòng</button>
             <button class="tab-btn tab-info" data-tab="contract">Tóm tắt hợp đồng</button>
-            <button class="tab-btn tab-info" data-tab="members">Người & xe</button>
+            <button class="tab-btn tab-info" data-tab="assets">Danh sách thiết bị</button>
           </div>
 
           <!-- TAB CHỦ PHÒNG -->
@@ -64,6 +65,28 @@
             <div class="small-note">
               Thông tin được lấy từ sheet <strong>Khách thuê</strong> (Loại = "Chủ phòng", Trạng thái = "Đang ở").
             </div>
+          
+            <div class="section-title" style="margin-top:12px;">Danh sách người &amp; xe</div>
+            <table class="table-like">
+              <thead>
+                <tr>
+                  <th>Họ tên</th>
+                  <th>Điện thoại</th>
+                  <th>CCCD</th>
+                  <th>Biển số</th>
+                  <th>Tạm trú</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="membersTableBody">
+                <tr><td colspan="6" class="muted">Chưa có dữ liệu.</td></tr>
+              </tbody>
+            </table>
+            <div class="tenant-footer-actions">
+              <span class="muted">Đăng ký tạm trú cho người ở.</span>
+              <button class="btn" type="button" onclick="openTempStayForm()">Đăng ký tạm trú</button>
+            </div>
+
           </div>
 
           <!-- TAB HỢP ĐỒNG -->
@@ -87,30 +110,30 @@
               Hiển thị từ sheet <strong>Hợp đồng</strong>. Nút "Ký tiếp hợp đồng" chỉ hiện khi còn &lt;= 1 tháng trước ngày kết thúc.
             </div>
           </div>
+        
 
-          <!-- TAB NGƯỜI & XE -->
-          <div class="tab-pane tab-pane-info hidden" id="tab-members">
-            <table class="table-like">
+<!-- TAB THIẾT BỊ / TÀI SẢN -->
+          <div class="tab-pane tab-pane-info hidden" id="tab-assets">
+            <table class="table-like table-fixed">
               <thead>
                 <tr>
-                  <th>Họ tên</th>
-                  <th>Điện thoại</th>
-                  <th>CCCD</th>
-                  <th>Biển số</th>
-                  <th>Tạm trú</th>
-                  <th>Trạng thái</th>
+                  <th>Tên thiết bị</th>
+                  <th>Tình trạng</th>
+                  <th>Bảo hành</th>
+                  <th>Bảo trì/Vệ sinh gần nhất</th>
+                  <th>Báo hỏng</th>
                 </tr>
               </thead>
-              <tbody id="membersTableBody">
-                <tr><td colspan="6" class="muted">Chưa có dữ liệu.</td></tr>
+              <tbody id="assetsTableBody">
+                <tr><td colspan="5" class="muted">Chưa có dữ liệu thiết bị.</td></tr>
               </tbody>
             </table>
-            <div class="tenant-footer-actions">
-              <span></span>
-              <button class="btn" type="button" onclick="openTempStayForm()">Đăng ký tạm trú</button>
+            <div class="small-note">
+              Dữ liệu lấy từ sheet <strong>Tài sản</strong> theo <strong>Mã phòng</strong>. Nút "Báo hỏng" sẽ tạo yêu cầu gửi cho chủ nhà.
             </div>
           </div>
-        </section>
+
+</section>
 
         
         <!-- CỘT PHẢI: THANH TOÁN -->
@@ -397,6 +420,34 @@
     if (txt.includes('thiếu') || txt.includes('con thieu')) return 'need-pay';
     if (txt.includes('thu đủ') || txt.includes('thu du') || txt.includes('đã thanh toán') || txt.includes('da thanh toan')) return 'paid';
     return 'unknown';
+
+      // 8. Danh sách thiết bị / tài sản trong phòng
+      const assetsBody = document.getElementById('assetsTableBody');
+      if (assetsBody){
+        assetsBody.innerHTML = '';
+        const assets = Array.isArray(data.assets) ? data.assets : [];
+        if (!assets.length){
+          assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có dữ liệu thiết bị.</td></tr>';
+        } else {
+          assets.forEach(a=>{
+            const tr = document.createElement('tr');
+            const ten = a.tenThietBi || a.tenTaiSan || a.ten || '';
+            const tinhTrang = a.tinhTrang || a.tinh_trang || '';
+            const baoHanh = a.baoHanh || a.thoiGianBaoHanh || a.warranty || '';
+            const baoTri = a.ngayBaoTriGanNhat || a.ngayBaoTri || a.lastMaintenance || '';
+            const assetId = a.id || a.assetId || '';
+            tr.innerHTML = `
+              <td class="cell-ellipsis" title="${(ten||'').replace(/"/g,'&quot;')}">${ten}</td>
+              <td class="cell-ellipsis" title="${(tinhTrang||'').replace(/"/g,'&quot;')}">${tinhTrang}</td>
+              <td class="cell-ellipsis" title="${(baoHanh||'').replace(/"/g,'&quot;')}">${baoHanh}</td>
+              <td class="cell-ellipsis" title="${(baoTri||'').replace(/"/g,'&quot;')}">${baoTri ? formatDateDDMMYYYY(baoTri) : ''}</td>
+              <td><button type="button" class="btn btn-outline btn-sm" onclick="openAssetReport('${assetId}','${(ten||'').replace(/'/g,'&#39;')}')">Báo hỏng</button></td>
+            `;
+            assetsBody.appendChild(tr);
+          });
+        }
+      }
+
   }
 
   // =========================
@@ -894,7 +945,11 @@
   }
 
   function openMaintenanceForm(){ alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.'); }
-  function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
+  function openAssetReport(assetId, assetName){
+      alert('Báo hỏng thiết bị: ' + (assetName || '') + '\n(ID: ' + (assetId || '-') + ')');
+    }
+
+    function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
 
   // =========================
   // POPUP THANH TOÁN (giữ nguyên)
@@ -1074,19 +1129,9 @@
     }
 
     // ✅ gọi đúng hàm (đã define)
-    fetchTenantPortalData(tenant.maPhong, tenant.identity || '');
+    fetchData(tenant.maPhong, tenant.identity || '');
   });
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
