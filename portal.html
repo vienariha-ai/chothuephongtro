@@ -1113,40 +1113,34 @@ async function submitTempStay(){
   }
 }
 
-async function downloadCT01(){
-  const tenant = (()=>{ try { return JSON.parse(localStorage.getItem(TENANT_STORAGE_KEY) || '{}'); } catch(e){ return {}; } })();
-  const roomCode = tenant.maPhong || (__portalDataCache && __portalDataCache.roomCode) || '';
-  const identity = tenant.identity || '';
-
-  const cccd = (document.getElementById('tsCCCD')?.value || '').trim();
-  if (!cccd){
-    alert('Nhập CCCD để tải CT01.');
-    return;
-  }
-
-  try{
-    const body = new URLSearchParams({
-      action: 'tenantCT01',
-      roomCode,
-      identity,
-      cccd
-    });
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body
-    });
-    const out = await res.json();
-    if (out && out.success && out.pdfUrl){
-      window.open(out.pdfUrl, '_blank');
-      return;
+  async function downloadCT01(){
+    const tenant = (()=>{ try { return JSON.parse(localStorage.getItem(TENANT_STORAGE_KEY) || '{}'); } catch(e){ return {}; } })();
+    const roomCode = tenant.maPhong || (__portalDataCache && __portalDataCache.roomCode) || '';
+    const cccd = (document.getElementById('tsCCCD')?.value || '').trim();
+    if (!roomCode || !cccd){ alert('Thiếu roomCode/CCCD'); return; }
+  
+    try{
+      // 1) lấy lịch sử theo CCCD
+      const u1 = API_URL + (API_URL.includes('?')?'&':'?') + new URLSearchParams({ action:'tamtru_history', cccd }).toString();
+      const h = await (await fetch(u1)).json();
+      const list = (h && (h.data || h.items || h.history)) || [];
+      const last = Array.isArray(list) && list.length ? list[0] : null;
+      const id = last && (last.id || last.ID);
+      if (!id){ alert('Chưa có hồ sơ tạm trú/CT01 cho CCCD này'); return; }
+  
+      // 2) generate ct01 theo id
+      const u2 = API_URL + (API_URL.includes('?')?'&':'?') + new URLSearchParams({ action:'ct01_generate', id }).toString();
+      const out = await (await fetch(u2)).json();
+      const url = out && (out.url || out.pdfUrl || out.fileUrl);
+      if (url){ window.open(url, '_blank'); return; }
+  
+      alert(out?.message || 'Chưa tạo được CT01.');
+    } catch(err){
+      console.error(err);
+      alert('Lỗi kết nối khi tải CT01.');
     }
-    alert((out && out.message) || 'Chưa có CT01 hoặc chưa được duyệt.');
-  } catch(err){
-    console.error('downloadCT01 error:', err);
-    alert('Lỗi kết nối khi tải CT01.');
   }
-}
+
 
 // Auto fill khi chọn người trong dropdown
 document.addEventListener('change', (e)=>{
@@ -1312,42 +1306,39 @@ document.addEventListener('change', (e)=>{
   async function fetchData(roomCode, identity){
     const note = document.getElementById('portalStatusNote');
     if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
-
+  
     renderInfoCard(null);
-
+  
     try{
-      const body = new URLSearchParams({
-        action:   'tenantPortal',
+      const qs = new URLSearchParams({
+        action: 'tenantPortal',
         roomCode: roomCode,
         identity: identity || ''
       });
-
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-        body
-      });
-
+  
+      const url = API_URL + (API_URL.includes('?') ? '&' : '?') + qs.toString();
+      const res = await fetch(url, { method: 'GET' });
       const data = await res.json();
-
-      if (!data || !data.success){
-        if (note) note.textContent = (data && data.message) || 'Không lấy được dữ liệu portal.';
+  
+      // ✅ hỗ trợ cả 2 kiểu response: {success:true} hoặc {ok:true}
+      const ok = !!(data && (data.success || data.ok));
+      if (!ok){
+        if (note) note.textContent = (data && (data.message || data.error)) || 'Không lấy được dữ liệu portal.';
         return;
       }
-
+  
       if (note) note.textContent = 'Dữ liệu đã được tải từ hệ thống (Google Sheet).';
-
+  
       renderInfoCard(data);
       renderPaymentCard(data);
       renderMaintenance(data);
       renderMessages(data);
-
-      // ✅ nếu hoá đơn đang chọn có bankInfo thì hiển thị luôn (tránh lúc chưa click tab detail)
+  
       const invoices = Array.isArray(data.invoices) ? data.invoices : [];
       if (invoices.length) updateBankAndQr_(invoices[__selectedInvoiceIndex] || invoices[0]);
-
+  
     } catch(err){
-      console.error('fetchTenantPortalData error:',err);
+      console.error('fetchData error:', err);
       const noteEl = document.getElementById('portalStatusNote');
       if (noteEl) noteEl.textContent = 'Lỗi kết nối tới Apps Script, vui lòng thử lại.';
     }
@@ -1379,3 +1370,4 @@ document.addEventListener('change', (e)=>{
 
 </body>
 </html>
+
