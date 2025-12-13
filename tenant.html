@@ -135,23 +135,19 @@
       }
 
       try {
-        const body = new URLSearchParams({
-          action:   "tenantLogin",
-          roomCode: roomCode,
+      const qs = new URLSearchParams({
+          action: "tenantLogin",
+          roomCode: roomCode.trim().toUpperCase(),
           identity: identity
         });
+        
+      const url = API_URL + (API_URL.includes('?') ? '&' : '?') + qs.toString();
+      const res = await fetch(url, { method: "GET" });
 
-        const res  = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-          },
-          body
-        });
+      const data = await res.json();
 
-        const data = await res.json();
-
-        if (!data || !data.success) {
+      const ok = !!(data && (data.success || data.ok));
+      if (!ok) {
           if (statusEl) {
             statusEl.textContent =
               (data && data.message) ||
@@ -161,10 +157,11 @@
         }
 
         const tenant = {
-          maPhong: data.maPhong || roomCode,
+          maPhong: String(data.maPhong || roomCode).trim().toUpperCase(),
           identity: identity,
           name: data.tenKhach || data.tenChuPhong || ""
         };
+
         saveTenantToStorage(tenant);
 
         if (statusEl) {
@@ -172,7 +169,7 @@
         }
 
         const targetRoom = tenant.maPhong;
-        window.location.href = "portal.html?room=" + encodeURIComponent(targetRoom);
+        window.location.href = "portal.html";
 
       } catch (err) {
         console.error("handleLoginSubmit error:", err);
@@ -227,3 +224,4 @@
   </script>
 </body>
 </html>
+
