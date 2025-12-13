@@ -10,20 +10,61 @@
   <style>
     .admin-top { display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; }
     .admin-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
     .kpi-grid { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap:10px; }
     @media (max-width: 900px){ .kpi-grid{ grid-template-columns: repeat(2, minmax(160px, 1fr)); } }
+
     .kpi { padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); }
     .kpi .k { font-size:12px; opacity:.85; }
     .kpi .v { font-size:22px; font-weight:700; margin-top:6px; }
+
     .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
     .filters .field { min-width:180px; }
+
     .muted { opacity:.75; }
     .chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); cursor:pointer; user-select:none; }
     .chip:hover { background: rgba(255,255,255,.07); }
+
     .right { text-align:right; }
     .nowrap { white-space:nowrap; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .table-like td .btn { padding:6px 10px; }
+
+    /* --- Login polish --- */
+    .login-grid { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:10px; }
+    .login-grid .field { min-width:220px; flex: 1; }
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+      position:absolute; right:8px; top:50%; transform: translateY(-50%);
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:#fff; border-radius:10px;
+      padding:6px 10px; cursor:pointer;
+    }
+    .row-inline{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+    .chk{ display:flex; gap:8px; align-items:center; cursor:pointer; user-select:none; }
+    .chk input{ transform: translateY(1px); }
+    .msg{
+      display:none;
+      margin-top:10px;
+      border-radius:12px;
+      padding:10px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .msg.ok{ background: rgba(34,197,94,.18); border-color: rgba(34,197,94,.35); }
+    .msg.err{ background: rgba(239,68,68,.16); border-color: rgba(239,68,68,.35); }
+
+    .btn-spin{
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: rgba(255,255,255,1);
+      display:none;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
   </style>
 </head>
 
@@ -48,7 +89,8 @@
     <main>
       <div class="page-title">Bảng điều khiển Admin</div>
       <div class="page-subtitle">
-        Đăng nhập bằng <b>Mã phòng Admin</b>. Chỉ admin mới xem được dashboard & xử lý hồ sơ tạm trú/CT01.
+        Chỉ admin mới xem được dashboard & xử lý hồ sơ tạm trú/CT01.
+        Đăng nhập bằng <b>Mã phòng Admin</b> + <b>Mật khẩu</b>.
       </div>
 
       <div id="adminStatus" class="portal-status">Đang kiểm tra quyền admin…</div>
@@ -56,14 +98,38 @@
       <!-- LOGIN ADMIN -->
       <section class="card" id="adminLoginCard" style="display:none;">
         <div class="card-title">Đăng nhập Admin</div>
-        <div class="filters">
+
+        <div class="login-grid">
           <label class="field">
             <div class="field-label">Mã phòng admin</div>
-            <input id="adminRoomCode" class="form-control" type="text" placeholder="Ví dụ: ADMIN hoặc P000" />
+            <input id="adminRoomCode" class="form-control" type="text" placeholder="Ví dụ: P000 hoặc 13LTQ" />
           </label>
-          <button class="btn" type="button" onclick="adminLogin()">Xác nhận</button>
+
+          <label class="field">
+            <div class="field-label">Mật khẩu admin</div>
+            <div class="pw-wrap">
+              <input id="adminPassword" class="form-control" type="password" placeholder="Nhập mật khẩu admin" />
+              <button class="pw-toggle" type="button" onclick="togglePw()">👁</button>
+            </div>
+          </label>
+
+          <button class="btn" type="button" id="btnAdminLogin" onclick="adminLogin()">
+            <span class="btn-text">Xác nhận</span>
+            <span class="btn-spin" aria-hidden="true"></span>
+          </button>
         </div>
-        <div class="small-note muted">Hệ thống kiểm tra theo cấu hình <span class="mono">ConfigLienHe.AdminRoomCodes</span>.</div>
+
+        <div class="row-inline">
+          <label class="chk muted">
+            <input id="rememberAdmin" type="checkbox" />
+            <span>Ghi nhớ đăng nhập (8 giờ)</span>
+          </label>
+          <div class="small-note muted">
+            Hệ thống kiểm tra theo <span class="mono">ConfigLienHe.AdminRoomCodes</span> & <span class="mono">ConfigLienHe.AdminPassword</span>.
+          </div>
+        </div>
+
+        <div id="adminMsg" class="msg"></div>
       </section>
 
       <!-- MAIN ADMIN -->
@@ -213,9 +279,76 @@
 
 <script>
   const API_URL = (window.YT_HOME_API_URL || document.querySelector('meta[name=yt-home-api]')?.content || '');
-  const ADMIN_STORAGE_KEY = "ytHomeAdmin";
+  const ADMIN_STORAGE_KEY = "ytHomeAdmin_v2"; // versioned
+  const ADMIN_SESSION_HOURS = 8;
   let currentFilter = { status:'', warning:'' };
 
+  function setStatus(msg){ const el=document.getElementById('adminStatus'); if(el) el.textContent = msg; }
+
+  function setMsg(type, text){
+    const el = document.getElementById('adminMsg');
+    if(!el) return;
+    el.className = 'msg ' + (type === 'ok' ? 'ok' : 'err');
+    el.textContent = text;
+    el.style.display = 'block';
+  }
+
+  function setLoading(loading){
+    const btn = document.getElementById('btnAdminLogin');
+    if(!btn) return;
+    const spin = btn.querySelector('.btn-spin');
+    const txt = btn.querySelector('.btn-text');
+    btn.disabled = !!loading;
+    if(spin) spin.style.display = loading ? 'inline-block' : 'none';
+    if(txt) txt.textContent = loading ? 'Đang kiểm tra...' : 'Xác nhận';
+  }
+
+  function togglePw(){
+    const ip = document.getElementById('adminPassword');
+    if(!ip) return;
+    ip.type = (ip.type === 'password') ? 'text' : 'password';
+  }
+
+  function saveAdminAuth(roomCode, adminPassword, remember){
+    const exp = Date.now() + ADMIN_SESSION_HOURS * 60 * 60 * 1000;
+    const payload = { roomCode, adminPassword, exp };
+
+    // remember => localStorage, else => sessionStorage
+    try{
+      if(remember){
+        localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(payload));
+        sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+      }else{
+        sessionStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(payload));
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+      }
+    }catch(e){}
+  }
+
+  function getSavedAdminAuth(){
+    try{
+      const raw = sessionStorage.getItem(ADMIN_STORAGE_KEY) || localStorage.getItem(ADMIN_STORAGE_KEY);
+      if(!raw) return null;
+      const obj = JSON.parse(raw);
+      if(!obj || !obj.roomCode || !obj.adminPassword || !obj.exp) return null;
+      if(Date.now() > Number(obj.exp)){
+        sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+        return null;
+      }
+      return obj;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function logoutAdmin(){
+    localStorage.removeItem(ADMIN_STORAGE_KEY);
+    sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+    location.reload();
+  }
+
+  // --- API calls ---
   function qs(obj){
     const p = new URLSearchParams();
     Object.keys(obj || {}).forEach(k=>{
@@ -224,53 +357,55 @@
     });
     return p.toString();
   }
+
+  // Public GET only (non-sensitive)
   async function apiGet(action, params){
     const url = API_URL + (API_URL.includes('?')?'&':'?') + qs(Object.assign({ action }, params || {}));
     const res = await fetch(url, { method:'GET' });
     return res.json();
   }
 
-  function saveAdmin(roomCode){
-    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify({ roomCode }));
-  }
-  function getSavedAdmin(){
-    try { return JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || 'null'); } catch(e){ return null; }
-  }
-  function logoutAdmin(){
-    localStorage.removeItem(ADMIN_STORAGE_KEY);
-    location.reload();
+  // Admin POST JSON (sensitive) - không lộ password trên URL
+  async function apiAdmin(action, params){
+    const auth = getSavedAdminAuth();
+    if(!auth) throw new Error('Chưa đăng nhập admin.');
+
+    const payload = Object.assign({}, params || {}, {
+      action,
+      roomCode: auth.roomCode,
+      adminPassword: auth.adminPassword
+    });
+
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return res.json();
   }
 
-  function setStatus(msg){ const el=document.getElementById('adminStatus'); if(el) el.textContent = msg; }
+  // Login check: dùng 1 admin action nhẹ để verify (tamtru_badge)
+  async function verifyAdmin(roomCode, adminPassword){
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ action:'tamtru_badge', roomCode, adminPassword })
+    }).then(r=>r.json());
 
-  async function checkAdmin(roomCode){
-    const out = await apiGet('adminRole', { roomCode });
-    return !!(out && (out.ok || out.success) && out.role === 'admin');
-  }
-
-  async function adminLogin(){
-    const rc = (document.getElementById('adminRoomCode')?.value || '').trim().toUpperCase();
-    if(!rc) return setStatus('Vui lòng nhập mã phòng admin.');
-    setStatus('Đang kiểm tra quyền admin…');
-    try{
-      const ok = await checkAdmin(rc);
-      if(!ok){
-        setStatus('Không có quyền admin cho mã phòng này.');
-        return;
-      }
-      saveAdmin(rc);
-      setStatus('OK. Đang tải dữ liệu…');
-      showAdminUI_();
-    }catch(err){
-      console.error(err);
-      setStatus('Lỗi kết nối Apps Script.');
-    }
+    // chấp nhận nhiều shape
+    if(!res) return false;
+    if(res.success === false || res.ok === false) return false;
+    // nếu Apps Script throw Error => thường message/error
+    if(res.error && String(res.error).toLowerCase().includes('permission')) return false;
+    if(res.message && String(res.message).toLowerCase().includes('permission')) return false;
+    return true;
   }
 
   function showLoginUI_(){
     document.getElementById('adminLoginCard').style.display='block';
     document.getElementById('adminMain').style.display='none';
   }
+
   function showAdminUI_(){
     document.getElementById('adminLoginCard').style.display='none';
     document.getElementById('adminMain').style.display='block';
@@ -285,6 +420,38 @@
     if(mEl && !mEl.value) mEl.value = m;
 
     loadAll();
+  }
+
+  async function adminLogin(){
+    const rc = (document.getElementById('adminRoomCode')?.value || '').trim().toUpperCase();
+    const pw = (document.getElementById('adminPassword')?.value || '').trim();
+    const remember = !!document.getElementById('rememberAdmin')?.checked;
+
+    if(!rc) { setStatus('Vui lòng nhập mã phòng admin.'); setMsg('err','Thiếu mã phòng admin.'); return; }
+    if(!pw) { setStatus('Vui lòng nhập mật khẩu admin.'); setMsg('err','Thiếu mật khẩu admin.'); return; }
+
+    setLoading(true);
+    setStatus('Đang kiểm tra quyền admin…');
+    setMsg('ok','Đang kiểm tra…');
+
+    try{
+      const ok = await verifyAdmin(rc, pw);
+      if(!ok){
+        setStatus('Đăng nhập thất bại. Sai mã phòng admin hoặc mật khẩu.');
+        setMsg('err','Sai mã phòng admin hoặc mật khẩu. Kiểm tra ConfigLienHe.AdminRoomCodes / AdminPassword.');
+        return;
+      }
+      saveAdminAuth(rc, pw, remember);
+      setStatus('OK. Đang tải dữ liệu…');
+      setMsg('ok','Đăng nhập admin thành công.');
+      showAdminUI_();
+    }catch(err){
+      console.error(err);
+      setStatus('Lỗi kết nối Apps Script.');
+      setMsg('err','Lỗi kết nối Apps Script hoặc phản hồi không hợp lệ.');
+    }finally{
+      setLoading(false);
+    }
   }
 
   function applyFilter(next){
@@ -305,8 +472,7 @@
   }
 
   async function loadBadge(){
-    const out = await apiGet('tamtru_badge', {});
-    // accept many shapes
+    const out = await apiAdmin('tamtru_badge', {});
     const b = out?.data || out?.badge || out || {};
     document.getElementById('kpiTotal').textContent   = (b.total ?? b.Total ?? '--');
     document.getElementById('kpiValid').textContent   = (b.valid ?? b.conHan ?? '--');
@@ -317,7 +483,8 @@
   async function loadDashboard(){
     const year  = String(document.getElementById('dashYear')?.value || '').trim();
     const month = String(document.getElementById('dashMonth')?.value || '').trim();
-    const out = await apiGet('dash_tamtru_summary', { year, month });
+
+    const out = await apiAdmin('dash_tamtru_summary', { year, month });
 
     const rows = out?.rows || out?.data || out?.summary || out;
     const body = document.getElementById('dashSummaryBody');
@@ -335,7 +502,8 @@
   }
 
   async function loadTamTruList(){
-    const out = await apiGet('tamtru_list', { status: currentFilter.status || '', warning: currentFilter.warning || '' });
+    const out = await apiAdmin('tamtru_list', { status: currentFilter.status || '', warning: currentFilter.warning || '' });
+
     const items = out?.data || out?.items || out?.list || [];
     const body = document.getElementById('tamtruListBody');
     if(!body) return;
@@ -379,7 +547,7 @@
     if(!id) return alert('Thiếu ID hồ sơ.');
     setStatus('Đang sinh CT01…');
     try{
-      const out = await apiGet('ct01_generate', { id });
+      const out = await apiAdmin('ct01_generate', { id });
       const url = out?.url || out?.pdfUrl || out?.fileUrl;
       if(url) window.open(url, '_blank');
       await loadTamTruList();
@@ -396,7 +564,8 @@
     if(!cccd) return alert('Nhập CCCD để tra cứu.');
     setStatus('Đang tra cứu lịch sử…');
     try{
-      const out = await apiGet('tamtru_history', { cccd });
+      const out = await apiAdmin('tamtru_history', { cccd });
+
       const list = out?.data || out?.items || out?.history || [];
       const card = document.getElementById('historyCard');
       const body = document.getElementById('historyBody');
@@ -456,24 +625,23 @@
       return;
     }
 
-    const saved = getSavedAdmin();
-    if(saved && saved.roomCode){
+    // Nếu có auth -> verify lại bằng tamtru_badge (POST)
+    const saved = getSavedAdminAuth();
+    if(saved && saved.roomCode && saved.adminPassword){
+      setStatus('Đang kiểm tra quyền admin…');
       try{
-        const ok = await checkAdmin(String(saved.roomCode).trim().toUpperCase());
+        const ok = await verifyAdmin(saved.roomCode, saved.adminPassword);
         if(ok){
+          setStatus('OK. Đang tải dữ liệu…');
           showAdminUI_();
           return;
         }
       }catch(e){}
     }
+
     setStatus('Vui lòng đăng nhập admin.');
     showLoginUI_();
   });
 </script>
 </body>
 </html>
-
-
-
-
-
