@@ -317,10 +317,14 @@
     return fetchData(roomCode, identity);
   }
 
-  function logoutTenant() {
-    try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
+   function logoutTenant() {
+    try {
+      localStorage.removeItem(TENANT_STORAGE_KEY);
+      sessionStorage.setItem("ytHomeJustLoggedOut", "1"); // ✅ thêm dòng này
+    } catch(e){}
     window.location.href = "tenant.html";
   }
+
 
   // ✅ NEW: normalize response để code hiện tại dùng đúng key
   function normalizePortalData_(raw){
@@ -1112,3 +1116,4 @@
 
 </body>
 </html>
+
