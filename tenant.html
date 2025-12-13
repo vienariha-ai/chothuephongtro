@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>YT Home – Đăng nhập tài khoản phòng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="yt-home-api" content="https://script.google.com/macros/s/AKfycbxgkHQJ-UFcWsl5m5Wn79QkCFVxj3WxGhN2PKNVlFJwcmgasEP2wSZKcvSVHK0BJxYEng/exec" />
 
   <!-- NHỚ sửa lại href cho đúng tên file CSS chung của bạn -->
   <link rel="stylesheet" href="yt-home-common.css" />
@@ -80,7 +81,7 @@
   </div>
 
   <script>
-    const API_URL            = "https://script.google.com/macros/s/AKfycbzrgX4-Uiuq4wqdu769zzi7jTq8pu0RJNLJlhsmauFdgW1QQ9JaFFJZmMhiX0Cpy8bz/exec";
+    const API_URL = (window.YT_HOME_API_URL || document.querySelector("meta[name=yt-home-api]")?.content || "https://script.google.com/macros/s/AKfycbxgkHQJ-UFcWsl5m5Wn79QkCFVxj3WxGhN2PKNVlFJwcmgasEP2wSZKcvSVHK0BJxYEng/exec");
     const TENANT_STORAGE_KEY = "ytHomeTenant";
 
     function saveTenantToStorage(tenant) {
@@ -226,15 +227,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
