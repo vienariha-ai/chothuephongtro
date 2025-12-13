@@ -76,6 +76,9 @@
       "ytHomeTenantAuth"
     ];
 
+    // ✅ Flag chặn redirect loop khi vừa logout từ portal.html
+    const JUST_LOGOUT_FLAG = "ytHomeJustLoggedOut";
+
     function normRoomCode(s){
       return String(s || "").trim().toUpperCase();
     }
@@ -94,6 +97,7 @@
         if (tenant) {
           const raw = JSON.stringify(tenant);
           localStorage.setItem(TENANT_STORAGE_KEY, raw);
+
           // ✅ save aliases too
           TENANT_ALIAS_KEYS.forEach(k => {
             try { localStorage.setItem(k, raw); } catch(e){}
@@ -114,7 +118,7 @@
         const raw = localStorage.getItem(TENANT_STORAGE_KEY);
         if(raw) return JSON.parse(raw);
       }catch(e){}
-      // fallback aliases
+
       for(const k of TENANT_ALIAS_KEYS){
         try{
           const raw2 = localStorage.getItem(k);
@@ -124,8 +128,24 @@
       return null;
     }
 
+    function clearJustLogoutFlag(){
+      try { sessionStorage.removeItem(JUST_LOGOUT_FLAG); } catch(e){}
+    }
+
+    function markJustLoggedOut(){
+      try { sessionStorage.setItem(JUST_LOGOUT_FLAG, "1"); } catch(e){}
+    }
+
+    function wasJustLoggedOut(){
+      try { return sessionStorage.getItem(JUST_LOGOUT_FLAG) === "1"; } catch(e){}
+      return false;
+    }
+
     function logoutTenant() {
+      // ✅ xoá session + chặn auto redirect vòng lặp
       saveTenantToStorage(null);
+      markJustLoggedOut();
+
       setStatus("Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.");
 
       const phoneEl = document.getElementById("loginPhone");
@@ -141,7 +161,7 @@
     async function apiGet(action, params){
       const qs = new URLSearchParams(Object.assign({ action }, params || {}));
       const url = API_URL + (API_URL.includes("?") ? "&" : "?") + qs.toString();
-      const res = await fetch(url, { method:"GET" });
+      const res = await fetch(url, { method:"GET", cache:"no-store" });
       return res.json();
     }
 
@@ -175,20 +195,23 @@
           return;
         }
 
+        const resolvedRoom = normRoomCode(data.maPhong || roomCode);
+
         const tenant = {
           // ✅ thống nhất key
-          maPhong: normRoomCode(data.maPhong || roomCode),
-          roomCode: normRoomCode(data.maPhong || roomCode), // thêm alias field
+          maPhong: resolvedRoom,
+          roomCode: resolvedRoom, // alias field để portal nào đọc cũng được
           identity: identity,
           name: data.tenKhach || data.tenChuPhong || ""
         };
 
         saveTenantToStorage(tenant);
+        clearJustLogoutFlag(); // ✅ đăng nhập thành công thì gỡ flag
 
         setStatus("Đăng nhập thành công. Đang chuyển vào portal...");
 
-        // ✅ QUAN TRỌNG: luôn truyền room qua query string để portal.html đọc được
-        window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+        // ✅ luôn truyền room để portal chắc chắn có room
+        window.location.href = "portal.html?room=" + encodeURIComponent(resolvedRoom);
 
       } catch (err) {
         console.error("handleLoginSubmit error:", err);
@@ -202,20 +225,26 @@
       const loginCodeEl  = document.getElementById("loginCode");
       const roomBadgeEl  = document.getElementById("roomBadge");
 
-      // ✅ Nếu có tenant trong localStorage → auto redirect vào portal (kèm room param)
-      try {
-        const tenant = getSavedTenant();
-        if (tenant && tenant.maPhong) {
-          const savedRoom = normRoomCode(tenant.maPhong);
+      // ✅ Nếu vừa logout từ portal -> KHÔNG auto redirect nữa (tránh loop)
+      if (wasJustLoggedOut()){
+        clearJustLogoutFlag();
+        setStatus("Bạn vừa đăng xuất. Vui lòng đăng nhập lại nếu cần.");
+      } else {
+        // ✅ Nếu có tenant trong localStorage → auto redirect vào portal (kèm room param)
+        try {
+          const tenant = getSavedTenant();
+          const savedRoom = normRoomCode(tenant?.maPhong || tenant?.roomCode || "");
 
-          // Nếu URL không yêu cầu phòng khác thì redirect luôn
-          if (!roomFromURL || roomFromURL === savedRoom) {
+          // Chỉ redirect nếu:
+          // - có savedRoom
+          // - và URL không yêu cầu phòng khác
+          if (savedRoom && (!roomFromURL || roomFromURL === savedRoom)) {
             window.location.href = "portal.html?room=" + encodeURIComponent(savedRoom);
             return;
           }
+        } catch (e) {
+          console.error("check existing tenant error:", e);
         }
-      } catch (e) {
-        console.error("check existing tenant error:", e);
       }
 
       // Nếu có room trên URL → auto điền & hiển thị badge
