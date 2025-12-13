@@ -319,7 +319,7 @@
 
 <script>
   const TENANT_STORAGE_KEY = "ytHomeTenant";
-  const API_URL = "https://script.google.com/macros/s/AKfycbzrgX4-Uiuq4wqdu769zzi7jTq8pu0RJNLJlhsmauFdgW1QQ9JaFFJZmMhiX0Cpy8bz/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbyyEkf8UqdJpAJK_XnhIjDZgwnf_Fs__Tkkiet9suNz9k77x8HQgMiEL11d0WXKiVL3Aw/exec";
   let CURRENT_INVOICES = [];
   let CURRENT_SELECTED_INVOICE = null;
 
@@ -420,34 +420,6 @@
     if (txt.includes('thiếu') || txt.includes('con thieu')) return 'need-pay';
     if (txt.includes('thu đủ') || txt.includes('thu du') || txt.includes('đã thanh toán') || txt.includes('da thanh toan')) return 'paid';
     return 'unknown';
-
-      // 8. Danh sách thiết bị / tài sản trong phòng
-      const assetsBody = document.getElementById('assetsTableBody');
-      if (assetsBody){
-        assetsBody.innerHTML = '';
-        const assets = Array.isArray(data.assets) ? data.assets : [];
-        if (!assets.length){
-          assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có dữ liệu thiết bị.</td></tr>';
-        } else {
-          assets.forEach(a=>{
-            const tr = document.createElement('tr');
-            const ten = a.tenThietBi || a.tenTaiSan || a.ten || '';
-            const tinhTrang = a.tinhTrang || a.tinh_trang || '';
-            const baoHanh = a.baoHanh || a.thoiGianBaoHanh || a.warranty || '';
-            const baoTri = a.ngayBaoTriGanNhat || a.ngayBaoTri || a.lastMaintenance || '';
-            const assetId = a.id || a.assetId || '';
-            tr.innerHTML = `
-              <td class="cell-ellipsis" title="${(ten||'').replace(/"/g,'&quot;')}">${ten}</td>
-              <td class="cell-ellipsis" title="${(tinhTrang||'').replace(/"/g,'&quot;')}">${tinhTrang}</td>
-              <td class="cell-ellipsis" title="${(baoHanh||'').replace(/"/g,'&quot;')}">${baoHanh}</td>
-              <td class="cell-ellipsis" title="${(baoTri||'').replace(/"/g,'&quot;')}">${baoTri ? formatDateDDMMYYYY(baoTri) : ''}</td>
-              <td><button type="button" class="btn btn-outline btn-sm" onclick="openAssetReport('${assetId}','${(ten||'').replace(/'/g,'&#39;')}')">Báo hỏng</button></td>
-            `;
-            assetsBody.appendChild(tr);
-          });
-        }
-      }
-
   }
 
   // =========================
@@ -663,6 +635,31 @@
             <td>${renderStatusHTML(m.trangThaiTamTru, 'tamtru')}</td>
           `;
           membersBody.appendChild(tr);
+        });
+      }
+    }
+
+    // 8. Danh sách thiết bị / tài sản trong phòng
+    const assetsBody = $('assetsTableBody');
+    if (assetsBody) {
+      assetsBody.innerHTML = '';
+      const assets = Array.isArray(data.assets) ? data.assets : [];
+
+      if (!assets.length) {
+        assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có thiết bị / tài sản cho phòng.</td></tr>';
+      } else {
+        assets.forEach((a, i)=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="assets-name">${a.tenThietBi || a.tenTaiSan || ''}</td>
+            <td>${a.tinhTrang || ''}</td>
+            <td>${a.baoHanh || ''}</td>
+            <td>${a.baoTriGanNhat ? formatDateDDMMYYYY(a.baoTriGanNhat) : ''}</td>
+            <td>
+              <button type="button" class="btn btn-outline btn-sm" onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,"&#39;")}')">Báo hỏng</button>
+            </td>
+          `;
+          assetsBody.appendChild(tr);
         });
       }
     }
@@ -1135,5 +1132,3 @@
 
 </body>
 </html>
-
-
