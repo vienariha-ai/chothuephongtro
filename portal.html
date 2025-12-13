@@ -65,7 +65,7 @@
             <div class="small-note">
               Thông tin được lấy từ sheet <strong>Khách thuê</strong> (Loại = "Chủ phòng", Trạng thái = "Đang ở").
             </div>
-          
+
             <div class="section-title" style="margin-top:12px;">Danh sách người &amp; xe</div>
             <table class="table-like">
               <thead>
@@ -86,7 +86,6 @@
               <span class="muted">Đăng ký tạm trú cho người ở.</span>
               <button class="btn" type="button" onclick="openTempStayForm()">Đăng ký tạm trú</button>
             </div>
-
           </div>
 
           <!-- TAB HỢP ĐỒNG -->
@@ -110,9 +109,8 @@
               Hiển thị từ sheet <strong>Hợp đồng</strong>. Nút "Ký tiếp hợp đồng" chỉ hiện khi còn &lt;= 1 tháng trước ngày kết thúc.
             </div>
           </div>
-        
 
-<!-- TAB THIẾT BỊ / TÀI SẢN -->
+          <!-- TAB THIẾT BỊ / TÀI SẢN -->
           <div class="tab-pane tab-pane-info hidden" id="tab-assets">
             <table class="table-like table-fixed">
               <thead>
@@ -132,10 +130,8 @@
               Dữ liệu lấy từ sheet <strong>Tài sản</strong> theo <strong>Mã phòng</strong>. Nút "Báo hỏng" sẽ tạo yêu cầu gửi cho chủ nhà.
             </div>
           </div>
+        </section>
 
-</section>
-
-        
         <!-- CỘT PHẢI: THANH TOÁN -->
         <section class="card">
           <div class="card-title">Thanh toán</div>
@@ -159,7 +155,7 @@
               <tbody id="paymentHistoryBody">
                 <tr>
                   <td colspan="4" class="muted">
-                    Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.
+                    Đang tải...
                   </td>
                 </tr>
               </tbody>
@@ -224,7 +220,6 @@
             </div>
           </div>
 
-          <!-- THÔNG TIN CHUYỂN KHOẢN + QR (luôn nằm bên dưới 2 tab) -->
           <div class="pay-bottom">
             <div class="section-title">Thông tin chuyển khoản</div>
             <p class="small-note" id="invBankInfo">--</p>
@@ -233,12 +228,9 @@
             <div id="qrContainer" class="gallery-placeholder">Chưa có QR Code.</div>
           </div>
         </section>
-
       </div>
 
-      <!-- HÀNG DƯỚI: BẢO TRÌ + TIN NHẮN -->
       <div class="grid" style="margin-top:12px;">
-        <!-- Bảo trì -->
         <section class="card">
           <div class="card-title">Lịch bảo trì</div>
           <table class="table-like">
@@ -262,7 +254,6 @@
           </div>
         </section>
 
-        <!-- Tin nhắn / yêu cầu -->
         <section class="card">
           <div class="card-title">Tin nhắn & yêu cầu</div>
           <table class="table-like">
@@ -316,14 +307,12 @@
     </div>
   </div>
 
-
 <script>
   const TENANT_STORAGE_KEY = "ytHomeTenant";
   const API_URL = "https://script.google.com/macros/s/AKfycbyTCSCKa4CS3FkmgQAjbvbMaeiZ4RhtZI_h4qBroK2ppLAstrfi3hKjHIGzbKEgWWXd7Q/exec";
   let CURRENT_INVOICES = [];
   let CURRENT_SELECTED_INVOICE = null;
 
-  // ✅ FIX: bạn đang gọi fetchTenantPortalData nhưng chưa định nghĩa
   async function fetchTenantPortalData(roomCode, identity){
     return fetchData(roomCode, identity);
   }
@@ -331,6 +320,37 @@
   function logoutTenant() {
     try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
     window.location.href = "tenant.html";
+  }
+
+  // ✅ NEW: normalize response để code hiện tại dùng đúng key
+  function normalizePortalData_(raw){
+    if(!raw || !raw.success) return raw;
+
+    const chuPhong = raw.chuPhong || raw.owner || {};
+    const contract = raw.contract || chuPhong.contract || null;
+
+    const members =
+      Array.isArray(raw.members) ? raw.members :
+      (Array.isArray(chuPhong.members) ? chuPhong.members : []);
+
+    const invoices = Array.isArray(raw.invoices) ? raw.invoices : [];
+    const services = Array.isArray(raw.services) ? raw.services : [];
+
+    const assets = Array.isArray(raw.assets) ? raw.assets : [];
+    const maintenance = Array.isArray(raw.maintenance) ? raw.maintenance : [];
+    const messages = Array.isArray(raw.messages) ? raw.messages : [];
+
+    return Object.assign({}, raw, {
+      roomCode: raw.roomCode || raw.maPhong || chuPhong.maPhong || '',
+      chuPhong,
+      contract,
+      members,
+      invoices,
+      services,
+      assets,
+      maintenance,
+      messages
+    });
   }
 
   function formatVND(amount){
@@ -423,7 +443,7 @@
   }
 
   // =========================
-  // INFO CARD (giữ nguyên code bạn)
+  // INFO CARD (GIỮ NGUYÊN - chỉ cần data.contract đã normalize)
   // =========================
   function renderInfoCard(data){
     const $ = (id) => document.getElementById(id);
@@ -495,6 +515,7 @@
     if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd ? maskLast4Digits(chuPhong.cccd) : '--';
     if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai ? maskLast4Digits(chuPhong.dienThoai) : '--';
 
+    // ✅ FIX: contract lấy từ data.contract (đã normalize từ chuPhong.contract)
     const contract = (data && data.contract) ? data.contract : null;
 
     let monthsLeft = null;
@@ -600,18 +621,6 @@
       if (contract && contract.coTheGiaHan) {
         extendBtn.style.display = 'inline-flex';
         extendBtn.textContent = "Gia hạn hợp đồng";
-
-        extendBtn.classList.remove('btn-disabled','btn-warning','btn-danger','btn-accent');
-
-        if (monthsLeft != null) {
-          if (monthsLeft <= 1) extendBtn.classList.add("btn-danger");
-          else if (monthsLeft <= 2) extendBtn.classList.add("btn-warning");
-          else extendBtn.classList.add("btn-accent");
-        }
-
-        const statusText = contract.trangThai ? contract.trangThai.toString().toLowerCase() : '';
-        if (statusText.includes('hết hạn')) extendBtn.classList.add('btn-danger');
-        else if (statusText.includes('sắp hết')) extendBtn.classList.add('btn-warning');
       } else {
         extendBtn.style.display = 'none';
       }
@@ -628,8 +637,8 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${m.hoTen || ''}</td>
-            <td>${m.dienThoai || ''}</td>
-            <td>${m.cccd || ''}</td>
+            <td>${m.dienThoai ? maskLast4Digits(m.dienThoai) : ''}</td>
+            <td>${m.cccd ? maskLast4Digits(m.cccd) : ''}</td>
             <td>${m.bienSo || ''}</td>
             <td>${m.ngayTamTru ? formatDateDDMMYYYY(m.ngayTamTru) : ''}</td>
             <td>${renderStatusHTML(m.trangThaiTamTru, 'tamtru')}</td>
@@ -639,7 +648,6 @@
       }
     }
 
-    // 8. Danh sách thiết bị / tài sản trong phòng
     const assetsBody = $('assetsTableBody');
     if (assetsBody) {
       assetsBody.innerHTML = '';
@@ -648,7 +656,7 @@
       if (!assets.length) {
         assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có thiết bị / tài sản cho phòng.</td></tr>';
       } else {
-        assets.forEach((a, i)=>{
+        assets.forEach((a)=>{
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td class="assets-name">${a.tenThietBi || a.tenTaiSan || ''}</td>
@@ -656,7 +664,7 @@
             <td>${a.baoHanh || ''}</td>
             <td>${a.baoTriGanNhat ? formatDateDDMMYYYY(a.baoTriGanNhat) : ''}</td>
             <td>
-              <button type="button" class="btn btn-outline btn-sm" onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,"&#39;")}')">Báo hỏng</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="openAssetReport('${String(a.id||'').replace(/'/g,"&#39;")}', '${String(a.tenThietBi||a.tenTaiSan||'').replace(/'/g,"&#39;")}')">Báo hỏng</button>
             </td>
           `;
           assetsBody.appendChild(tr);
@@ -666,7 +674,7 @@
   }
 
   // =========================
-  // THANH TOÁN (giữ nguyên logic)
+  // THANH TOÁN (giữ nguyên logic, chỉ cần data.contract đúng)
   // =========================
   let __selectedInvoiceIndex = 0;
   let __portalDataCache = null;
@@ -697,8 +705,13 @@
 
     const invoices = (data && Array.isArray(data.invoices)) ? data.invoices : [];
 
+    // ✅ FIX: contract đã có từ normalize -> check đúng hiệu lực
     const isContractActive =
-      !!(data && data.contract && String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực'));
+      !!(data && data.contract && (
+        data.contract.isActive === true ||
+        String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực') ||
+        String(data.contract.trangThai || '').toLowerCase().includes('hieu luc')
+      ));
 
     if (!isContractActive) {
       historyBody.innerHTML = `
@@ -797,17 +810,12 @@
       dvBody.innerHTML = '';
 
       const services = Array.isArray(inv.services) ? inv.services : [];
-      const serviceMap =
-        (__portalDataCache && (__portalDataCache.serviceMap || __portalDataCache.servicesMap || __portalDataCache.serviceMetaMap))
-          ? (__portalDataCache.serviceMap || __portalDataCache.servicesMap || __portalDataCache.serviceMetaMap)
-          : {};
-
       let total = 0;
 
       const filtered = services.filter(s=>{
-        const maDV = String(s.maDV || s.tenDichVu || '').trim();
+        const name = String(s.tenDichVu || s.maDV || '').trim();
         const thanhTien = Number(s.thanhTien || 0);
-        if (!maDV) return false;
+        if (!name) return false;
         if (thanhTien === 0) return false;
         return true;
       });
@@ -820,26 +828,12 @@
           const thanhTien = Number(s.thanhTien || 0) || 0;
           total += thanhTien;
 
-          const idDV = String(s.idDV || '').trim();
-          const maDV = String(s.maDV || s.tenDichVu || '').trim();
-
-          const metaById = idDV && serviceMap[idDV] ? serviceMap[idDV] : null;
-          const metaByMa = !metaById && maDV && serviceMap[maDV] ? serviceMap[maDV] : null;
-          const meta = metaById || metaByMa || {};
-          const loai = String(meta.loai || meta['Loại'] || meta.type || '').trim().toLowerCase();
-
-          const isTheoSoLuong = loai === 'theo số lượng' || loai === 'theo so luong';
-
-          const soDau  = (s.soDau == null ? '' : s.soDau);
-          const soCuoi = (s.soCuoi == null ? '' : s.soCuoi);
-          const soLuong = (s.soLuong == null ? '' : s.soLuong);
-
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td class="dv-name">${maDV}</td>
-            <td>${isTheoSoLuong ? '-' : soDau}</td>
-            <td>${isTheoSoLuong ? '-' : soCuoi}</td>
-            <td>${soLuong}</td>
+            <td class="dv-name">${s.tenDichVu || s.maDV || ''}</td>
+            <td>${(s.soDau == null ? '-' : s.soDau)}</td>
+            <td>${(s.soCuoi == null ? '-' : s.soCuoi)}</td>
+            <td>${(s.soLuong == null ? '' : s.soLuong)}</td>
             <td class="dv-money">${formatVND(s.donGia)}</td>
             <td class="dv-money">${formatVND(thanhTien)}</td>
           `;
@@ -850,19 +844,16 @@
       }
     }
 
-    // ✅ BANK + QR theo hóa đơn đang chọn
     updateBankAndQr_(inv);
   }
 
-  // ✅ CLEAN: bỏ fetch ownerBank riêng, dùng bankInfo đã được Apps Script bơm vào invoice
   function updateBankAndQr_(inv){
     const bankInfoEl = document.getElementById('invBankInfo');
     const qrContainer = document.getElementById('qrContainer');
 
-    // BANK ưu tiên từ inv.chiTiet.bankInfo
     const bankInfo =
       (inv && inv.chiTiet && inv.chiTiet.bankInfo) ? inv.chiTiet.bankInfo :
-      null;
+      (inv && inv.bankInfo) ? inv.bankInfo : null;
 
     if (bankInfoEl){
       const bankText = [
@@ -871,19 +862,14 @@
         bankInfo?.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
         bankInfo?.chiNhanh ? ('CN ngân hàng: ' + bankInfo.chiNhanh) : ''
       ].filter(Boolean).join('<br>');
-
       bankInfoEl.innerHTML = bankText || '--';
     }
 
-    // QR giữ nguyên
     if (!qrContainer) return;
     qrContainer.innerHTML = '';
 
     const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
-    const qr =
-      (c && (c.qrCode || c.qr || c.qr_code || c["QR Code"])) ||
-      (inv && (inv.qrCode || inv.qr || inv.qr_code || inv["QR Code"])) ||
-      '';
+    const qr = (c && (c.qrCode || c.qr)) || (inv && (inv.qrCode || inv.qr)) || '';
 
     if (qr){
       const img = document.createElement('img');
@@ -942,15 +928,9 @@
   }
 
   function openMaintenanceForm(){ alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.'); }
-  function openAssetReport(assetId, assetName){
-      alert('Báo hỏng thiết bị: ' + (assetName || '') + '\n(ID: ' + (assetId || '-') + ')');
-    }
+  function openAssetReport(assetId, assetName){ alert('Báo hỏng thiết bị: ' + (assetName || '') + '\n(ID: ' + (assetId || '-') + ')'); }
+  function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
 
-    function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
-
-  // =========================
-  // POPUP THANH TOÁN (giữ nguyên)
-  // =========================
   function openPaymentModal(index){
     if (index !== undefined && index !== null) __selectedInvoiceIndex = Number(index) || 0;
 
@@ -1081,10 +1061,12 @@
         body
       });
 
-      const data = await res.json();
+      const raw = await res.json();
+      const data = normalizePortalData_(raw);  // ✅ FIX
 
       if (!data || !data.success){
         if (note) note.textContent = (data && data.message) || 'Không lấy được dữ liệu portal.';
+        console.log('PORTAL RAW=', raw);
         return;
       }
 
@@ -1095,7 +1077,6 @@
       renderMaintenance(data);
       renderMessages(data);
 
-      // ✅ nếu hoá đơn đang chọn có bankInfo thì hiển thị luôn (tránh lúc chưa click tab detail)
       const invoices = Array.isArray(data.invoices) ? data.invoices : [];
       if (invoices.length) updateBankAndQr_(invoices[__selectedInvoiceIndex] || invoices[0]);
 
@@ -1125,14 +1106,9 @@
       return;
     }
 
-    // ✅ gọi đúng hàm (đã define)
     fetchData(tenant.maPhong, tenant.identity || '');
   });
 </script>
 
 </body>
 </html>
-
-
-
-
