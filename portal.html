@@ -656,31 +656,36 @@
 
     // 8. Danh sách thiết bị / tài sản trong phòng
     // 8. Danh sách thiết bị (sheet "Tài sản")
-    renderAssetsTab_(data);
-    const assetsBody = $('assetsTableBody');
-    if (assetsBody) {
-      assetsBody.innerHTML = '';
+    function renderAssetsTab_(data) {
+      const tbody = document.getElementById("assetsTableBody");
+      if (!tbody) return;
+    
       const assets = Array.isArray(data.assets) ? data.assets : [];
-
+      tbody.innerHTML = "";
+    
       if (!assets.length) {
-        assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có thiết bị / tài sản cho phòng.</td></tr>';
-      } else {
-        assets.forEach((a, i)=>{
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="assets-name">${a.tenThietBi || a.tenTaiSan || ''}</td>
-            <td>${a.tinhTrang || ''}</td>
-            <td>${a.baoHanh || ''}</td>
-            <td>${a.ngayBaoTriGanNhat ? formatDateDDMMYYYY(a.ngayBaoTriGanNhat) : '--'}</td>
-            <td>
-              <button type="button" class="btn btn-outline btn-sm" onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,"&#39;")}')">Báo hỏng</button>
-            </td>
-          `;
-          assetsBody.appendChild(tr);
-        });
+        tbody.innerHTML = `<tr><td colspan="5" class="muted">Chưa có thiết bị.</td></tr>`;
+        return;
       }
+    
+      assets.forEach(a => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="assets-name">${a.tenTaiSan}</td>
+          <td>${a.tinhTrang}</td>
+          <td>${a.baoHanh || "--"}</td>
+          <td>${a.ngayBaoTriGanNhat ? formatDateDDMMYYYY(a.ngayBaoTriGanNhat) : "--"}</td>
+          <td>
+            <button class="btn btn-outline btn-sm"
+              onclick="openAssetReport('${a.id}')">
+              Báo hỏng
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
-  }
+
 
   // =========================
   // THANH TOÁN (giữ nguyên logic)
@@ -1330,5 +1335,6 @@
 
 </body>
 </html>
+
 
 
