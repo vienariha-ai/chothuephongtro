@@ -1,3 +1,4 @@
+
 /* =========================================================
  * YT HOME – CSS DÙNG CHUNG
  * - Áp dụng cho: index.html, room.html, tenant.html
@@ -2126,3 +2127,38 @@ body.tenant-body #invoiceDetailTable tfoot td {
   border-radius: 12px;
 }
 
+
+/* =========================
+   PORTAL – cải thiện hiển thị (Card Thông tin phòng)
+   ========================= */
+.contract-days-left{
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fecaca;
+}
+.contract-days-left::before{
+  content: "⏳";
+}
+.table-fixed{
+  table-layout: fixed;
+  width: 100%;
+}
+.table-fixed th,
+.table-fixed td{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cell-ellipsis{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
