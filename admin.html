@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>YT Home – Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="yt-home-api" content="https://script.google.com/macros/s/AKfycbygGETExn0CZupPb2Y5CHHXUKrwPELjyWfoqHU76i05K200zn--z3D-LqwzqtNG2ZnT/exec" />
+  <link rel="stylesheet" href="yt-home-common.css" />
+
+  <style>
+    .admin-top { display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; }
+    .admin-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .kpi-grid { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap:10px; }
+    @media (max-width: 900px){ .kpi-grid{ grid-template-columns: repeat(2, minmax(160px, 1fr)); } }
+    .kpi { padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); }
+    .kpi .k { font-size:12px; opacity:.85; }
+    .kpi .v { font-size:22px; font-weight:700; margin-top:6px; }
+    .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
+    .filters .field { min-width:180px; }
+    .muted { opacity:.75; }
+    .chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); cursor:pointer; user-select:none; }
+    .chip:hover { background: rgba(255,255,255,.07); }
+    .right { text-align:right; }
+    .nowrap { white-space:nowrap; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .table-like td .btn { padding:6px 10px; }
+  </style>
+</head>
+
+<body class="tenant-body">
+  <div class="container">
+    <header class="header admin-top">
+      <div class="logo-row">
+        <div class="logo-icon">YT</div>
+        <div class="logo-text">
+          <div class="logo-text-main">YT Home</div>
+          <div class="logo-text-sub">Admin – Tạm trú / CT01 / Dashboard</div>
+        </div>
+      </div>
+
+      <div class="admin-actions">
+        <a class="btn btn-outline" href="index.html">Trang xem phòng</a>
+        <a class="btn btn-outline" href="tenant.html">Portal cư dân</a>
+        <button class="btn btn-outline" type="button" onclick="logoutAdmin()">Đăng xuất</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="page-title">Bảng điều khiển Admin</div>
+      <div class="page-subtitle">
+        Đăng nhập bằng <b>Mã phòng Admin</b>. Chỉ admin mới xem được dashboard & xử lý hồ sơ tạm trú/CT01.
+      </div>
+
+      <div id="adminStatus" class="portal-status">Đang kiểm tra quyền admin…</div>
+
+      <!-- LOGIN ADMIN -->
+      <section class="card" id="adminLoginCard" style="display:none;">
+        <div class="card-title">Đăng nhập Admin</div>
+        <div class="filters">
+          <label class="field">
+            <div class="field-label">Mã phòng admin</div>
+            <input id="adminRoomCode" class="form-control" type="text" placeholder="Ví dụ: ADMIN hoặc P000" />
+          </label>
+          <button class="btn" type="button" onclick="adminLogin()">Xác nhận</button>
+        </div>
+        <div class="small-note muted">Hệ thống kiểm tra theo cấu hình <span class="mono">ConfigLienHe.AdminRoomCodes</span>.</div>
+      </section>
+
+      <!-- MAIN ADMIN -->
+      <div id="adminMain" style="display:none;">
+        <!-- KPI / BADGES -->
+        <section class="card">
+          <div class="card-title">Tổng quan Tạm trú</div>
+
+          <div class="kpi-grid" style="margin-top:10px;">
+            <div class="kpi"><div class="k">Tổng hồ sơ</div><div class="v" id="kpiTotal">--</div></div>
+            <div class="kpi"><div class="k">Còn hạn</div><div class="v" id="kpiValid">--</div></div>
+            <div class="kpi"><div class="k">Sắp hết hạn</div><div class="v" id="kpiSoon">--</div></div>
+            <div class="kpi"><div class="k">Hết hạn</div><div class="v" id="kpiExpired">--</div></div>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+            <div class="chip" onclick="applyFilter({warning:'>2m'})">⚠️ &gt;2 tháng</div>
+            <div class="chip" onclick="applyFilter({warning:'>30d'})">⏳ &gt;30 ngày</div>
+            <div class="chip" onclick="applyFilter({warning:'>3d'})">🔥 &gt;3 ngày</div>
+            <div class="chip" onclick="applyFilter({warning:'1d'})">🚨 1 ngày</div>
+            <div class="chip" onclick="applyFilter({status:'Còn hạn'})">✅ Còn hạn</div>
+            <div class="chip" onclick="applyFilter({status:'Sắp hết hạn'})">🟠 Sắp hết hạn</div>
+            <div class="chip" onclick="applyFilter({status:'Hết hạn'})">⛔ Hết hạn</div>
+            <div class="chip" onclick="applyFilter({status:'', warning:''})">🧹 Bỏ lọc</div>
+          </div>
+
+          <div class="small-note muted" style="margin-top:10px;">
+            Tip: bấm chip để lọc danh sách bên dưới.
+          </div>
+        </section>
+
+        <!-- DASHBOARD FILTER -->
+        <section class="card">
+          <div class="card-title">Dashboard theo tháng</div>
+
+          <div class="filters" style="margin-top:10px;">
+            <label class="field">
+              <div class="field-label">Năm</div>
+              <input id="dashYear" class="form-control" type="number" min="2020" max="2100" />
+            </label>
+            <label class="field">
+              <div class="field-label">Tháng (1–12)</div>
+              <input id="dashMonth" class="form-control" type="number" min="1" max="12" />
+            </label>
+            <button class="btn" type="button" onclick="loadDashboard()">Tải dashboard</button>
+          </div>
+
+          <div class="table-wrap" style="margin-top:10px;">
+            <table class="table-like">
+              <thead>
+                <tr>
+                  <th>Chỉ số</th>
+                  <th class="right">Giá trị</th>
+                </tr>
+              </thead>
+              <tbody id="dashSummaryBody">
+                <tr><td colspan="2" class="muted">Chưa tải.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="small-note muted" style="margin-top:8px;">
+            (Nếu bạn muốn biểu đồ cột/line: mình sẽ thêm Chart.js sau. Hiện tại bảng summary đủ dùng để bàn giao.)
+          </div>
+        </section>
+
+        <!-- LIST -->
+        <section class="card">
+          <div class="card-title">Danh sách hồ sơ Tạm trú</div>
+
+          <div class="filters" style="margin-top:10px;">
+            <label class="field">
+              <div class="field-label">Lọc theo Trạng thái</div>
+              <select id="filterStatus" class="form-control" onchange="applyFilter({status:this.value})">
+                <option value="">-- Tất cả --</option>
+                <option value="Còn hạn">Còn hạn</option>
+                <option value="Sắp hết hạn">Sắp hết hạn</option>
+                <option value="Hết hạn">Hết hạn</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <div class="field-label">Lọc theo Cảnh báo</div>
+              <select id="filterWarning" class="form-control" onchange="applyFilter({warning:this.value})">
+                <option value="">-- Tất cả --</option>
+                <option value=">2m">&gt;2 tháng</option>
+                <option value=">30d">&gt;30 ngày</option>
+                <option value=">3d">&gt;3 ngày</option>
+                <option value="1d">1 ngày</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <div class="field-label">Tra cứu lịch sử theo CCCD</div>
+              <input id="searchCCCD" class="form-control" placeholder="012345678901" />
+            </label>
+            <button class="btn btn-outline" type="button" onclick="searchHistory()">Tra cứu</button>
+          </div>
+
+          <div class="table-wrap" style="margin-top:10px;">
+            <table class="table-like">
+              <thead>
+                <tr>
+                  <th class="nowrap">ID</th>
+                  <th class="nowrap">Phòng</th>
+                  <th>Họ tên</th>
+                  <th class="nowrap">CCCD</th>
+                  <th class="nowrap">Từ</th>
+                  <th class="nowrap">Đến</th>
+                  <th class="nowrap">Trạng thái</th>
+                  <th class="nowrap">Cảnh báo</th>
+                  <th class="nowrap">CT01</th>
+                </tr>
+              </thead>
+              <tbody id="tamtruListBody">
+                <tr><td colspan="9" class="muted">Đang tải…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- HISTORY RESULT -->
+        <section class="card" id="historyCard" style="display:none;">
+          <div class="card-title">Lịch sử tạm trú theo CCCD</div>
+          <div class="table-wrap" style="margin-top:10px;">
+            <table class="table-like">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Phòng</th>
+                  <th>Họ tên</th>
+                  <th>Từ</th>
+                  <th>Đến</th>
+                  <th>Trạng thái</th>
+                  <th>CT01</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <tr><td colspan="7" class="muted">--</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+<script>
+  const API_URL = (window.YT_HOME_API_URL || document.querySelector('meta[name=yt-home-api]')?.content || '');
+  const ADMIN_STORAGE_KEY = "ytHomeAdmin";
+  let currentFilter = { status:'', warning:'' };
+
+  function qs(obj){
+    const p = new URLSearchParams();
+    Object.keys(obj || {}).forEach(k=>{
+      const v = obj[k];
+      if (v !== undefined && v !== null && String(v).length) p.set(k, v);
+    });
+    return p.toString();
+  }
+  async function apiGet(action, params){
+    const url = API_URL + (API_URL.includes('?')?'&':'?') + qs(Object.assign({ action }, params || {}));
+    const res = await fetch(url, { method:'GET' });
+    return res.json();
+  }
+
+  function saveAdmin(roomCode){
+    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify({ roomCode }));
+  }
+  function getSavedAdmin(){
+    try { return JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || 'null'); } catch(e){ return null; }
+  }
+  function logoutAdmin(){
+    localStorage.removeItem(ADMIN_STORAGE_KEY);
+    location.reload();
+  }
+
+  function setStatus(msg){ const el=document.getElementById('adminStatus'); if(el) el.textContent = msg; }
+
+  async function checkAdmin(roomCode){
+    const out = await apiGet('adminRole', { roomCode });
+    return !!(out && (out.ok || out.success) && out.role === 'admin');
+  }
+
+  async function adminLogin(){
+    const rc = (document.getElementById('adminRoomCode')?.value || '').trim().toUpperCase();
+    if(!rc) return setStatus('Vui lòng nhập mã phòng admin.');
+    setStatus('Đang kiểm tra quyền admin…');
+    try{
+      const ok = await checkAdmin(rc);
+      if(!ok){
+        setStatus('Không có quyền admin cho mã phòng này.');
+        return;
+      }
+      saveAdmin(rc);
+      setStatus('OK. Đang tải dữ liệu…');
+      showAdminUI_();
+    }catch(err){
+      console.error(err);
+      setStatus('Lỗi kết nối Apps Script.');
+    }
+  }
+
+  function showLoginUI_(){
+    document.getElementById('adminLoginCard').style.display='block';
+    document.getElementById('adminMain').style.display='none';
+  }
+  function showAdminUI_(){
+    document.getElementById('adminLoginCard').style.display='none';
+    document.getElementById('adminMain').style.display='block';
+
+    // set default month/year
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth()+1;
+    const yEl = document.getElementById('dashYear');
+    const mEl = document.getElementById('dashMonth');
+    if(yEl && !yEl.value) yEl.value = y;
+    if(mEl && !mEl.value) mEl.value = m;
+
+    loadAll();
+  }
+
+  function applyFilter(next){
+    currentFilter = Object.assign({}, currentFilter, next || {});
+    // sync selects
+    const st = document.getElementById('filterStatus');
+    const wn = document.getElementById('filterWarning');
+    if(st && st.value !== currentFilter.status) st.value = currentFilter.status || '';
+    if(wn && wn.value !== currentFilter.warning) wn.value = currentFilter.warning || '';
+    loadTamTruList();
+  }
+
+  async function loadAll(){
+    await loadBadge();
+    await loadDashboard();
+    await loadTamTruList();
+    setStatus('Sẵn sàng.');
+  }
+
+  async function loadBadge(){
+    const out = await apiGet('tamtru_badge', {});
+    // accept many shapes
+    const b = out?.data || out?.badge || out || {};
+    document.getElementById('kpiTotal').textContent   = (b.total ?? b.Total ?? '--');
+    document.getElementById('kpiValid').textContent   = (b.valid ?? b.conHan ?? '--');
+    document.getElementById('kpiSoon').textContent    = (b.soon ?? b.sapHet ?? '--');
+    document.getElementById('kpiExpired').textContent = (b.expired ?? b.hetHan ?? '--');
+  }
+
+  async function loadDashboard(){
+    const year  = String(document.getElementById('dashYear')?.value || '').trim();
+    const month = String(document.getElementById('dashMonth')?.value || '').trim();
+    const out = await apiGet('dash_tamtru_summary', { year, month });
+
+    const rows = out?.rows || out?.data || out?.summary || out;
+    const body = document.getElementById('dashSummaryBody');
+    if(!body) return;
+
+    const map = (rows && typeof rows === 'object') ? rows : {};
+    const entries = Object.keys(map).map(k=>[k, map[k]]);
+    if(!entries.length){
+      body.innerHTML = '<tr><td colspan="2" class="muted">Không có dữ liệu.</td></tr>';
+      return;
+    }
+    body.innerHTML = entries.map(([k,v])=>`
+      <tr><td>${escapeHtml(k)}</td><td class="right">${escapeHtml(String(v))}</td></tr>
+    `).join('');
+  }
+
+  async function loadTamTruList(){
+    const out = await apiGet('tamtru_list', { status: currentFilter.status || '', warning: currentFilter.warning || '' });
+    const items = out?.data || out?.items || out?.list || [];
+    const body = document.getElementById('tamtruListBody');
+    if(!body) return;
+
+    if(!Array.isArray(items) || !items.length){
+      body.innerHTML = '<tr><td colspan="9" class="muted">Không có hồ sơ phù hợp bộ lọc.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = items.map(it=>{
+      const id = it.id || it.ID || '';
+      const room = it.maPhong || it.roomCode || it.room || '';
+      const name = it.hoTen || it.name || '';
+      const cccd = it.cccd || '';
+      const from = it.ngayBD || it.from || '';
+      const to   = it.ngayKT || it.to || '';
+      const st   = it.trangThai || it.status || '';
+      const wn   = it.canhBao || it.warning || '';
+      const ct01Url = it.ct01Url || it.linkCT01 || it.ct01 || '';
+
+      return `
+        <tr>
+          <td class="mono nowrap">${escapeHtml(String(id))}</td>
+          <td class="nowrap">${escapeHtml(String(room))}</td>
+          <td>${escapeHtml(String(name))}</td>
+          <td class="mono nowrap">${escapeHtml(String(cccd))}</td>
+          <td class="nowrap">${escapeHtml(String(from))}</td>
+          <td class="nowrap">${escapeHtml(String(to))}</td>
+          <td class="nowrap">${escapeHtml(String(st))}</td>
+          <td class="nowrap">${escapeHtml(String(wn))}</td>
+          <td class="nowrap">
+            ${ct01Url ? `<a class="btn btn-outline btn-sm" target="_blank" href="${escapeAttr(ct01Url)}">Mở</a>` : ''}
+            <button class="btn btn-sm" type="button" onclick="genCT01('${escapeJs(String(id))}')">Sinh</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  async function genCT01(id){
+    if(!id) return alert('Thiếu ID hồ sơ.');
+    setStatus('Đang sinh CT01…');
+    try{
+      const out = await apiGet('ct01_generate', { id });
+      const url = out?.url || out?.pdfUrl || out?.fileUrl;
+      if(url) window.open(url, '_blank');
+      await loadTamTruList();
+      setStatus('Đã sinh CT01.');
+    }catch(err){
+      console.error(err);
+      setStatus('Lỗi sinh CT01.');
+      alert('Không sinh được CT01. Kiểm tra Template/Folder ID trong code.gs');
+    }
+  }
+
+  async function searchHistory(){
+    const cccd = (document.getElementById('searchCCCD')?.value || '').trim();
+    if(!cccd) return alert('Nhập CCCD để tra cứu.');
+    setStatus('Đang tra cứu lịch sử…');
+    try{
+      const out = await apiGet('tamtru_history', { cccd });
+      const list = out?.data || out?.items || out?.history || [];
+      const card = document.getElementById('historyCard');
+      const body = document.getElementById('historyBody');
+
+      if(!Array.isArray(list) || !list.length){
+        card.style.display='block';
+        body.innerHTML = '<tr><td colspan="7" class="muted">Không có lịch sử.</td></tr>';
+        setStatus('Không có lịch sử.');
+        return;
+      }
+
+      card.style.display='block';
+      body.innerHTML = list.map(it=>{
+        const id = it.id || it.ID || '';
+        const room = it.maPhong || it.roomCode || it.room || '';
+        const name = it.hoTen || it.name || '';
+        const from = it.ngayBD || it.from || '';
+        const to   = it.ngayKT || it.to || '';
+        const st   = it.trangThai || it.status || '';
+        const ct01Url = it.ct01Url || it.linkCT01 || it.ct01 || '';
+
+        return `
+          <tr>
+            <td class="mono">${escapeHtml(String(id))}</td>
+            <td>${escapeHtml(String(room))}</td>
+            <td>${escapeHtml(String(name))}</td>
+            <td>${escapeHtml(String(from))}</td>
+            <td>${escapeHtml(String(to))}</td>
+            <td>${escapeHtml(String(st))}</td>
+            <td class="nowrap">
+              ${ct01Url ? `<a class="btn btn-outline btn-sm" target="_blank" href="${escapeAttr(ct01Url)}">Mở</a>` : ''}
+              <button class="btn btn-sm" type="button" onclick="genCT01('${escapeJs(String(id))}')">Sinh</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      setStatus('Đã tải lịch sử.');
+    }catch(err){
+      console.error(err);
+      setStatus('Lỗi tra cứu.');
+      alert('Lỗi tra cứu lịch sử CCCD.');
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+  function escapeJs(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+  // boot
+  document.addEventListener('DOMContentLoaded', async ()=>{
+    if(!API_URL){
+      setStatus('Thiếu API URL. Hãy set meta yt-home-api.');
+      showLoginUI_();
+      return;
+    }
+
+    const saved = getSavedAdmin();
+    if(saved && saved.roomCode){
+      try{
+        const ok = await checkAdmin(String(saved.roomCode).trim().toUpperCase());
+        if(ok){
+          showAdminUI_();
+          return;
+        }
+      }catch(e){}
+    }
+    setStatus('Vui lòng đăng nhập admin.');
+    showLoginUI_();
+  });
+</script>
+</body>
+</html>
