@@ -1,3 +1,4 @@
+
 /* =========================================================
  * YT HOME – CSS DÙNG CHUNG
  * - Áp dụng cho: index.html, room.html, tenant.html
@@ -2124,81 +2125,5 @@ body.tenant-body #invoiceDetailTable tfoot td {
   max-height: 360px;
   object-fit: contain;
   border-radius: 12px;
-}
-
-
-/* =========================
-   PORTAL – cải thiện hiển thị (Card Thông tin phòng)
-   ========================= */
-.contract-days-left{
-  margin-top: 8px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(239, 68, 68, 0.14);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fecaca;
-}
-.contract-days-left::before{
-  content: "⏳";
-}
-.table-fixed{
-  table-layout: fixed;
-  width: 100%;
-}
-.table-fixed th,
-.table-fixed td{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.cell-ellipsis{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-
-/* ========== TABLE: chống rớt dòng (auto fix) ========== */
-.table-like th, .table-like td{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.td-ellipsis{
-  max-width: 520px;
-}
-
-/* ========== Card Thông tin phòng: số ngày còn lại nổi bật dưới badge Phòng ========== */
-.contract-days-top{
-  margin-top: 8px;
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 800;
-  letter-spacing: .2px;
-}
-.contract-days-top.days-left-red{
-  background: rgba(239,68,68,.18);
-  color: #ef4444;
-  border: 1px solid rgba(239,68,68,.35);
-}
-.contract-days-top.days-left-yellow{
-  background: rgba(245,158,11,.18);
-  color: #f59e0b;
-  border: 1px solid rgba(245,158,11,.35);
-}
-
-/* ========== Thanh toán: format "Kỳ" + trạng thái ========== */
-#invKy{
-  font-weight: 800;
-  color: #fbbf24; /* vàng */
-}
-.pill-danger{
-  font-weight: 800;
 }
 
