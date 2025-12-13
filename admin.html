@@ -386,6 +386,7 @@
 
   // Login check: dùng 1 admin action nhẹ để verify (tamtru_badge)
   async function verifyAdmin(roomCode, adminPassword){
+    console.log('VERIFY payload =', { action:'tamtru_badge', roomCode, adminPassword });
     const res = await fetch(API_URL, {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
@@ -645,5 +646,6 @@
 </script>
 </body>
 </html>
+
 
 
