@@ -655,6 +655,8 @@
     }
 
     // 8. Danh sách thiết bị / tài sản trong phòng
+    // 8. Danh sách thiết bị (sheet "Tài sản")
+    renderAssetsTab_(data);
     const assetsBody = $('assetsTableBody');
     if (assetsBody) {
       assetsBody.innerHTML = '';
@@ -669,7 +671,7 @@
             <td class="assets-name">${a.tenThietBi || a.tenTaiSan || ''}</td>
             <td>${a.tinhTrang || ''}</td>
             <td>${a.baoHanh || ''}</td>
-            <td>${a.baoTriGanNhat ? formatDateDDMMYYYY(a.baoTriGanNhat) : ''}</td>
+            <td>${a.ngayBaoTriGanNhat ? formatDateDDMMYYYY(a.ngayBaoTriGanNhat) : '--'}</td>
             <td>
               <button type="button" class="btn btn-outline btn-sm" onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,"&#39;")}')">Báo hỏng</button>
             </td>
@@ -1328,4 +1330,5 @@
 
 </body>
 </html>
+
 
