@@ -294,1090 +294,793 @@
   </div>
 
 
-  <script>
-    const TENANT_STORAGE_KEY = "ytHomeTenant";
-    const API_URL = "https://script.google.com/macros/s/AKfycbygGETExn0CZupPb2Y5CHHXUKrwPELjyWfoqHU76i05K200zn--z3D-LqwzqtNG2ZnT/exec";
-    let CURRENT_INVOICES = [];
-    let CURRENT_SELECTED_INVOICE = null;
+<script>
+  const TENANT_STORAGE_KEY = "ytHomeTenant";
+  const API_URL = "https://script.google.com/macros/s/AKfycbygGETExn0CZupPb2Y5CHHXUKrwPELjyWfoqHU76i05K200zn--z3D-LqwzqtNG2ZnT/exec";
+  let CURRENT_INVOICES = [];
+  let CURRENT_SELECTED_INVOICE = null;
 
-    function logoutTenant() {
-      try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
-      window.location.href = "tenant.html";
-    }
+  // ✅ FIX: bạn đang gọi fetchTenantPortalData nhưng chưa định nghĩa
+  async function fetchTenantPortalData(roomCode, identity){
+    return fetchData(roomCode, identity);
+  }
 
-    function formatVND(amount){
-      if(amount===null||amount===undefined||amount==='') return '--';
-      const num = Number(String(amount).replace(/[^\d.-]/g,''));
-      if(isNaN(num)) return String(amount);
-      return num.toLocaleString('vi-VN') + ' đ';
-    }
-   
-    function maskLast4Digits(v){
-      const s = String(v || '').replace(/\s+/g,'').trim();
-      if (!s) return '--';
-      const last4 = s.slice(-4);
-      return '****' + last4;
-    }
+  function logoutTenant() {
+    try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
+    window.location.href = "tenant.html";
+  }
 
-    function setActiveTab(group, tabName){
-      document.querySelectorAll('.tab-btn.tab-' + group).forEach(btn=>{
-        btn.classList.toggle('active', btn.dataset.tab === tabName);
-      });
-      document.querySelectorAll('.tab-pane-' + group).forEach(pane=>{
-        pane.classList.toggle('hidden', pane.id !== 'tab-' + tabName);
-      });
-    }
+  function formatVND(amount){
+    if(amount===null||amount===undefined||amount==='') return '--';
+    const num = Number(String(amount).replace(/[^\d.-]/g,''));
+    if(isNaN(num)) return String(amount);
+    return num.toLocaleString('vi-VN') + ' đ';
+  }
 
-    // Đổi mọi kiểu ngày về Date rồi format DD/MM/YYYY
-    function toDateObject(value) {
-      if (!value) return null;
-      if (value instanceof Date) return value;
-      const d = new Date(value);
-      return isNaN(d) ? null : d;
-    }
+  function maskLast4Digits(v){
+    const s = String(v || '').replace(/\s+/g,'').trim();
+    if (!s) return '--';
+    const last4 = s.slice(-4);
+    return '****' + last4;
+  }
 
-    function formatDateDDMMYYYY(value) {
-      const d = toDateObject(value);
-      if (!d) return value || '';
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const yyyy = d.getFullYear();
-      return `${dd}/${mm}/${yyyy}`;
-    }
+  function setActiveTab(group, tabName){
+    document.querySelectorAll('.tab-btn.tab-' + group).forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+    document.querySelectorAll('.tab-pane-' + group).forEach(pane=>{
+      pane.classList.toggle('hidden', pane.id !== 'tab-' + tabName);
+    });
+  }
 
-    // Render trạng thái dạng text hoặc nút "xem chi tiết" (dùng cho các bảng khác)
-    function renderStatusHTML(text, context) {
-      const raw = (text == null) ? '' : String(text).trim();
-      if (!raw) {
-        return '<span class="status-text muted">--</span>';
-      }
+  function toDateObject(value) {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const d = new Date(value);
+    return isNaN(d) ? null : d;
+  }
 
-      const lower = raw.toLowerCase();
-      const isIncomplete =
-        lower.includes('chưa') ||
-        lower.includes('chua') ||
-        lower.includes('còn thiếu') ||
-        lower.includes('con thieu');
+  function formatDateDDMMYYYY(value) {
+    const d = toDateObject(value);
+    if (!d) return value || '';
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
 
-      if (!isIncomplete) {
-        return `<span class="status-text">${raw}</span>`;
-      }
+  function renderStatusHTML(text, context) {
+    const raw = (text == null) ? '' : String(text).trim();
+    if (!raw) return '<span class="status-text muted">--</span>';
 
-      const safeStatus = raw.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      const safeContext = (context || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const lower = raw.toLowerCase();
+    const isIncomplete =
+      lower.includes('chưa') ||
+      lower.includes('chua') ||
+      lower.includes('còn thiếu') ||
+      lower.includes('con thieu');
 
-      return `
-        <button type="button"
-          class="status-chip status-chip-warning"
-          onclick="openStatusDetail('${safeContext}','${safeStatus}')">
-          ${raw}
-        </button>`;
-    }
+    if (!isIncomplete) return `<span class="status-text">${raw}</span>`;
 
-    // Popup chi tiết – hiện tại chỉ alert
-    function openStatusDetail(context, statusText) {
-      const ctx = context ? `Ngữ cảnh: ${context}\n` : '';
-      alert(ctx + 'Trạng thái: ' + statusText);
-    }
+    const safeStatus = raw.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const safeContext = (context || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-    // Tính số tháng còn lại giữa 2 ngày
-    function monthsBetween(from, to) {
-      const d1 = new Date(from);
-      const d2 = new Date(to);
-      if (isNaN(d1) || isNaN(d2)) return null;
+    return `
+      <button type="button"
+        class="status-chip status-chip-warning"
+        onclick="openStatusDetail('${safeContext}','${safeStatus}')">
+        ${raw}
+      </button>`;
+  }
 
-      let months =
-        (d2.getFullYear() - d1.getFullYear()) * 12 +
-        (d2.getMonth() - d1.getMonth());
+  function openStatusDetail(context, statusText) {
+    const ctx = context ? `Ngữ cảnh: ${context}\n` : '';
+    alert(ctx + 'Trạng thái: ' + statusText);
+  }
 
-      if (d2.getDate() < d1.getDate()) months -= 1;
-      return months;
-    }
+  function monthsBetween(from, to) {
+    const d1 = new Date(from);
+    const d2 = new Date(to);
+    if (isNaN(d1) || isNaN(d2)) return null;
 
-    // Xác định mode trạng thái hóa đơn: cần thanh toán / đã thanh toán / khác
-    function getInvoiceStatusMode(inv){
-      const txt = (inv && inv.trangThai ? String(inv.trangThai) : '').toLowerCase();
-      if (!txt) return 'unknown';
-      if (txt.includes('thiếu') || txt.includes('con thieu')) return 'need-pay';
-      if (txt.includes('thu đủ') || txt.includes('thu du') || txt.includes('đã thanh toán') || txt.includes('da thanh toan')) {
-        return 'paid';
-      }
-      return 'unknown';
-    }
+    let months =
+      (d2.getFullYear() - d1.getFullYear()) * 12 +
+      (d2.getMonth() - d1.getMonth());
 
-    // 🔧 renderInfoCard với skeleton + cảnh báo HĐ
-    function renderInfoCard(data){
-      const $ = (id) => document.getElementById(id);
+    if (d2.getDate() < d1.getDate()) months -= 1;
+    return months;
+  }
 
-      const roomBadge   = $('roomBadge');
-      const roomLabel   = $('roomLabel');
-      const ownerName   = $('ownerName');
-      const ownerCCCD   = $('ownerCCCD');
-      const ownerPhone  = $('ownerPhone');
+  function getInvoiceStatusMode(inv){
+    const txt = (inv && inv.trangThai ? String(inv.trangThai) : '').toLowerCase();
+    if (!txt) return 'unknown';
+    if (txt.includes('thiếu') || txt.includes('con thieu')) return 'need-pay';
+    if (txt.includes('thu đủ') || txt.includes('thu du') || txt.includes('đã thanh toán') || txt.includes('da thanh toan')) return 'paid';
+    return 'unknown';
+  }
 
-      const contractStatusEl  = $('contractStatus');
-      const contractTypeEl    = $('contractType');
-      const contractPeriodEl  = $('contractPeriod');
-      const contractRentEl    = $('contractRent');
-      const contractDepositEl = $('contractDeposit');
-      const contractDueDayEl  = $('contractDueDay');
-      const contractServices  = $('contractServices');
-      const extendBtn         = $('extendContractBtn');
+  // =========================
+  // INFO CARD (giữ nguyên code bạn)
+  // =========================
+  function renderInfoCard(data){
+    const $ = (id) => document.getElementById(id);
 
-      const membersBody       = $('membersTableBody');
+    const roomBadge   = $('roomBadge');
+    const roomLabel   = $('roomLabel');
+    const ownerName   = $('ownerName');
+    const ownerCCCD   = $('ownerCCCD');
+    const ownerPhone  = $('ownerPhone');
 
-      const isEmptyData =
-        !data ||
-        typeof data !== 'object' ||
-        Object.keys(data).length === 0;
+    const contractStatusEl  = $('contractStatus');
+    const contractTypeEl    = $('contractType');
+    const contractPeriodEl  = $('contractPeriod');
+    const contractRentEl    = $('contractRent');
+    const contractDepositEl = $('contractDeposit');
+    const contractDueDayEl  = $('contractDueDay');
+    const contractServices  = $('contractServices');
+    const extendBtn         = $('extendContractBtn');
 
-      if (isEmptyData) {
-        const skeletonTargets = [
-          roomBadge, roomLabel,
-          ownerName, ownerCCCD, ownerPhone,
-          contractStatusEl, contractTypeEl,
-          contractPeriodEl, contractRentEl,
-          contractDepositEl, contractDueDayEl
-        ];
+    const membersBody       = $('membersTableBody');
 
-        skeletonTargets.forEach(el => {
-          if (!el) return;
-          el.textContent = '';
-          el.classList.add('skeleton');
-        });
+    const isEmptyData =
+      !data || typeof data !== 'object' || Object.keys(data).length === 0;
 
-        if (contractServices) {
-          contractServices.innerHTML =
-            '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
-        }
-
-        if (membersBody) {
-          membersBody.innerHTML =
-            '<tr><td colspan="6" class="muted skeleton">Đang tải danh sách người ở...</td></tr>';
-        }
-
-        if (extendBtn) {
-          extendBtn.style.display = 'none';
-        }
-
-        return;
-      }
-
-      const allTargets = [
+    if (isEmptyData) {
+      const skeletonTargets = [
         roomBadge, roomLabel,
         ownerName, ownerCCCD, ownerPhone,
         contractStatusEl, contractTypeEl,
         contractPeriodEl, contractRentEl,
         contractDepositEl, contractDueDayEl
       ];
-      allTargets.forEach(el => {
-        if (el) el.classList.remove('skeleton');
+
+      skeletonTargets.forEach(el => {
+        if (!el) return;
+        el.textContent = '';
+        el.classList.add('skeleton');
       });
-      if (membersBody) membersBody.classList.remove('skeleton');
-      if (contractServices) contractServices.classList.remove('skeleton');
 
-      // 2. Thông tin phòng
-      const roomCode = (data && data.roomCode) ? data.roomCode : '--';
-      if (roomBadge) roomBadge.textContent = 'Phòng: ' + roomCode;
-      if (roomLabel) roomLabel.textContent = roomCode;
-
-      // 3. Chủ phòng
-      const chuPhong = (data && data.chuPhong) ? data.chuPhong : {};
-      if (ownerName)  ownerName.textContent  = chuPhong.hoTen     || '--';
-      if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd ? maskLast4Digits(chuPhong.cccd) : '--';
-      if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai ? maskLast4Digits(chuPhong.dienThoai) : '--';
-
-      // 4. Hợp đồng
-      const contract = (data && data.contract) ? data.contract : null;
-
-      // Cảnh báo sắp hết hạn
-      let monthsLeft = null;
-      if (contract && contract.ngayKT) {
-        monthsLeft = monthsBetween(new Date(), contract.ngayKT);
+      if (contractServices) {
+        contractServices.innerHTML = '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
       }
 
-      let warningClass = "";
-      if (monthsLeft != null) {
-        if (monthsLeft <= 1) warningClass = "contract-alert-red";
-        else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
+      if (membersBody) {
+        membersBody.innerHTML = '<tr><td colspan="6" class="muted skeleton">Đang tải danh sách người ở...</td></tr>';
       }
 
-      if (contractStatusEl) {
-        contractStatusEl.classList.remove("contract-alert-red","contract-alert-yellow");
-        if (warningClass) contractStatusEl.classList.add(warningClass);
-      }
+      if (extendBtn) extendBtn.style.display = 'none';
+      return;
+    }
 
-      function getStatusClass(statusText) {
-        if (!statusText) return '';
-        const s = statusText.toString().toLowerCase();
+    const allTargets = [
+      roomBadge, roomLabel,
+      ownerName, ownerCCCD, ownerPhone,
+      contractStatusEl, contractTypeEl,
+      contractPeriodEl, contractRentEl,
+      contractDepositEl, contractDueDayEl
+    ];
+    allTargets.forEach(el => { if (el) el.classList.remove('skeleton'); });
+    if (membersBody) membersBody.classList.remove('skeleton');
+    if (contractServices) contractServices.classList.remove('skeleton');
 
-        if (s.includes('hiệu lực') || s.includes('đang thuê')) {
-          return 'badge-success';
-        }
-        if (s.includes('sắp hết') || s.includes('chờ gia hạn')) {
-          return 'badge-warning';
-        }
-        if (s.includes('hết hạn') || s.includes('thanh lý') || s.includes('ngưng')) {
-          return 'badge-danger';
-        }
-        return 'badge-neutral';
-      }
+    const roomCode = (data && data.roomCode) ? data.roomCode : '--';
+    if (roomBadge) roomBadge.textContent = 'Phòng: ' + roomCode;
+    if (roomLabel) roomLabel.textContent = roomCode;
 
-      if (contractStatusEl) {
-        const text = contract ? (contract.trangThai || '--') : '--';
-        contractStatusEl.textContent = text;
+    const chuPhong = (data && data.chuPhong) ? data.chuPhong : {};
+    if (ownerName)  ownerName.textContent  = chuPhong.hoTen     || '--';
+    if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd ? maskLast4Digits(chuPhong.cccd) : '--';
+    if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai ? maskLast4Digits(chuPhong.dienThoai) : '--';
 
-        contractStatusEl.classList.remove(
-          'badge-success','badge-warning','badge-danger','badge-neutral'
-        );
-        const statusClass = getStatusClass(text);
-        if (statusClass) contractStatusEl.classList.add(statusClass);
-      }
+    const contract = (data && data.contract) ? data.contract : null;
 
-      if (contractTypeEl) {
-        contractTypeEl.textContent = contract ? (contract.loaiHD || '--') : '--';
-      }
+    let monthsLeft = null;
+    if (contract && contract.ngayKT) monthsLeft = monthsBetween(new Date(), contract.ngayKT);
 
-      // Thời gian HĐ + số ngày còn lại
-      if (contractPeriodEl) {
-        let baseText = '--';
-        let daysLeftText = '';
+    let warningClass = "";
+    if (monthsLeft != null) {
+      if (monthsLeft <= 1) warningClass = "contract-alert-red";
+      else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
+    }
 
-        if (contract && (contract.ngayBD || contract.ngayKT)) {
-          const startRaw = contract.ngayBD ? contract.ngayBD : '';
-          const endRaw   = contract.ngayKT ? contract.ngayKT : '';
+    if (contractStatusEl) {
+      contractStatusEl.classList.remove("contract-alert-red","contract-alert-yellow");
+      if (warningClass) contractStatusEl.classList.add(warningClass);
+    }
 
-          const start = startRaw ? formatDateDDMMYYYY(startRaw) : '';
-          const end   = endRaw   ? formatDateDDMMYYYY(endRaw)   : '';
+    function getStatusClass(statusText) {
+      if (!statusText) return '';
+      const s = statusText.toString().toLowerCase();
+      if (s.includes('hiệu lực') || s.includes('đang thuê')) return 'badge-success';
+      if (s.includes('sắp hết') || s.includes('chờ gia hạn')) return 'badge-warning';
+      if (s.includes('hết hạn') || s.includes('thanh lý') || s.includes('ngưng')) return 'badge-danger';
+      return 'badge-neutral';
+    }
 
-          baseText = (start && end) ? (start + ' – ' + end) : (start || end || '--');
+    if (contractStatusEl) {
+      const text = contract ? (contract.trangThai || '--') : '--';
+      contractStatusEl.textContent = text;
 
-          const endDateObj = toDateObject(endRaw);
-          if (endDateObj) {
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const diffMs   = endDateObj.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      contractStatusEl.classList.remove('badge-success','badge-warning','badge-danger','badge-neutral');
+      const statusClass = getStatusClass(text);
+      if (statusClass) contractStatusEl.classList.add(statusClass);
+    }
 
-            if (diffDays >= 0) {
-              let cls = '';
-              if (diffDays < 30)      cls = 'days-left-red';
-              else if (diffDays < 60) cls = 'days-left-yellow';
+    if (contractTypeEl) contractTypeEl.textContent = contract ? (contract.loaiHD || '--') : '--';
 
-              if (cls) {
-                daysLeftText = ` <span class="${cls}">(còn ${diffDays} ngày)</span>`;
-              }
-            }
+    if (contractPeriodEl) {
+      let baseText = '--';
+      let daysLeftText = '';
+
+      if (contract && (contract.ngayBD || contract.ngayKT)) {
+        const startRaw = contract.ngayBD ? contract.ngayBD : '';
+        const endRaw   = contract.ngayKT ? contract.ngayKT : '';
+
+        const start = startRaw ? formatDateDDMMYYYY(startRaw) : '';
+        const end   = endRaw   ? formatDateDDMMYYYY(endRaw)   : '';
+
+        baseText = (start && end) ? (start + ' – ' + end) : (start || end || '--');
+
+        const endDateObj = toDateObject(endRaw);
+        if (endDateObj) {
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          const diffMs   = endDateObj.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+          if (diffDays >= 0) {
+            let cls = '';
+            if (diffDays < 30) cls = 'days-left-red';
+            else if (diffDays < 60) cls = 'days-left-yellow';
+            if (cls) daysLeftText = ` <span class="${cls}">(còn ${diffDays} ngày)</span>`;
           }
         }
-
-        contractPeriodEl.innerHTML = baseText + daysLeftText;
       }
 
-      if (contractRentEl) {
-        contractRentEl.textContent = (contract && contract.tienThue != null)
-          ? formatVND(contract.tienThue)
-          : '--';
-      }
+      contractPeriodEl.innerHTML = baseText + daysLeftText;
+    }
 
-      if (contractDepositEl) {
-        contractDepositEl.textContent = (contract && contract.tienCoc != null)
-          ? formatVND(contract.tienCoc)
-          : '--';
-      }
+    if (contractRentEl) {
+      contractRentEl.textContent = (contract && contract.tienThue != null) ? formatVND(contract.tienThue) : '--';
+    }
+    if (contractDepositEl) {
+      contractDepositEl.textContent = (contract && contract.tienCoc != null) ? formatVND(contract.tienCoc) : '--';
+    }
+    if (contractDueDayEl) contractDueDayEl.textContent = contract ? (contract.ngayThuTien || '--') : '--';
 
-      if (contractDueDayEl) {
-        contractDueDayEl.textContent = contract ? (contract.ngayThuTien || '--') : '--';
-      }
-
-      // 5. Dịch vụ trong HĐ
-      if (contractServices) {
-        contractServices.innerHTML = '';
-
-        if (contract) {
-          ['1','2','3'].forEach(n => {
-            const ma = contract['maDV' + n];
-            const dg = contract['donGiaDV' + n];
-            if (ma) {
-              const li = document.createElement('li');
-              li.textContent = ma + (dg != null ? (' – ' + formatVND(dg)) : '');
-              contractServices.appendChild(li);
-            }
-          });
-
-          if (!contractServices.childElementCount) {
+    if (contractServices) {
+      contractServices.innerHTML = '';
+      if (contract) {
+        ['1','2','3'].forEach(n => {
+          const ma = contract['maDV' + n];
+          const dg = contract['donGiaDV' + n];
+          if (ma) {
             const li = document.createElement('li');
-            li.textContent = 'Chưa cấu hình dịch vụ.';
+            li.textContent = ma + (dg != null ? (' – ' + formatVND(dg)) : '');
             contractServices.appendChild(li);
           }
-        } else {
+        });
+
+        if (!contractServices.childElementCount) {
           const li = document.createElement('li');
-          li.textContent = 'Không có hợp đồng để hiển thị dịch vụ.';
+          li.textContent = 'Chưa cấu hình dịch vụ.';
           contractServices.appendChild(li);
         }
-      }
-
-      // 6. Nút gia hạn HĐ
-      if (extendBtn) {
-        if (contract && contract.coTheGiaHan) {
-          extendBtn.style.display = 'inline-flex';
-          extendBtn.textContent = "Gia hạn hợp đồng";
-
-          extendBtn.classList.remove(
-            'btn-disabled','btn-warning','btn-danger','btn-accent'
-          );
-
-          if (monthsLeft != null) {
-            if (monthsLeft <= 1) {
-              extendBtn.classList.add("btn-danger");
-            } else if (monthsLeft <= 2) {
-              extendBtn.classList.add("btn-warning");
-            } else {
-              extendBtn.classList.add("btn-accent");
-            }
-          }
-
-          const statusText = contract.trangThai ? contract.trangThai.toString().toLowerCase() : '';
-          if (statusText.includes('hết hạn')) {
-            extendBtn.classList.add('btn-danger');
-          } else if (statusText.includes('sắp hết')) {
-            extendBtn.classList.add('btn-warning');
-          }
-        } else {
-          extendBtn.style.display = 'none';
-        }
-      }
-
-      // 7. Danh sách người ở
-      if (membersBody) {
-        membersBody.innerHTML = '';
-        const members = Array.isArray(data.members) ? data.members : [];
-
-        if (!members.length) {
-          membersBody.innerHTML =
-            '<tr><td colspan="6" class="muted">Chưa có người ở.</td></tr>';
-        } else {
-          members.forEach(m => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${m.hoTen || ''}</td>
-              <td>${m.dienThoai || ''}</td>
-              <td>${m.cccd || ''}</td>
-              <td>${m.bienSo || ''}</td>
-              <td>${m.ngayTamTru ? formatDateDDMMYYYY(m.ngayTamTru) : ''}</td>
-              <td>${renderStatusHTML(m.trangThaiTamTru, 'tamtru')}</td>
-            `;
-            membersBody.appendChild(tr);
-          });
-        }
+      } else {
+        const li = document.createElement('li');
+        li.textContent = 'Không có hợp đồng để hiển thị dịch vụ.';
+        contractServices.appendChild(li);
       }
     }
 
-    // Hiển thị popup thanh toán (placeholder)
-    function openPaymentPopupByInvoice(inv){
-      if (!inv) return;
-      const code = inv.maHD || inv.namThang || '';
-      alert(
-        'Bạn hãy chụp màn hình/đính kèm phiếu chuyển khoản và gửi cho chủ nhà.\n' +
-        (code ? ('Mã/kỳ hóa đơn: ' + code) : '')
-      );
-    }
+    if (extendBtn) {
+      if (contract && contract.coTheGiaHan) {
+        extendBtn.style.display = 'inline-flex';
+        extendBtn.textContent = "Gia hạn hợp đồng";
 
-    function openPaymentPopup(index){
-      const inv = CURRENT_INVOICES[index];
-      openPaymentPopupByInvoice(inv);
-    }
+        extendBtn.classList.remove('btn-disabled','btn-warning','btn-danger','btn-accent');
 
-    // Chọn 1 hóa đơn trong bảng lịch sử
-    function selectInvoice(index){
-      const historyBody = document.getElementById('paymentHistoryBody');
-      if (!historyBody) return;
-
-      historyBody.querySelectorAll('tr').forEach(row=>{
-        row.classList.remove('row-active');
-      });
-
-      const tr = historyBody.querySelector(`tr[data-index="${index}"]`);
-      if (tr) tr.classList.add('row-active');
-
-      const inv = CURRENT_INVOICES[index];
-      showInvoiceDetail(inv);
-      setActiveTab('pay','detail');
-    }
-    /*
-    function showInvoiceDetail(inv){
-      CURRENT_SELECTED_INVOICE = inv || null;
-
-      if (!inv || !inv.chiTiet) {
-        document.getElementById('invNgayTinh').textContent   = '--';
-        document.getElementById('invTienPhong').textContent  = '--';
-        document.getElementById('invTongDV').textContent     = '--';
-        document.getElementById('invPhatSinh').textContent   = '--';
-        document.getElementById('invGiamTru').textContent    = '--';
-        document.getElementById('invThieuTruoc').textContent = '--';
-        document.getElementById('invPhaiThu').textContent    = '--';
-        document.getElementById('invBankInfo').textContent   = '--';
-
-        const tbody = document.getElementById('invoiceServiceBody');
-        if (tbody){
-          tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có chi tiết dịch vụ.</td></tr>';
-        }
-        const totalCell = document.getElementById('invoiceServiceTotal');
-        if (totalCell) totalCell.textContent = '0 đ';
-
-        const qrContainer = document.getElementById('qrContainer');
-        if (qrContainer){
-          qrContainer.innerHTML = 'Chưa có QR Code.';
+        if (monthsLeft != null) {
+          if (monthsLeft <= 1) extendBtn.classList.add("btn-danger");
+          else if (monthsLeft <= 2) extendBtn.classList.add("btn-warning");
+          else extendBtn.classList.add("btn-accent");
         }
 
-        const detailBtn = document.getElementById('detailStatusBtn');
-        if (detailBtn){
-          detailBtn.style.display = 'none';
-          detailBtn.onclick = null;
-        }
-        return;
+        const statusText = contract.trangThai ? contract.trangThai.toString().toLowerCase() : '';
+        if (statusText.includes('hết hạn')) extendBtn.classList.add('btn-danger');
+        else if (statusText.includes('sắp hết')) extendBtn.classList.add('btn-warning');
+      } else {
+        extendBtn.style.display = 'none';
       }
-
-      const c = inv.chiTiet;
-
-      // Ngày tính HĐ: xx ngày (số nguyên)
-      document.getElementById('invNgayTinh').textContent =
-        Number.isFinite(Number(c.ngayTinhHD))
-          ? `${parseInt(c.ngayTinhHD)} ngày`
-          : '--';
-
-      document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
-      document.getElementById('invTongDV').textContent     = formatVND(c.tongDichVu);
-      document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
-      document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
-      document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
-      document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
-
-      // Thông tin chuyển khoản: mỗi mục 1 dòng
-      const bankInfo = c.bankInfo || {};
-      const bankLines = [];
-      if (bankInfo.soTaiKhoan)  bankLines.push('Số tài khoản: ' + bankInfo.soTaiKhoan);
-      if (bankInfo.chuTaiKhoan) bankLines.push('Chủ tài khoản: ' + bankInfo.chuTaiKhoan);
-      if (bankInfo.nganHang)    bankLines.push('Ngân hàng: ' + bankInfo.nganHang);
-      if (bankInfo.chiNhanh)    bankLines.push('Chi nhánh: ' + bankInfo.chiNhanh);
-
-      const bankEl = document.getElementById('invBankInfo');
-      if (bankEl) bankEl.innerHTML = bankLines.length ? bankLines.join('<br>') : '--';
-
-      // QR
-      const qrContainer = document.getElementById('qrContainer');
-      if (qrContainer) {
-        qrContainer.innerHTML = '';
-        if (c.qrCode){
-          const img = document.createElement('img');
-          img.src = c.qrCode;
-          img.alt = 'QR thanh toán';
-          img.style.maxWidth = '160px';
-          img.style.marginTop = '4px';
-          qrContainer.appendChild(img);
-        } else {
-          qrContainer.textContent = 'Chưa có QR Code.';
-        }
-      }
-
-    // // Bảng dịch vụ chi tiết (Tên dịch vụ = Mã DV từ sheet Hóa đơn)
-      const tbody = document.getElementById('invoiceServiceBody');
-      const totalCell = document.getElementById('invoiceServiceTotal');
-      if (tbody && totalCell) {
-        tbody.innerHTML = '';
-      
-        // ưu tiên inv.services (Apps Script build), fallback c.services
-        const servicesRaw = Array.isArray(inv?.services)
-          ? inv.services
-          : (Array.isArray(c?.services) ? c.services : []);
-      
-        // Chuẩn hoá + lọc bỏ dòng rỗng/0
-        const rows = servicesRaw
-          .map(s => {
-            const maDV = (s.maDV ?? s.ma ?? s.maDichVu ?? s.tenDV ?? '').toString().trim(); // ✅ tên DV lấy từ "Mã DV..."
-            const soDau = Number(s.soDau ?? s.slDau ?? s.chiSoDau ?? 0);
-            const soCuoi = Number(s.soCuoi ?? s.slCuoi ?? s.chiSoCuoi ?? 0);
-            const soLuong = Number(s.soLuong ?? s.slDV ?? 0);
-            const donGia = Number(s.donGia ?? s.donGiaDV ?? 0);
-            const thanhTien = Number(s.thanhTien ?? s.thanhTienDV ?? 0);
-      
-            return { maDV, soDau, soCuoi, soLuong, donGia, thanhTien };
-          })
-          .filter(x => {
-            // bỏ dòng rỗng
-            if (!x.maDV) return false;
-      
-            // bỏ dòng toàn 0
-            const allZero =
-              x.soDau === 0 &&
-              x.soCuoi === 0 &&
-              x.soLuong === 0 &&
-              x.donGia === 0 &&
-              x.thanhTien === 0;
-            if (allZero) return false;
-      
-            // bỏ dòng có thành tiền = 0 (theo yêu cầu "bằng 0" cũng bỏ)
-            if (x.thanhTien === 0) return false;
-      
-            return true;
-          });
-      
-        if (!rows.length) {
-          tbody.innerHTML = '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
-          totalCell.textContent = formatVND(0);
-        } else {
-          let total = 0;
-      
-          rows.forEach(x => {
-            total += x.thanhTien;
-      
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${x.maDV}</td>
-              <td>${x.soDau ? x.soDau : ''}</td>
-              <td>${x.soCuoi ? x.soCuoi : ''}</td>
-              <td>${x.soLuong ? x.soLuong : ''}</td>
-              <td>${formatVND(x.donGia)}</td>
-              <td>${formatVND(x.thanhTien)}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-      
-          totalCell.textContent = formatVND(total);
-        }
-      }
-
-    */
-    // =========================
-    // THANH TOÁN: lịch sử + chi tiết (chọn dòng)
-    // =========================
-    let __selectedInvoiceIndex = 0;
-    let __portalDataCache = null;
-
-    function isInvoicePaid_(inv){
-      const st = String(inv && inv.trangThai || '').toLowerCase();
-      // coi "đủ/đã thu/đã thanh toán/hoàn tất" là đã thanh toán
-      return (
-        st.includes('đủ') ||
-        st.includes('da du') ||
-        st.includes('đã thu') ||
-        st.includes('da thu') ||
-        st.includes('đã thanh toán') ||
-        st.includes('da thanh toan') ||
-        st.includes('hoàn tất') ||
-        st.includes('hoan tat')
-      );
     }
 
-    function renderInvoiceStatusCell_(inv, index){
-      if (!inv) return '<span class="pill pill-neutral">--</span>';
+    if (membersBody) {
+      membersBody.innerHTML = '';
+      const members = Array.isArray(data.members) ? data.members : [];
 
-      const paid = isInvoicePaid_(inv);
-      if (paid){
-        return '<span class="pill pill-success">Đã thanh toán</span>';
-      }
-      // còn thiếu → nút Thanh toán đỏ
-      return `<button type="button" class="btn btn-danger btn-sm" onclick="openPaymentModal(${index})">Thanh toán</button>`;
-    }
-
-    function renderPaymentCard(data){
-      __portalDataCache = data || null;
-
-      const historyBody = document.getElementById('paymentHistoryBody');
-      if (!historyBody) return;
-      historyBody.innerHTML = '';
-
-      const invoices = (data && Array.isArray(data.invoices)) ? data.invoices : [];
-
-      // Chỉ hiển thị nếu hợp đồng còn hiệu lực
-      const isContractActive =
-        !!(data && data.contract && String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực'));
-
-      if (!isContractActive) {
-        historyBody.innerHTML = `
-          <tr>
-            <td colspan="4" class="muted">
-              Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.
-            </td>
-          </tr>`;
-        // reset phần chi tiết
-        renderInvoiceDetail_(null);
-        return;
-      }
-
-      if (!invoices.length){
-        historyBody.innerHTML = `
-          <tr>
-            <td colspan="4" class="muted">
-              Chưa có hóa đơn nào cho phòng này.
-            </td>
-          </tr>`;
-        renderInvoiceDetail_(null);
-        return;
-      }
-
-      invoices.forEach((inv, i)=>{
-        const tr = document.createElement('tr');
-        tr.classList.toggle('row-active', i === __selectedInvoiceIndex);
-        tr.innerHTML = `
-          <td>${inv.namThang || ''}</td>
-          <td>${formatVND(inv.tongPhaiThu)}</td>
-          <td>${renderInvoiceStatusCell_(inv, i)}</td>
-          <td>
-            <button type="button" class="btn btn-outline btn-sm" onclick="selectInvoice(${i})">
-              Chi tiết
-            </button>
-          </td>
-        `;
-        historyBody.appendChild(tr);
-      });
-
-      // mặc định chọn dòng đầu tiên (mới nhất)
-      if (__selectedInvoiceIndex >= invoices.length) __selectedInvoiceIndex = 0;
-      renderInvoiceDetail_(invoices[__selectedInvoiceIndex]);
-    }
-
-    function selectInvoice(index){
-      __selectedInvoiceIndex = Number(index) || 0;
-
-      const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
-        ? __portalDataCache.invoices
-        : [];
-
-      // highlight lại dòng
-      const rows = document.querySelectorAll('#paymentHistoryBody tr');
-      rows.forEach((r, i)=> r.classList.toggle('row-active', i === __selectedInvoiceIndex));
-
-      const inv = invoices[__selectedInvoiceIndex] || null;
-      renderInvoiceDetail_(inv);
-      setActiveTab('pay', 'detail');
-    }
-
-    function renderInvoiceDetail_(inv){
-      // pill + nút thanh toán
-      const kyEl = document.getElementById('invKy');
-      const pillEl = document.getElementById('invStatusPill');
-      const payBtn = document.getElementById('invPayBtn');
-
-      const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
-        ? __portalDataCache.invoices
-        : [];
-
-      if (!inv){
-        if (kyEl) kyEl.textContent = 'Kỳ: --';
-        if (pillEl){ pillEl.className = 'pill pill-neutral'; pillEl.textContent = '--'; }
-        if (payBtn) payBtn.style.display = 'none';
-
-        // reset summary
-        ['invNgayTinh','invTienPhong','invPhatSinh','invGiamTru','invThieuTruoc','invPhaiThu','invoiceServiceTotal'].forEach(id=>{
-          const el = document.getElementById(id);
-          if (el) el.textContent = '--';
+      if (!members.length) {
+        membersBody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có người ở.</td></tr>';
+      } else {
+        members.forEach(m => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${m.hoTen || ''}</td>
+            <td>${m.dienThoai || ''}</td>
+            <td>${m.cccd || ''}</td>
+            <td>${m.bienSo || ''}</td>
+            <td>${m.ngayTamTru ? formatDateDDMMYYYY(m.ngayTamTru) : ''}</td>
+            <td>${renderStatusHTML(m.trangThaiTamTru, 'tamtru')}</td>
+          `;
+          membersBody.appendChild(tr);
         });
-        const dvBody = document.getElementById('invoiceServiceBody');
-        if (dvBody) dvBody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có dữ liệu dịch vụ.</td></tr>';
-
-        // bank + qr
-        updateBankAndQr_(null);
-        return;
       }
+    }
+  }
 
-      if (kyEl) kyEl.textContent = 'Kỳ: ' + (inv.namThang || '--');
+  // =========================
+  // THANH TOÁN (giữ nguyên logic)
+  // =========================
+  let __selectedInvoiceIndex = 0;
+  let __portalDataCache = null;
 
-      const paid = isInvoicePaid_(inv);
-      if (pillEl){
-        pillEl.className = paid ? 'pill pill-success' : 'pill pill-danger';
-        pillEl.textContent = paid ? 'Đã thanh toán' : 'Còn thiếu';
-      }
-      if (payBtn){
-        payBtn.style.display = paid ? 'none' : 'inline-flex';
-      }
+  function isInvoicePaid_(inv){
+    const st = String(inv && inv.trangThai || '').toLowerCase();
+    return (
+      st.includes('đủ') || st.includes('da du') ||
+      st.includes('đã thu') || st.includes('da thu') ||
+      st.includes('đã thanh toán') || st.includes('da thanh toan') ||
+      st.includes('hoàn tất') || st.includes('hoan tat')
+    );
+  }
 
-      // summary
-      const c = inv.chiTiet || {};
-      document.getElementById('invNgayTinh').textContent = (c.ngayTinhHD != null && c.ngayTinhHD !== '') ? (parseInt(c.ngayTinhHD,10) + ' ngày') : '--';
-      document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
-      document.getElementById('invTongDV').textContent = formatVND(
-       (c.tongDichVu != null && c.tongDichVu !== '') ? c.tongDichVu : (inv.tongDN_DV || 0));
-      document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
-      document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
-      document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
-      document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
+  function renderInvoiceStatusCell_(inv, index){
+    if (!inv) return '<span class="pill pill-neutral">--</span>';
+    const paid = isInvoicePaid_(inv);
+    if (paid) return '<span class="pill pill-success">Đã thanh toán</span>';
+    return `<button type="button" class="btn btn-danger btn-sm" onclick="openPaymentModal(${index})">Thanh toán</button>`;
+  }
 
-      // bảng dịch vụ
+  function renderPaymentCard(data){
+    __portalDataCache = data || null;
+
+    const historyBody = document.getElementById('paymentHistoryBody');
+    if (!historyBody) return;
+    historyBody.innerHTML = '';
+
+    const invoices = (data && Array.isArray(data.invoices)) ? data.invoices : [];
+
+    const isContractActive =
+      !!(data && data.contract && String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực'));
+
+    if (!isContractActive) {
+      historyBody.innerHTML = `
+        <tr><td colspan="4" class="muted">Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.</td></tr>`;
+      renderInvoiceDetail_(null);
+      return;
+    }
+
+    if (!invoices.length){
+      historyBody.innerHTML = `
+        <tr><td colspan="4" class="muted">Chưa có hóa đơn nào cho phòng này.</td></tr>`;
+      renderInvoiceDetail_(null);
+      return;
+    }
+
+    invoices.forEach((inv, i)=>{
+      const tr = document.createElement('tr');
+      tr.classList.toggle('row-active', i === __selectedInvoiceIndex);
+      tr.innerHTML = `
+        <td>${inv.namThang || ''}</td>
+        <td>${formatVND(inv.tongPhaiThu)}</td>
+        <td>${renderInvoiceStatusCell_(inv, i)}</td>
+        <td>
+          <button type="button" class="btn btn-outline btn-sm" onclick="selectInvoice(${i})">
+            Chi tiết
+          </button>
+        </td>
+      `;
+      historyBody.appendChild(tr);
+    });
+
+    if (__selectedInvoiceIndex >= invoices.length) __selectedInvoiceIndex = 0;
+    renderInvoiceDetail_(invoices[__selectedInvoiceIndex]);
+  }
+
+  function selectInvoice(index){
+    __selectedInvoiceIndex = Number(index) || 0;
+
+    const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
+      ? __portalDataCache.invoices : [];
+
+    const rows = document.querySelectorAll('#paymentHistoryBody tr');
+    rows.forEach((r, i)=> r.classList.toggle('row-active', i === __selectedInvoiceIndex));
+
+    const inv = invoices[__selectedInvoiceIndex] || null;
+    renderInvoiceDetail_(inv);
+    setActiveTab('pay', 'detail');
+  }
+
+  function renderInvoiceDetail_(inv){
+    const kyEl = document.getElementById('invKy');
+    const pillEl = document.getElementById('invStatusPill');
+    const payBtn = document.getElementById('invPayBtn');
+
+    if (!inv){
+      if (kyEl) kyEl.textContent = 'Kỳ: --';
+      if (pillEl){ pillEl.className = 'pill pill-neutral'; pillEl.textContent = '--'; }
+      if (payBtn) payBtn.style.display = 'none';
+
+      ['invNgayTinh','invTienPhong','invTongDV','invPhatSinh','invGiamTru','invThieuTruoc','invPhaiThu','invServiceTotal'].forEach(id=>{
+        const el = document.getElementById(id);
+        if (el) el.textContent = '--';
+      });
       const dvBody = document.getElementById('invoiceServiceBody');
-      const dvTotalEl = document.getElementById('invServiceTotal');
-      
-      if (dvBody){
-        dvBody.innerHTML = '';
-      
-        const services = Array.isArray(inv.services) ? inv.services : [];
-        // map meta dịch vụ từ server (nếu có)
-        const serviceMap =
-          (__portalDataCache && (__portalDataCache.serviceMap || __portalDataCache.servicesMap || __portalDataCache.serviceMetaMap))
+      if (dvBody) dvBody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có dữ liệu dịch vụ.</td></tr>';
+
+      updateBankAndQr_(null);
+      return;
+    }
+
+    if (kyEl) kyEl.textContent = 'Kỳ: ' + (inv.namThang || '--');
+
+    const paid = isInvoicePaid_(inv);
+    if (pillEl){
+      pillEl.className = paid ? 'pill pill-success' : 'pill pill-danger';
+      pillEl.textContent = paid ? 'Đã thanh toán' : 'Còn thiếu';
+    }
+    if (payBtn) payBtn.style.display = paid ? 'none' : 'inline-flex';
+
+    const c = inv.chiTiet || {};
+    document.getElementById('invNgayTinh').textContent =
+      (c.ngayTinhHD != null && c.ngayTinhHD !== '') ? (parseInt(c.ngayTinhHD,10) + ' ngày') : '--';
+    document.getElementById('invTienPhong').textContent  = formatVND(c.tienPhongTT);
+    document.getElementById('invTongDV').textContent     = formatVND(
+      (c.tongDichVu != null && c.tongDichVu !== '') ? c.tongDichVu : (inv.tongDN_DV || 0)
+    );
+    document.getElementById('invPhatSinh').textContent   = formatVND(c.phatSinhKhac);
+    document.getElementById('invGiamTru').textContent    = formatVND(c.giamTruKhac);
+    document.getElementById('invThieuTruoc').textContent = formatVND(c.thieuKyTruoc);
+    document.getElementById('invPhaiThu').textContent    = formatVND(c.phaiThu);
+
+    const dvBody = document.getElementById('invoiceServiceBody');
+    const dvTotalEl = document.getElementById('invServiceTotal');
+
+    if (dvBody){
+      dvBody.innerHTML = '';
+
+      const services = Array.isArray(inv.services) ? inv.services : [];
+      const serviceMap =
+        (__portalDataCache && (__portalDataCache.serviceMap || __portalDataCache.servicesMap || __portalDataCache.serviceMetaMap))
           ? (__portalDataCache.serviceMap || __portalDataCache.servicesMap || __portalDataCache.serviceMetaMap)
           : {};
-      
-        let total = 0;
-      
-        // lọc bỏ dòng rỗng hoặc = 0
-        const filtered = services.filter(s=>{
+
+      let total = 0;
+
+      const filtered = services.filter(s=>{
+        const maDV = String(s.maDV || s.tenDichVu || '').trim();
+        const thanhTien = Number(s.thanhTien || 0);
+        if (!maDV) return false;
+        if (thanhTien === 0) return false;
+        return true;
+      });
+
+      if (!filtered.length){
+        dvBody.innerHTML = '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
+        if (dvTotalEl) dvTotalEl.textContent = formatVND(0);
+      } else {
+        filtered.forEach(s=>{
+          const thanhTien = Number(s.thanhTien || 0) || 0;
+          total += thanhTien;
+
+          const idDV = String(s.idDV || '').trim();
           const maDV = String(s.maDV || s.tenDichVu || '').trim();
-          const thanhTien = Number(s.thanhTien || 0);
-          if (!maDV) return false;
-          if (thanhTien === 0) return false;
-          return true;
+
+          const metaById = idDV && serviceMap[idDV] ? serviceMap[idDV] : null;
+          const metaByMa = !metaById && maDV && serviceMap[maDV] ? serviceMap[maDV] : null;
+          const meta = metaById || metaByMa || {};
+          const loai = String(meta.loai || meta['Loại'] || meta.type || '').trim().toLowerCase();
+
+          const isTheoSoLuong = loai === 'theo số lượng' || loai === 'theo so luong';
+
+          const soDau  = (s.soDau == null ? '' : s.soDau);
+          const soCuoi = (s.soCuoi == null ? '' : s.soCuoi);
+          const soLuong = (s.soLuong == null ? '' : s.soLuong);
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="dv-name">${maDV}</td>
+            <td>${isTheoSoLuong ? '-' : soDau}</td>
+            <td>${isTheoSoLuong ? '-' : soCuoi}</td>
+            <td>${soLuong}</td>
+            <td class="dv-money">${formatVND(s.donGia)}</td>
+            <td class="dv-money">${formatVND(thanhTien)}</td>
+          `;
+          dvBody.appendChild(tr);
         });
-      
-        if (!filtered.length){
-          dvBody.innerHTML = '<tr><td colspan="6" class="muted">Không có dịch vụ phát sinh.</td></tr>';
-          if (dvTotalEl) dvTotalEl.textContent = formatVND(0);
-        } else {
-          filtered.forEach(s=>{
-            const thanhTien = Number(s.thanhTien || 0) || 0;
-            total += thanhTien;
-      
-            const idDV = String(s.idDV || '').trim();
-            const maDV = String(s.maDV || s.tenDichVu || '').trim();
-      
-            // lấy Loại từ serviceMap (ưu tiên ID, fallback Mã)
-            const metaById = idDV && serviceMap[idDV] ? serviceMap[idDV] : null;
-            const metaByMa = !metaById && maDV && serviceMap[maDV] ? serviceMap[maDV] : null;
-            const meta = metaById || metaByMa || {};
-            const loai = String(meta.loai || meta['Loại'] || meta.type || '').trim().toLowerCase();
-      
-            const isTheoSoLuong = loai === 'theo số lượng' || loai === 'theo so luong';
-      
-            const soDau  = (s.soDau == null ? '' : s.soDau);
-            const soCuoi = (s.soCuoi == null ? '' : s.soCuoi);
-            const soLuong = (s.soLuong == null ? '' : s.soLuong);
-      
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td class="dv-name">${maDV}</td>
-              <td>${isTheoSoLuong ? '-' : soDau}</td>
-              <td>${isTheoSoLuong ? '-' : soCuoi}</td>
-              <td>${soLuong}</td>
-              <td class="dv-money">${formatVND(s.donGia)}</td>
-              <td class="dv-money">${formatVND(thanhTien)}</td>
-            `;
-            dvBody.appendChild(tr);
-          });
-      
-          if (dvTotalEl) dvTotalEl.textContent = formatVND(total);
-        }
-      }
 
-      // bank + qr dựa theo dòng được chọn
-      updateBankAndQr_(inv);
-    }
-      // bank cn
-      let OWNER_BANK_CACHE = null;
-      
-      async function fetchOwnerBankInfo_(){
-        if (OWNER_BANK_CACHE) return OWNER_BANK_CACHE;
-      
-        const body = new URLSearchParams({ action: 'ownerBank' });
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-          body
-        });
-        const out = await res.json();
-        OWNER_BANK_CACHE = (out && out.success && out.bank) ? out.bank : null;
-        return OWNER_BANK_CACHE;
+        if (dvTotalEl) dvTotalEl.textContent = formatVND(total);
       }
-      
-      function updateBankAndQr_(inv){
-        const bankInfoEl = document.getElementById('invBankInfo');
-        const qrContainer = document.getElementById('qrContainer');
-      
-        // BANK
-        if (bankInfoEl) bankInfoEl.textContent = 'Đang tải...';
-        fetchOwnerBankInfo_()
-          .then(bankInfo=>{
-           const bankText = [
-              bankInfo?.soTaiKhoan ? ('Số tài khoản: ' + bankInfo.soTaiKhoan) : '',
-              bankInfo?.chuTaiKhoan ? ('Chủ tài khoản: ' + bankInfo.chuTaiKhoan) : '',
-              bankInfo?.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
-              bankInfo?.chiNhanh ? ('CN ngân hàng: ' + bankInfo.chiNhanh) : ''
-            ].filter(Boolean).join('<br>');
-            
-            if (bankInfoEl) bankInfoEl.innerHTML = bankText || '--';
-
-          })
-          .catch(err=>{
-            console.error(err);
-            if (bankInfoEl) bankInfoEl.textContent = '--';
-          });
-      
-        // QR giữ nguyên như bạn
-        if (!qrContainer) return;
-        qrContainer.innerHTML = '';
-        const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
-        const qr =
-          (c && (c.qrCode || c.qr || c.qr_code || c["QR Code"])) ||
-          (inv && (inv.qrCode || inv.qr || inv.qr_code || inv["QR Code"])) ||
-          '';
-      
-        if (qr){
-          const img = document.createElement('img');
-          img.src = qr;
-          img.alt = 'QR thanh toán';
-          img.style.maxWidth = '160px';
-          img.style.marginTop = '4px';
-          qrContainer.appendChild(img);
-        } else {
-          qrContainer.textContent = 'Chưa có QR Code.';
-        }
-      }
-
-
-    function renderMaintenance(data){
-      const tbody = document.getElementById('maintenanceBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      const list = (data && Array.isArray(data.maintenance)) ? data.maintenance : [];
-      if (!list.length){
-        tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có lịch bảo trì cho phòng.</td></tr>';
-        return;
-      }
-      list.forEach(m=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${m.tenTaiSan || ''}</td>
-          <td>${m.loaiCongViec || ''}</td>
-          <td>${m.ngayDuKien ? formatDateDDMMYYYY(m.ngayDuKien) : ''}</td>
-          <td>${m.ngayThucHien ? formatDateDDMMYYYY(m.ngayThucHien) : ''}</td>
-          <td>${m.trangThai || ''}</td>
-          <td>${m.ghiChu || ''}</td>
-        `;
-        tbody.appendChild(tr);
-      });
     }
 
-    function renderMessages(data){
-      const tbody = document.getElementById('messageBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      const msgs = (data && Array.isArray(data.messages)) ? data.messages : [];
-      if (!msgs.length){
-        tbody.innerHTML = '<tr><td colspan="4" class="muted">Chưa có báo hỏng / tạm trú nào.</td></tr>';
-        return;
-      }
-      msgs.forEach(m=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${m.type || m.loai || ''}</td>
-          <td>${m.createdAt || m.ngay || ''}</td>
-          <td>${m.content || m.noiDung || ''}</td>
-          <td>${renderStatusHTML(m.status || m.trangThai || '', 'message')}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+    // ✅ BANK + QR theo hóa đơn đang chọn
+    updateBankAndQr_(inv);
+  }
+
+  // ✅ CLEAN: bỏ fetch ownerBank riêng, dùng bankInfo đã được Apps Script bơm vào invoice
+  function updateBankAndQr_(inv){
+    const bankInfoEl = document.getElementById('invBankInfo');
+    const qrContainer = document.getElementById('qrContainer');
+
+    // BANK ưu tiên từ inv.chiTiet.bankInfo
+    const bankInfo =
+      (inv && inv.chiTiet && inv.chiTiet.bankInfo) ? inv.chiTiet.bankInfo :
+      null;
+
+    if (bankInfoEl){
+      const bankText = [
+        bankInfo?.soTaiKhoan ? ('Số tài khoản: ' + bankInfo.soTaiKhoan) : '',
+        bankInfo?.chuTaiKhoan ? ('Chủ tài khoản: ' + bankInfo.chuTaiKhoan) : '',
+        bankInfo?.nganHang ? ('Ngân hàng: ' + bankInfo.nganHang) : '',
+        bankInfo?.chiNhanh ? ('CN ngân hàng: ' + bankInfo.chiNhanh) : ''
+      ].filter(Boolean).join('<br>');
+
+      bankInfoEl.innerHTML = bankText || '--';
     }
 
-    // Gửi yêu cầu báo hỏng / tạm trú (placeholder)
-    function openMaintenanceForm(){
-      alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.');
+    // QR giữ nguyên
+    if (!qrContainer) return;
+    qrContainer.innerHTML = '';
+
+    const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
+    const qr =
+      (c && (c.qrCode || c.qr || c.qr_code || c["QR Code"])) ||
+      (inv && (inv.qrCode || inv.qr || inv.qr_code || inv["QR Code"])) ||
+      '';
+
+    if (qr){
+      const img = document.createElement('img');
+      img.src = qr;
+      img.alt = 'QR thanh toán';
+      img.style.maxWidth = '160px';
+      img.style.marginTop = '4px';
+      qrContainer.appendChild(img);
+    } else {
+      qrContainer.textContent = 'Chưa có QR Code.';
     }
-    function openTempStayForm(){
-      alert('Form đăng ký tạm trú: dùng tenantTempStay API.');
+  }
+
+  function renderMaintenance(data){
+    const tbody = document.getElementById('maintenanceBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const list = (data && Array.isArray(data.maintenance)) ? data.maintenance : [];
+    if (!list.length){
+      tbody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có lịch bảo trì cho phòng.</td></tr>';
+      return;
     }
+    list.forEach(m=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${m.tenTaiSan || ''}</td>
+        <td>${m.loaiCongViec || ''}</td>
+        <td>${m.ngayDuKien ? formatDateDDMMYYYY(m.ngayDuKien) : ''}</td>
+        <td>${m.ngayThucHien ? formatDateDDMMYYYY(m.ngayThucHien) : ''}</td>
+        <td>${m.trangThai || ''}</td>
+        <td>${m.ghiChu || ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
+  function renderMessages(data){
+    const tbody = document.getElementById('messageBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const msgs = (data && Array.isArray(data.messages)) ? data.messages : [];
+    if (!msgs.length){
+      tbody.innerHTML = '<tr><td colspan="4" class="muted">Chưa có báo hỏng / tạm trú nào.</td></tr>';
+      return;
+    }
+    msgs.forEach(m=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${m.type || m.loai || ''}</td>
+        <td>${m.createdAt || m.ngay || ''}</td>
+        <td>${m.content || m.noiDung || ''}</td>
+        <td>${renderStatusHTML(m.status || m.trangThai || '', 'message')}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
-    // =========================
-    // POPUP THANH TOÁN (gửi phiếu / báo chủ nhà)
-    // =========================
-    function openPaymentModal(index){
-      // nếu gọi từ tab chi tiết: index có thể undefined → dùng __selectedInvoiceIndex
-      if (index !== undefined && index !== null) {
-        __selectedInvoiceIndex = Number(index) || 0;
-      }
-      const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
-        ? __portalDataCache.invoices
-        : [];
-      const inv = invoices[__selectedInvoiceIndex] || null;
+  function openMaintenanceForm(){ alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.'); }
+  function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
 
-      const modal = document.getElementById('paymentModal');
-      if (!modal) return;
+  // =========================
+  // POPUP THANH TOÁN (giữ nguyên)
+  // =========================
+  function openPaymentModal(index){
+    if (index !== undefined && index !== null) __selectedInvoiceIndex = Number(index) || 0;
 
-      const meta = document.getElementById('paymentModalMeta');
-      if (meta) meta.textContent = 'Hóa đơn: ' + (inv ? (inv.namThang || '--') : '--');
+    const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
+      ? __portalDataCache.invoices : [];
+    const inv = invoices[__selectedInvoiceIndex] || null;
 
-      const fileInput = document.getElementById('paymentProofFile');
-      const noteInput = document.getElementById('paymentNote');
+    const modal = document.getElementById('paymentModal');
+    if (!modal) return;
+
+    const meta = document.getElementById('paymentModalMeta');
+    if (meta) meta.textContent = 'Hóa đơn: ' + (inv ? (inv.namThang || '--') : '--');
+
+    const fileInput = document.getElementById('paymentProofFile');
+    const noteInput = document.getElementById('paymentNote');
+    const preview = document.getElementById('paymentPreview');
+
+    if (fileInput) fileInput.value = '';
+    if (noteInput) noteInput.value = '';
+    if (preview) preview.textContent = 'Chưa chọn ảnh.';
+
+    modal.classList.remove('hidden');
+  }
+
+  function closePaymentModal(){
+    const modal = document.getElementById('paymentModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  document.addEventListener('change', (e)=>{
+    if (e.target && e.target.id === 'paymentProofFile'){
+      const file = e.target.files && e.target.files[0];
       const preview = document.getElementById('paymentPreview');
+      if (!preview) return;
 
-      if (fileInput) fileInput.value = '';
-      if (noteInput) noteInput.value = '';
-      if (preview) preview.textContent = 'Chưa chọn ảnh.';
-
-      modal.classList.remove('hidden');
-    }
-
-    function closePaymentModal(){
-      const modal = document.getElementById('paymentModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    // preview ảnh
-    document.addEventListener('change', (e)=>{
-      if (e.target && e.target.id === 'paymentProofFile'){
-        const file = e.target.files && e.target.files[0];
-        const preview = document.getElementById('paymentPreview');
-        if (!preview) return;
-
-        if (!file){
-          preview.textContent = 'Chưa chọn ảnh.';
-          preview.classList.add('muted');
-          return;
-        }
-
-        preview.classList.remove('muted');
-        preview.innerHTML = '';
-        const img = document.createElement('img');
-        img.alt = 'Phiếu chuyển khoản';
-        img.className = 'payment-proof-img';
-        img.src = URL.createObjectURL(file);
-        preview.appendChild(img);
-      }
-    });
-
-    async function submitPaymentProof(){
-      const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
-        ? __portalDataCache.invoices
-        : [];
-      const inv = invoices[__selectedInvoiceIndex] || null;
-
-      const fileInput = document.getElementById('paymentProofFile');
-      const noteInput = document.getElementById('paymentNote');
-
-      const file = fileInput && fileInput.files ? fileInput.files[0] : null;
-      const note = noteInput ? (noteInput.value || '') : '';
-
-      // Chuẩn payload: base64 ảnh (nếu có)
-      let base64 = '';
-      if (file){
-        base64 = await new Promise((resolve, reject)=>{
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result || ''));
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      }
-
-      try{
-        const body = new URLSearchParams({
-          action: 'tenantPaymentProof',
-          roomCode: (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '',
-          invoiceId: inv && (inv.id || inv.invoiceId || inv.maHoaDon) ? (inv.id || inv.invoiceId || inv.maHoaDon) : '',
-          namThang: inv && inv.namThang ? inv.namThang : '',
-          note: note,
-          proofBase64: base64
-        });
-
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-          body
-        });
-
-        let out = null;
-        try { out = await res.json(); } catch(e){}
-
-        if (out && out.success){
-          alert('Đã gửi xác nhận thanh toán cho chủ nhà.');
-          closePaymentModal();
-          // Nếu backend có cập nhật trạng thái, reload lại data để refresh
-          const tenant = JSON.parse(localStorage.getItem(TENANT_STORAGE_KEY) || '{}');
-          if (tenant && tenant.maPhong){
-            fetchData(tenant.maPhong, tenant.identity || '');
-          }
-        } else {
-          // fallback nếu backend chưa có endpoint
-          alert((out && out.message) || 'Đã ghi nhận. Nếu chưa thấy cập nhật, chủ nhà sẽ kiểm tra và xác nhận sau.');
-          closePaymentModal();
-        }
-      } catch(err){
-        console.error('submitPaymentProof error:', err);
-        alert('Không gửi được xác nhận (lỗi kết nối). Vui lòng thử lại.');
-      }
-    }
-
-
-    function downloadInvoicePdf(){
-      window.print();
-    }
-
-    async function fetchData(roomCode, identity){
-      const note = document.getElementById('portalStatusNote');
-      if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
-
-      // Gọi skeleton trước khi fetch
-      renderInfoCard(null);
-
-      try{
-        const body = new URLSearchParams({
-          action:   'tenantPortal',
-          roomCode: roomCode,
-          identity: identity || ''
-        });
-
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-          body
-        });
-        const data = await res.json();
-
-        if (!data || !data.success){
-          if (note) note.textContent = (data && data.message) || 'Không lấy được dữ liệu portal.';
-          return;
-        }
-
-        if (note) note.textContent = 'Dữ liệu đã được tải từ hệ thống (Google Sheet).';
-
-        renderInfoCard(data);
-        renderPaymentCard(data);
-        renderMaintenance(data);
-        renderMessages(data);
-
-      } catch(err){
-        console.error('fetchTenantPortalData error:',err);
-        const noteEl = document.getElementById('portalStatusNote');
-        if (noteEl) noteEl.textContent = 'Lỗi kết nối tới Apps Script, vui lòng thử lại.';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', ()=>{
-      // Tab handler
-      document.querySelectorAll('.tab-btn.tab-info').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          setActiveTab('info', btn.dataset.tab);
-        });
-      });
-      document.querySelectorAll('.tab-btn.tab-pay').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          setActiveTab('pay', btn.dataset.tab);
-        });
-      });
-
-      // Lấy tenant từ localStorage
-      let tenant = null;
-      try {
-        const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-        if (saved) tenant = JSON.parse(saved);
-      } catch(e){}
-
-      if (!tenant || !tenant.maPhong){
-        window.location.href = 'tenant.html';
+      if (!file){
+        preview.textContent = 'Chưa chọn ảnh.';
+        preview.classList.add('muted');
         return;
       }
-      fetchTenantPortalData(tenant.maPhong, tenant.identity || '');
+
+      preview.classList.remove('muted');
+      preview.innerHTML = '';
+      const img = document.createElement('img');
+      img.alt = 'Phiếu chuyển khoản';
+      img.className = 'payment-proof-img';
+      img.src = URL.createObjectURL(file);
+      preview.appendChild(img);
+    }
+  });
+
+  async function submitPaymentProof(){
+    const invoices = (__portalDataCache && Array.isArray(__portalDataCache.invoices))
+      ? __portalDataCache.invoices : [];
+    const inv = invoices[__selectedInvoiceIndex] || null;
+
+    const fileInput = document.getElementById('paymentProofFile');
+    const noteInput = document.getElementById('paymentNote');
+
+    const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+    const note = noteInput ? (noteInput.value || '') : '';
+
+    let base64 = '';
+    if (file){
+      base64 = await new Promise((resolve, reject)=>{
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    try{
+      const body = new URLSearchParams({
+        action: 'tenantPaymentProof',
+        roomCode: (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '',
+        invoiceId: inv && (inv.id || inv.invoiceId || inv.maHoaDon) ? (inv.id || inv.invoiceId || inv.maHoaDon) : '',
+        namThang: inv && inv.namThang ? inv.namThang : '',
+        note: note,
+        proofBase64: base64
+      });
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body
+      });
+
+      let out = null;
+      try { out = await res.json(); } catch(e){}
+
+      if (out && out.success){
+        alert('Đã gửi xác nhận thanh toán cho chủ nhà.');
+        closePaymentModal();
+
+        const tenant = JSON.parse(localStorage.getItem(TENANT_STORAGE_KEY) || '{}');
+        if (tenant && tenant.maPhong){
+          fetchData(tenant.maPhong, tenant.identity || '');
+        }
+      } else {
+        alert((out && out.message) || 'Đã ghi nhận. Nếu chưa thấy cập nhật, chủ nhà sẽ kiểm tra và xác nhận sau.');
+        closePaymentModal();
+      }
+    } catch(err){
+      console.error('submitPaymentProof error:', err);
+      alert('Không gửi được xác nhận (lỗi kết nối). Vui lòng thử lại.');
+    }
+  }
+
+  function downloadInvoicePdf(){ window.print(); }
+
+  async function fetchData(roomCode, identity){
+    const note = document.getElementById('portalStatusNote');
+    if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
+
+    renderInfoCard(null);
+
+    try{
+      const body = new URLSearchParams({
+        action:   'tenantPortal',
+        roomCode: roomCode,
+        identity: identity || ''
+      });
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body
+      });
+
+      const data = await res.json();
+
+      if (!data || !data.success){
+        if (note) note.textContent = (data && data.message) || 'Không lấy được dữ liệu portal.';
+        return;
+      }
+
+      if (note) note.textContent = 'Dữ liệu đã được tải từ hệ thống (Google Sheet).';
+
+      renderInfoCard(data);
+      renderPaymentCard(data);
+      renderMaintenance(data);
+      renderMessages(data);
+
+      // ✅ nếu hoá đơn đang chọn có bankInfo thì hiển thị luôn (tránh lúc chưa click tab detail)
+      const invoices = Array.isArray(data.invoices) ? data.invoices : [];
+      if (invoices.length) updateBankAndQr_(invoices[__selectedInvoiceIndex] || invoices[0]);
+
+    } catch(err){
+      console.error('fetchTenantPortalData error:',err);
+      const noteEl = document.getElementById('portalStatusNote');
+      if (noteEl) noteEl.textContent = 'Lỗi kết nối tới Apps Script, vui lòng thử lại.';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('.tab-btn.tab-info').forEach(btn=>{
+      btn.addEventListener('click', ()=> setActiveTab('info', btn.dataset.tab));
     });
-  </script>
+    document.querySelectorAll('.tab-btn.tab-pay').forEach(btn=>{
+      btn.addEventListener('click', ()=> setActiveTab('pay', btn.dataset.tab));
+    });
+
+    let tenant = null;
+    try {
+      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+      if (saved) tenant = JSON.parse(saved);
+    } catch(e){}
+
+    if (!tenant || !tenant.maPhong){
+      window.location.href = 'tenant.html';
+      return;
+    }
+
+    // ✅ gọi đúng hàm (đã define)
+    fetchTenantPortalData(tenant.maPhong, tenant.identity || '');
+  });
+</script>
+
 </body>
 </html>
+
 
 
 
