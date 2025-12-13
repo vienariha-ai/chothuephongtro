@@ -1,8 +1,8 @@
 // =====================
 // CẤU HÌNH CHUNG
 // =====================
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbwyqskjnUjwkn95TqRmcFjLem2eSMfKBuh23PHDD0QcL0gCwEnqNLYxd6vmi7xqDzUoow/exec";
+const API_URL = (window.YT_HOME_API_URL || document.querySelector('meta[name=yt-home-api]')?.content ||
+  "https://script.google.com/macros/s/AKfycbwYSeEoyXsntwGNfTFKZdCKTiMmrvYtRLTvQMa8-WNMA9_h4aSp1ZtDwpooqgtsGIMZdA/exec");
 
 const STORAGE_KEYS = {
   likes:   "ytHomeRoomLikes",
@@ -270,14 +270,29 @@ function setRoomRatingLocal(roomId, rating) {
 // =====================
 
 function getFloorNumber(room) {
-  const raw = (room.tang || "").toString().toLowerCase();
-  if (!raw) return 999;
-  if (raw.includes("trệt") || raw.includes("tret") || raw.includes("ground")) return 0;
-  const m = raw.match(/(\d+)/);
-  if (m) {
-    const n = parseInt(m[1], 10);
-    if (!isNaN(n)) return n;
+  // Ưu tiên lấy từ cột "tầng" nếu có
+  const raw = (room.tang || "").toString().toLowerCase().trim();
+  if (raw) {
+    if (raw.includes("trệt") || raw.includes("tret") || raw.includes("ground")) return 0;
+    const m = raw.match(/(\d+)/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (!isNaN(n)) return n;
+    }
   }
+
+  // Nếu sheet chưa có cột tầng: suy ra từ Mã phòng (P205 → tầng 2)
+  const code = (room.maPhong || room.MaPhong || room.roomCode || "").toString().trim();
+  // Hỗ trợ: P205, A301, 205, ... -> lấy chữ số đầu tiên trong phần số
+  const mm = code.match(/\d+/);
+  if (mm) {
+    const digits = mm[0];
+    if (digits.length >= 1) {
+      const n = parseInt(digits[0], 10);
+      if (!isNaN(n)) return n;
+    }
+  }
+
   return 999;
 }
 
