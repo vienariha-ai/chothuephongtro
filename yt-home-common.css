@@ -2307,22 +2307,9 @@ td .status-text-success{
   color: #ef4444;
   border: 1px solid rgba(239, 68, 68, 0.5);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.svc-icon{
+  display: inline-block;
+  width: 22px;
+  text-align: center;
+  margin-right: 6px;
+}
