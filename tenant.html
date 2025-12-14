@@ -81,150 +81,145 @@
   </div>
 
   <script>
-    const API_URL = (window.YT_HOME_API_URL || document.querySelector("meta[name=yt-home-api]")?.content || "https://script.google.com/macros/s/AKfycbyTCSCKa4CS3FkmgQAjbvbMaeiZ4RhtZI_h4qBroK2ppLAstrfi3hKjHIGzbKEgWWXd7Q/exec");
-    const TENANT_STORAGE_KEY = "ytHomeTenant";
+  const API_URL = (window.YT_HOME_API_URL || document.querySelector("meta[name=yt-home-api]")?.content || "");
+  const TENANT_KEYS = ["ytHomeTenant","YT_HOME_TENANT","tenantRoom","tenantAuth","ytHomeTenantAuth"];
+  const JUST_LOGGED_OUT_KEY = "ytHomeJustLoggedOut";
 
-    function saveTenantToStorage(tenant) {
-      try {
-        if (tenant) {
-          localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant));
-        } else {
-          localStorage.removeItem(TENANT_STORAGE_KEY);
-        }
-      } catch (e) {
-        console.error("saveTenantToStorage error:", e);
-      }
+  function normRoomCode(s){ return String(s||"").trim().toUpperCase(); }
+  function normIdentity(s){ return String(s||"").trim(); }
+
+  function setStatus(msg){
+    const el = document.getElementById("loginStatus");
+    if (el) el.textContent = msg || "";
+  }
+
+  function setTenant(t){
+    try{
+      const raw = t ? JSON.stringify(t) : "";
+      TENANT_KEYS.forEach(k=>{
+        try{
+          if (!t) localStorage.removeItem(k);
+          else localStorage.setItem(k, raw);
+        }catch(e){}
+      });
+    }catch(e){
+      console.error("setTenant error:", e);
+    }
+  }
+
+  function getTenant(){
+    for (const k of TENANT_KEYS){
+      try{
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        const t = JSON.parse(raw);
+        const maPhong = normRoomCode(t?.maPhong || t?.roomCode || t?.room || t?.MaPhong || "");
+        if (!maPhong) continue;
+        return {
+          maPhong,
+          identity: normIdentity(t?.identity || t?.phone || t?.cccd || ""),
+          name: String(t?.name || t?.tenKhach || t?.tenChuPhong || "")
+        };
+      }catch(e){}
+    }
+    return null;
+  }
+
+  function clearTenant(){
+    setTenant(null);
+  }
+
+  function logoutTenant(){
+    clearTenant();
+    try{ sessionStorage.setItem(JUST_LOGGED_OUT_KEY, "1"); }catch(e){}
+    setStatus("Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.");
+    const phoneEl = document.getElementById("loginPhone");
+    if (phoneEl) phoneEl.value = "";
+    const badgeEl = document.getElementById("roomBadge");
+    if (badgeEl) { badgeEl.style.display="none"; badgeEl.textContent=""; }
+  }
+
+  async function apiGet(action, params){
+    const qs = new URLSearchParams(Object.assign({ action }, params || {}));
+    const url = API_URL + (API_URL.includes("?") ? "&" : "?") + qs.toString();
+    const res = await fetch(url, { method:"GET" });
+    return res.json();
+  }
+
+  async function handleLoginSubmit(event){
+    event.preventDefault();
+
+    if(!API_URL){
+      setStatus("Thiếu API URL (meta yt-home-api).");
+      return;
     }
 
-    function logoutTenant() {
-      saveTenantToStorage(null);
-      const status = document.getElementById("loginStatus");
-      if (status) {
-        status.textContent = "Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.";
-      }
+    const roomCode = normRoomCode(document.getElementById("loginCode")?.value || "");
+    const identity = normIdentity(document.getElementById("loginPhone")?.value || "");
 
-      const phoneEl = document.getElementById("loginPhone");
-      if (phoneEl) phoneEl.value = "";
-
-      const badgeEl = document.getElementById("roomBadge");
-      if (badgeEl) {
-        badgeEl.style.display = "none";
-        badgeEl.textContent = "";
-      }
+    if(!roomCode || !identity){
+      setStatus("Vui lòng nhập đầy đủ Mã phòng và Số điện thoại/CCCD.");
+      return;
     }
 
-    async function handleLoginSubmit(event) {
-      event.preventDefault();
-
-      const statusEl   = document.getElementById("loginStatus");
-      const roomCodeEl = document.getElementById("loginCode");
-      const phoneEl    = document.getElementById("loginPhone");
-
-      const roomCode = roomCodeEl ? roomCodeEl.value.trim() : "";
-      const identity = phoneEl ? phoneEl.value.trim() : "";
-
-      if (!roomCode || !identity) {
-        if (statusEl) {
-          statusEl.textContent = "Vui lòng nhập đầy đủ Mã phòng và Số điện thoại/CCCD.";
-        }
+    setStatus("Đang kiểm tra thông tin đăng nhập...");
+    try{
+      const data = await apiGet("tenantLogin", { roomCode, identity });
+      const ok = !!(data && (data.success || data.ok));
+      if(!ok){
+        setStatus((data && (data.message || data.error)) || "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD không khớp.");
         return;
       }
 
-      if (statusEl) {
-        statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
-      }
+      const tenant = {
+        maPhong: normRoomCode(data.maPhong || roomCode),
+        identity,
+        name: String(data.tenKhach || data.tenChuPhong || "")
+      };
 
-      try {
-        const body = new URLSearchParams({
-          action:   "tenantLogin",
-          roomCode: roomCode,
-          identity: identity
-        });
+      setTenant(tenant);
+      try{ sessionStorage.removeItem(JUST_LOGGED_OUT_KEY); }catch(e){}
+      setStatus("Đăng nhập thành công. Đang chuyển vào portal...");
+      window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+    }catch(err){
+      console.error("handleLoginSubmit error:", err);
+      setStatus("Có lỗi khi đăng nhập. Vui lòng thử lại sau.");
+    }
+  }
 
-        const res  = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-          },
-          body
-        });
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const params      = new URLSearchParams(window.location.search);
+    const roomFromURL = normRoomCode(params.get("room") || "");
+    const loginCodeEl = document.getElementById("loginCode");
+    const roomBadgeEl = document.getElementById("roomBadge");
 
-        const data = await res.json();
-
-        if (!data || !data.success) {
-          if (statusEl) {
-            statusEl.textContent =
-              (data && data.message) ||
-              "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD không khớp.";
+    // ✅ chống loop: nếu vừa logout từ portal -> KHÔNG auto redirect
+    try{
+      const justOut = sessionStorage.getItem(JUST_LOGGED_OUT_KEY) === "1";
+      if (justOut) sessionStorage.removeItem(JUST_LOGGED_OUT_KEY);
+      if (!justOut){
+        const t = getTenant();
+        if (t && t.maPhong){
+          if (!roomFromURL || roomFromURL === t.maPhong){
+            window.location.href = "portal.html?room=" + encodeURIComponent(t.maPhong);
+            return;
           }
-          return;
         }
+      }
+    }catch(e){}
 
-        const tenant = {
-          maPhong: data.maPhong || roomCode,
-          identity: identity,
-          name: data.tenKhach || data.tenChuPhong || ""
-        };
-        saveTenantToStorage(tenant);
-
-        if (statusEl) {
-          statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
-        }
-
-        const targetRoom = tenant.maPhong;
-        window.location.href = "portal.html?room=" + encodeURIComponent(targetRoom);
-
-      } catch (err) {
-        console.error("handleLoginSubmit error:", err);
-        if (statusEl) {
-          statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
-        }
+    if (roomFromURL && loginCodeEl){
+      loginCodeEl.value = roomFromURL;
+      if (roomBadgeEl){
+        roomBadgeEl.style.display = "inline-block";
+        roomBadgeEl.textContent = "Đang đăng nhập cho phòng: " + roomFromURL;
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const params       = new URLSearchParams(window.location.search);
-      const roomFromURL  = params.get("room");
-      const loginCodeEl  = document.getElementById("loginCode");
-      const roomBadgeEl  = document.getElementById("roomBadge");
-
-      // Nếu có tenant trong localStorage → auto redirect vào portal
-      try {
-        const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-        if (saved) {
-          const tenant = JSON.parse(saved);
-          if (tenant && tenant.maPhong) {
-            // Nếu URL không yêu cầu phòng khác thì redirect luôn
-            if (!roomFromURL || roomFromURL === tenant.maPhong) {
-              window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
-              return;
-            }
-          }
-        }
-      } catch (e) {
-        console.error("check existing tenant error:", e);
-      }
-
-      // Nếu có room trên URL → auto điền & hiển thị badge
-      if (roomFromURL && loginCodeEl) {
-        loginCodeEl.value = roomFromURL;
-        if (roomBadgeEl) {
-          roomBadgeEl.style.display = "inline-block";
-          roomBadgeEl.textContent = "Đang đăng nhập cho phòng: " + roomFromURL;
-        }
-      }
-
-      const form = document.getElementById("loginForm");
-      if (form) {
-        form.addEventListener("submit", handleLoginSubmit);
-      }
-
-      const logoutBtn = document.getElementById("logoutBtn");
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", logoutTenant);
-      }
-    });
-  </script>
+    document.getElementById("loginForm")?.addEventListener("submit", handleLoginSubmit);
+    document.getElementById("logoutBtn")?.addEventListener("click", logoutTenant);
+  });
+</script>
 </body>
 </html>
 
