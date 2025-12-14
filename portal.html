@@ -589,24 +589,7 @@
           }
         }
       }
-      const alertBadge = document.getElementById('contractAlertBadge');
-      if (alertBadge) {
-        alertBadge.classList.add('hidden');
-        alertBadge.classList.remove('contract-alert-yellow','contract-alert-red');
       
-        if (diffDays != null && diffDays >= 0) {
-          if (diffDays <= 30) {
-            alertBadge.textContent = `⚠ Sắp hết hạn (${diffDays} ngày)`;
-            alertBadge.classList.remove('hidden');
-            alertBadge.classList.add('contract-alert-red');
-          } else if (diffDays <= 60) {
-            alertBadge.textContent = `⏳ Còn ${diffDays} ngày`;
-            alertBadge.classList.remove('hidden');
-            alertBadge.classList.add('contract-alert-yellow');
-          }
-        }
-      }
-
       contractPeriodEl.innerHTML = baseText + daysLeftText;
     }
 
@@ -1179,6 +1162,7 @@
 
 </body>
 </html>
+
 
 
 
