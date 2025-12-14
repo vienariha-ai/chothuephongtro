@@ -432,17 +432,43 @@
 
 <script>
   const TENANT_STORAGE_KEY = "ytHomeTenant";
-  const API_URL = "https://script.google.com/macros/s/AKfycbxdqNQ-0du0IUFJC5mQmXPKDtH3DLNBCW1uFuakvVZSaivBUaiTQKuXp2Rfx5-vG2m0eQ/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwIohVbvtVl7x1kTj_P_MdWFjckp8ZniicvjPuLWHIgNqfF0SMA6JGUiCNXNGpDMfww/exec";
 
   /* ======================================================
-   * ✅ JSONP CALL – CHUẨN HOÁ TOÀN BỘ PORTAL
+   * ✅ SID STORAGE (ĐỌC SID ĐÃ LƯU TỪ tenant.html)
+   * ====================================================== */
+  const YTH_SID_KEY = "YTH_SID";
+
+  function getSID() {
+    let sid = "";
+    try { sid = sessionStorage.getItem(YTH_SID_KEY) || ""; } catch(e) {}
+    if (!sid) { try { sid = localStorage.getItem(YTH_SID_KEY) || ""; } catch(e) {} }
+    return sid;
+  }
+  function clearSID() {
+    try { sessionStorage.removeItem(YTH_SID_KEY); } catch(e) {}
+    try { localStorage.removeItem(YTH_SID_KEY); } catch(e) {}
+  }
+  function makeNonce() {
+    return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  }
+
+  /* ======================================================
+   * ✅ JSONP CALL – AUTO gắn sid + ts vào MỌI request
    * ====================================================== */
   function callApi(action, params = {}) {
     return new Promise((resolve, reject) => {
       const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
       window[cb] = (data) => { cleanup(); resolve(data); };
 
-      const qs = new URLSearchParams({ action, ...params, callback: cb }).toString();
+      // ✅ AUTO sid + ts
+      const sid = getSID();
+      const ts  = Date.now();
+
+      const mergedParams = { ...params, ts };
+      if (sid) mergedParams.sid = sid;
+
+      const qs = new URLSearchParams({ action, ...mergedParams, callback: cb }).toString();
       const s = document.createElement("script");
       s.src = API_URL + "?" + qs;
       s.onerror = () => { cleanup(); reject(new Error("JSONP load failed")); };
@@ -455,11 +481,17 @@
     });
   }
 
+  // ✅ Wrapper cho action GHI: auto nonce
+  function callApiWrite(action, params = {}) {
+    return callApi(action, { ...params, nonce: makeNonce() });
+  }
+
   let __selectedInvoiceIndex = 0;
   let __portalDataCache = null;
 
   function logoutTenant() {
     try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
+    clearSID(); // ✅ xoá sid khi logout
     window.location.href = "tenant.html";
   }
 
@@ -938,7 +970,6 @@
     if (btn) btn.style.display = visible ? 'inline-flex' : 'none';
   }
 
-  // ✅ JSONP GET
   function fetchTempStayGet_(roomCode, cccd){
     return callApi('tempStayGet', {
       roomCode: roomCode || '',
@@ -954,7 +985,8 @@
     if (notice) notice.textContent = 'Đang gửi xác nhận...';
 
     try{
-      const out = await callApi('tempStaySubmit', {
+      // ✅ ACTION GHI -> dùng callApiWrite để auto nonce
+      const out = await callApiWrite('tempStaySubmit', {
         roomCode: roomCode || '',
         cccd: cccd || '',
         hoTen: document.getElementById('tsHoTen').value || '',
@@ -983,7 +1015,6 @@
     }
   }
 
-  // ========= THANH TOÁN =========
   function isInvoicePaid_(inv){
     const st = String(inv && inv.trangThai || '').toLowerCase();
     return (
@@ -1238,7 +1269,6 @@
 
   function openMaintenanceForm(){ alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.'); }
 
-  // ========= POPUP THANH TOÁN =========
   function openPaymentModal(index){
     if (index !== undefined && index !== null) __selectedInvoiceIndex = Number(index) || 0;
 
@@ -1301,9 +1331,9 @@
     const file = fileInput && fileInput.files ? fileInput.files[0] : null;
     const note = noteInput ? (noteInput.value || '') : '';
 
-    // ✅ JSONP GET: không gửi base64 qua URL (dễ vượt giới hạn)
     try{
-      const out = await callApi('tenantPaymentProof', {
+      // ✅ ACTION GHI -> dùng callApiWrite để auto nonce
+      const out = await callApiWrite('tenantPaymentProof', {
         roomCode: (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '',
         invoiceId: inv && (inv.id || inv.invoiceId || inv.maHoaDon) ? (inv.id || inv.invoiceId || inv.maHoaDon) : '',
         namThang: inv && inv.namThang ? inv.namThang : '',
@@ -1331,7 +1361,6 @@
 
   function downloadInvoicePdf(){ window.print(); }
 
-  // ========= FETCH DATA (✅ JSONP GET) =========
   async function fetchData(roomCode, identity){
     const note = document.getElementById('portalStatusNote');
     if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
@@ -1341,7 +1370,6 @@
     try{
       const data = await callApi('tenantPortal', {
         roomCode: roomCode,
-        // doGet của bạn hiện tenantPortalObj_ chưa dùng phoneOrCCCD, nhưng truyền vào cũng không sao
         phoneOrCCCD: identity || ''
       });
 
@@ -1391,8 +1419,3 @@
 
 </body>
 </html>
-
-
-
-
-
