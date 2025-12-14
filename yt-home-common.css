@@ -2219,6 +2219,13 @@ body.tenant-body #invoiceDetailTable tfoot td {
   color: #facc15;        /* vàng */
   font-weight: 600;
 }
+/* Vá nhanh theo nội dung text */
+td:contains("Đã đăng ký"),
+span:contains("Đã đăng ký") {
+  color: #22c55e;
+  font-weight: 600;
+}
+
 
 
 
