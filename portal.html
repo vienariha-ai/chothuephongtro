@@ -1126,8 +1126,6 @@
     }
   }
 
-
-
   // ========= THANH TOÁN =========
   function isInvoicePaid_(inv){
     const st = String(inv && inv.trangThai || '').toLowerCase();
@@ -1558,10 +1556,51 @@
 
     fetchData(tenant.maPhong, tenant.identity || '');
   });
+  /* =========================
+     MODAL TẠM TRÚ
+     ========================= */
+  function openTempStayModal(data) {
+    const modal = document.getElementById('tempStayModal');
+    if (!modal) return;
+
+    modal.style.display = 'flex';
+
+    // Bind dữ liệu mẫu
+    document.getElementById('ts_fullname').value = data?.fullname || '';
+    document.getElementById('ts_cccd').value = data?.cccd || '';
+  }
+
+  function closeTempStayModal() {
+    const modal = document.getElementById('tempStayModal');
+    if (!modal) return;
+
+    modal.style.display = 'none';
+  }
+  function renderTempStayCard(row) {
+    return `
+      <div class="card">
+        <div class="card-title">Tạm trú</div>
+  
+        <div class="card-row">
+          <span>Trạng thái:</span>
+          <strong>${row.trangThai}</strong>
+        </div>
+  
+        <button class="btn-primary"
+          onclick='openTempStayModal(${JSON.stringify(row)})'>
+          ${row.trangThai === 'Chưa đăng ký'
+            ? 'Đăng ký tạm trú'
+            : 'Xem thông tin'}
+        </button>
+      </div>
+    `;
+  }
+
 </script>
 
 </body>
 </html>
+
 
 
 
