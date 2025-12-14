@@ -5,7 +5,39 @@
   <title>YT Home – Portal tài khoản phòng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="yt-home-common.css" />
+
+  <!-- Patch CSS cho bảng người/xe + icon dịch vụ + status xanh -->
+  <style>
+    /* Canh giữa toàn bộ bảng người/xe + header, chữ nhỏ hơn */
+    .table-like.table-center th,
+    .table-like.table-center td{
+      text-align:center !important;
+      vertical-align: middle;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+    .table-like.table-center thead th{
+      font-size: 0.74rem;
+    }
+
+    /* Icon trước dịch vụ kèm theo */
+    .svc-icon{
+      display:inline-block;
+      width:22px;
+      text-align:center;
+      margin-right:6px;
+      opacity:.95;
+    }
+
+    /* “Đã đăng ký” xanh lá */
+    .status-text-success,
+    .status-ok{
+      color:#22c55e;
+      font-weight:700;
+    }
+  </style>
 </head>
+
 <body class="tenant-body">
   <div class="container">
     <header class="header">
@@ -65,10 +97,7 @@
               <span class="info-label">Số điện thoại:</span>
               <span class="info-value" id="ownerPhone">--</span>
             </div>
-            <div class="small-note">
-              <!--Thông tin được lấy từ sheet <strong>Khách thuê</strong> (Loại = "Chủ phòng", Trạng thái = "Đang ở").-->
-            </div>
-          
+
             <div class="section-title" style="margin-top:12px;">Danh sách người trong phòng</div>
             <table class="table-like table-center">
               <thead>
@@ -85,11 +114,11 @@
                 <tr><td colspan="6" class="muted">Chưa có dữ liệu.</td></tr>
               </tbody>
             </table>
+
             <div class="tenant-footer-actions">
               <span class="muted">Đăng ký tạm trú cho người ở.</span>
               <button class="btn" type="button" onclick="openTempStayForm()">Đăng ký tạm trú</button>
             </div>
-
           </div>
 
           <!-- TAB HỢP ĐỒNG -->
@@ -113,9 +142,8 @@
               Hiển thị từ sheet <strong>Hợp đồng</strong>. Nút "Ký tiếp hợp đồng" chỉ hiện khi còn &lt;= 1 tháng trước ngày kết thúc.
             </div>
           </div>
-        
 
-<!-- TAB THIẾT BỊ / TÀI SẢN -->
+          <!-- TAB THIẾT BỊ / TÀI SẢN -->
           <div class="tab-pane tab-pane-info hidden" id="tab-assets">
             <table class="table-like table-fixed">
               <thead>
@@ -135,10 +163,8 @@
               Dữ liệu lấy từ sheet <strong>Tài sản</strong> theo <strong>Mã phòng</strong>. Nút "Báo hỏng" sẽ tạo yêu cầu gửi cho chủ nhà.
             </div>
           </div>
+        </section>
 
-</section>
-
-        
         <!-- CỘT PHẢI: THANH TOÁN -->
         <section class="card">
           <div class="card-title">Thanh toán</div>
@@ -227,7 +253,7 @@
             </div>
           </div>
 
-          <!-- THÔNG TIN CHUYỂN KHOẢN + QR (luôn nằm bên dưới 2 tab) -->
+          <!-- THÔNG TIN CHUYỂN KHOẢN + QR -->
           <div class="pay-bottom">
             <div class="section-title">Thông tin chuyển khoản</div>
             <p class="small-note" id="invBankInfo">--</p>
@@ -236,12 +262,10 @@
             <div id="qrContainer" class="gallery-placeholder">Chưa có QR Code.</div>
           </div>
         </section>
-
       </div>
 
-      <!-- HÀNG DƯỚI: BẢO TRÌ + TIN NHẮN -->
+      <!-- HÀNG DƯỚI -->
       <div class="grid" style="margin-top:12px;">
-        <!-- Bảo trì -->
         <section class="card">
           <div class="card-title">Lịch bảo trì</div>
           <table class="table-like">
@@ -265,7 +289,6 @@
           </div>
         </section>
 
-        <!-- Tin nhắn / yêu cầu -->
         <section class="card">
           <div class="card-title">Tin nhắn & yêu cầu</div>
           <table class="table-like">
@@ -319,28 +342,16 @@
     </div>
   </div>
 
-
 <script>
   const TENANT_STORAGE_KEY = "ytHomeTenant";
   const API_URL = "https://script.google.com/macros/s/AKfycbwJ6i5jZRwhwSohFTU46ZRFAYUE8_5vQ5gvVwCuK0n_h-r0lobn9or39u6jlo1SjYzg/exec";
-  let CURRENT_INVOICES = [];
-  let CURRENT_SELECTED_INVOICE = null;
 
-  // ✅ FIX: bạn đang gọi fetchTenantPortalData nhưng chưa định nghĩa
-  async function fetchTenantPortalData(roomCode, identity){
-    return fetchData(roomCode, identity);
-  }
+  let __selectedInvoiceIndex = 0;
+  let __portalDataCache = null;
 
   function logoutTenant() {
     try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
     window.location.href = "tenant.html";
-  }
-  function renderRegisterStatus(statusText) {
-    const s = String(statusText || '').toLowerCase();
-    if (s.includes('đã')) {
-      return `<span class="status-registered">Đã đăng ký</span>`;
-    }
-    return `<span class="status-unregistered">Chưa đăng ký</span>`;
   }
 
   function formatVND(amount){
@@ -382,55 +393,6 @@
     return `${dd}/${mm}/${yyyy}`;
   }
 
- function renderStatusHTML(text, context) {
-  const raw = (text == null) ? '' : String(text).trim();
-  if (!raw) return '<span class="status-text muted">--</span>';
-
-  const lower = raw.toLowerCase();
-
-  /* ===== ĐÃ ĐĂNG KÝ / ĐÃ HOÀN TẤT ===== */
-  const isCompleted =
-    lower.includes('đã') ||
-    lower.includes('da ') ||
-    lower === 'ok' ||
-    lower === 'hợp lệ' ||
-    lower === 'hop le';
-
-  if (isCompleted) {
-    return `<span class="status-text status-text-success">${raw}</span>`;
-  }
-
-  /* ===== CHƯA / CÒN THIẾU ===== */
-  const isIncomplete =
-    lower.includes('chưa') ||
-    lower.includes('chua') ||
-    lower.includes('còn thiếu') ||
-    lower.includes('con thieu');
-
-  if (!isIncomplete) {
-    return `<span class="status-text">${raw}</span>`;
-  }
-
-  /* ===== CHIP CẢNH BÁO CLICK ===== */
-  const safeStatus = raw.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  const safeContext = (context || '')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-
-  return `
-    <button type="button"
-      class="status-chip status-chip-warning"
-      onclick="openStatusDetail('${safeContext}','${safeStatus}')">
-      ${raw}
-    </button>`;
-}
-
-
-  function openStatusDetail(context, statusText) {
-    const ctx = context ? `Ngữ cảnh: ${context}\n` : '';
-    alert(ctx + 'Trạng thái: ' + statusText);
-  }
-
   function monthsBetween(from, to) {
     const d1 = new Date(from);
     const d2 = new Date(to);
@@ -444,355 +406,225 @@
     return months;
   }
 
-  function getInvoiceStatusMode(inv){
-    const txt = (inv && inv.trangThai ? String(inv.trangThai) : '').toLowerCase();
-    if (!txt) return 'unknown';
-    if (txt.includes('thiếu') || txt.includes('con thieu')) return 'need-pay';
-    if (txt.includes('thu đủ') || txt.includes('thu du') || txt.includes('đã thanh toán') || txt.includes('da thanh toan')) return 'paid';
-    return 'unknown';
+  function openStatusDetail(context, statusText) {
+    const ctx = context ? `Ngữ cảnh: ${context}\n` : '';
+    alert(ctx + 'Trạng thái: ' + statusText);
   }
 
-  // =========================
-  // INFO CARD (giữ nguyên code bạn)
-  // =========================
-  function renderInfoCard(data){
-  const $ = (id) => document.getElementById(id);
-
-  const roomBadge   = $('roomBadge');
-  const roomLabel   = $('roomLabel');
-  const ownerName   = $('ownerName');
-  const ownerCCCD   = $('ownerCCCD');
-  const ownerPhone  = $('ownerPhone');
-
-  const contractStatusEl  = $('contractStatus');
-  const contractTypeEl    = $('contractType');
-  const contractPeriodEl  = $('contractPeriod');
-  const contractRentEl    = $('contractRent');
-  const contractDepositEl = $('contractDeposit');
-  const contractDueDayEl  = $('contractDueDay');
-  const contractServices  = $('contractServices');
-  const extendBtn         = $('extendContractBtn');
-
-  const membersBody       = $('membersTableBody');
-  const contractAlertBadge = $('contractAlertBadge');
-
-  const isEmptyData =
-    !data || typeof data !== 'object' || Object.keys(data).length === 0;
-
-  // ========= Helpers =========
-  function escapeHtml(s){
-    return String(s ?? '')
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#39;');
-  }
-
-  function getContractStatusBadgeClass(statusText) {
-    if (!statusText) return 'badge-neutral';
-    const s = statusText.toString().toLowerCase();
-    if (s.includes('hiệu lực') || s.includes('đang thuê')) return 'badge-success';
-    if (s.includes('sắp hết') || s.includes('chờ gia hạn')) return 'badge-warning';
-    if (s.includes('hết hạn') || s.includes('thanh lý') || s.includes('ngưng')) return 'badge-danger';
-    return 'badge-neutral';
-  }
-
-  // Icon cho dòng dịch vụ kèm theo
-  function renderServiceItem(serviceText){
-    const raw = String(serviceText ?? '').trim();
-    if (!raw) return '';
-
-    const t = raw.toLowerCase();
-    let icon = '🔹';
-    if (t.includes('điện') || t.includes('dien')) icon = '⚡';
-    else if (t.includes('nước') || t.includes('nuoc')) icon = '🚰';
-    else if (t.includes('wifi')) icon = '📶';
-    else if (t.includes('giặt') || t.includes('giat')) icon = '🧺';
-    else if (t.includes('rác') || t.includes('rac')) icon = '🗑️';
-    else if (t.includes('xe') || t.includes('giữ xe') || t.includes('giu xe')) icon = '🅿️';
-
-    return `<li><span class="svc-icon">${icon}</span>${escapeHtml(raw)}</li>`;
-  }
-
-  // Status tạm trú: “Đã đăng ký” xanh lá, “Chưa…” giữ dạng chip vàng
-  function renderTamTruStatusCell(statusText){
-    const raw = (statusText == null) ? '' : String(statusText).trim();
+  // Status dùng chung (chip warning khi “chưa/còn thiếu”, còn lại text thường)
+  function renderStatusHTML(text, context) {
+    const raw = (text == null) ? '' : String(text).trim();
     if (!raw) return '<span class="status-text muted">--</span>';
 
     const lower = raw.toLowerCase();
-
-    const isDone =
-      lower.includes('đã đăng ký') ||
-      lower.includes('da dang ky') ||
-      lower.includes('đã khai báo') ||
-      lower.includes('da khai bao');
-
-    if (isDone) {
-      return `<span class="status-text status-ok">${escapeHtml(raw)}</span>`;
-    }
-
     const isIncomplete =
       lower.includes('chưa') ||
       lower.includes('chua') ||
       lower.includes('còn thiếu') ||
       lower.includes('con thieu');
 
-    if (!isIncomplete) return `<span class="status-text">${escapeHtml(raw)}</span>`;
+    // ĐÃ / hoàn tất -> xanh
+    const isCompleted =
+      lower.includes('đã') ||
+      lower.includes('da ') ||
+      lower === 'ok' ||
+      lower === 'hợp lệ' ||
+      lower === 'hop le';
 
-    const safeStatus = escapeHtml(raw);
+    if (isCompleted) {
+      return `<span class="status-text status-text-success">${raw}</span>`;
+    }
+
+    if (!isIncomplete) {
+      return `<span class="status-text">${raw}</span>`;
+    }
+
+    const safeStatus = raw.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const safeContext = (context || '')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
     return `
       <button type="button"
         class="status-chip status-chip-warning"
-        onclick="openStatusDetail('tamtru','${safeStatus}')">
-        ${escapeHtml(raw)}
+        onclick="openStatusDetail('${safeContext}','${safeStatus}')">
+        ${raw}
       </button>`;
   }
 
-  // ========= Loading state =========
-  if (isEmptyData) {
-    const skeletonTargets = [
-      roomBadge, roomLabel,
-      ownerName, ownerCCCD, ownerPhone,
-      contractStatusEl, contractTypeEl,
-      contractPeriodEl, contractRentEl,
-      contractDepositEl, contractDueDayEl
-    ];
+  // ========= INFO CARD =========
+  function renderInfoCard(data){
+    const $ = (id) => document.getElementById(id);
 
-    skeletonTargets.forEach(el => {
-      if (!el) return;
-      el.textContent = '';
-      el.classList.add('skeleton');
-    });
+    const roomBadge   = $('roomBadge');
+    const roomLabel   = $('roomLabel');
+    const ownerName   = $('ownerName');
+    const ownerCCCD   = $('ownerCCCD');
+    const ownerPhone  = $('ownerPhone');
 
-    if (contractServices) {
-      contractServices.innerHTML = '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
+    const contractStatusEl  = $('contractStatus');
+    const contractTypeEl    = $('contractType');
+    const contractPeriodEl  = $('contractPeriod');
+    const contractRentEl    = $('contractRent');
+    const contractDepositEl = $('contractDeposit');
+    const contractDueDayEl  = $('contractDueDay');
+    const contractServices  = $('contractServices');
+    const extendBtn         = $('extendContractBtn');
+
+    const membersBody       = $('membersTableBody');
+    const contractAlertBadge = $('contractAlertBadge');
+
+    const isEmptyData =
+      !data || typeof data !== 'object' || Object.keys(data).length === 0;
+
+    function escapeHtml(s){
+      return String(s ?? '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
     }
 
-    if (membersBody) {
-      membersBody.innerHTML = '<tr><td colspan="6" class="muted skeleton">Đang tải danh sách người ở...</td></tr>';
-    }
-
-    // Ẩn badge cảnh báo khi loading
-    if (contractAlertBadge) {
-      contractAlertBadge.textContent = '';
-      contractAlertBadge.classList.add('hidden');
-      contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
-    }
-
-    if (extendBtn) extendBtn.style.display = 'none';
-    return;
-  }
-
-  // ========= Clear skeleton =========
-  const allTargets = [
-    roomBadge, roomLabel,
-    ownerName, ownerCCCD, ownerPhone,
-    contractStatusEl, contractTypeEl,
-    contractPeriodEl, contractRentEl,
-    contractDepositEl, contractDueDayEl
-  ];
-  allTargets.forEach(el => { if (el) el.classList.remove('skeleton'); });
-  if (membersBody) membersBody.classList.remove('skeleton');
-  if (contractServices) contractServices.classList.remove('skeleton');
-
-  // ========= Room + owner =========
-  const roomCode = (data && data.roomCode) ? data.roomCode : '--';
-  if (roomBadge) roomBadge.textContent = 'Phòng: ' + roomCode;
-  if (roomLabel) roomLabel.textContent = roomCode;
-
-  const chuPhong = (data && data.chuPhong) ? data.chuPhong : {};
-  if (ownerName)  ownerName.textContent  = chuPhong.hoTen     || '--';
-  if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd ? maskLast4Digits(chuPhong.cccd) : '--';
-  if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai ? maskLast4Digits(chuPhong.dienThoai) : '--';
-
-  // ========= Contract =========
-  const contract = (data && data.contract) ? data.contract : null;
-
-  let monthsLeft = null;
-  if (contract && contract.ngayKT) monthsLeft = monthsBetween(new Date(), contract.ngayKT);
-
-  let warningClass = "";
-  if (monthsLeft != null) {
-    if (monthsLeft <= 1) warningClass = "contract-alert-red";
-    else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
-  }
-
-  // Hiển thị badge cảnh báo ngay sau badge "Phòng"
-  if (contractAlertBadge) {
-    contractAlertBadge.classList.add('hidden');
-    contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
-    contractAlertBadge.textContent = '';
-
-    if (warningClass) {
-      const m = (monthsLeft == null) ? '' : String(monthsLeft);
-      contractAlertBadge.textContent =
-        (warningClass === 'contract-alert-red')
-          ? `⚠ Sắp hết hạn (${m} tháng)`
-          : `⏳ Còn ${m} tháng`;
-      contractAlertBadge.classList.remove('hidden');
-      contractAlertBadge.classList.add(warningClass);
-    }
-  }
-
-  // Trạng thái hợp đồng: chỉ dùng badge-* (không trộn contract-alert-*)
-  if (contractStatusEl) {
-    const text = contract ? (contract.trangThai || '--') : '--';
-    contractStatusEl.textContent = text;
-
-    contractStatusEl.classList.remove('badge-success','badge-warning','badge-danger','badge-neutral');
-    contractStatusEl.classList.add(getContractStatusBadgeClass(text));
-  }
-
-  if (contractTypeEl) contractTypeEl.textContent = contract ? (contract.loaiHD || '--') : '--';
-
-  if (contractPeriodEl) {
-    let baseText = '--';
-    let daysLeftText = '';
-
-    if (contract && (contract.ngayBD || contract.ngayKT)) {
-      const startRaw = contract.ngayBD ? contract.ngayBD : '';
-      const endRaw   = contract.ngayKT ? contract.ngayKT : '';
-
-      const start = startRaw ? formatDateDDMMYYYY(startRaw) : '';
-      const end   = endRaw   ? formatDateDDMMYYYY(endRaw)   : '';
-
-      baseText = (start && end) ? (start + ' – ' + end) : (start || end || '--');
-
-      const endDateObj = toDateObject(endRaw);
-      if (endDateObj) {
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const diffMs   = endDateObj.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-        if (diffDays >= 0) {
-          let cls = '';
-          if (diffDays < 30) cls = 'days-left-red';
-          else if (diffDays < 60) cls = 'days-left-yellow';
-          if (cls) daysLeftText = ` <span class="${cls}">(còn ${diffDays} ngày)</span>`;
-        }
-      }
-    }
-
-    contractPeriodEl.innerHTML = escapeHtml(baseText) + daysLeftText;
-  }
-
-  if (contractRentEl) {
-    contractRentEl.textContent = (contract && contract.tienThue != null) ? formatVND(contract.tienThue) : '--';
-  }
-  if (contractDepositEl) {
-    contractDepositEl.textContent = (contract && contract.tienCoc != null) ? formatVND(contract.tienCoc) : '--';
-  }
-  if (contractDueDayEl) contractDueDayEl.textContent = contract ? (contract.ngayThuTien || '--') : '--';
-
-  // ========= Dịch vụ kèm theo: dùng dichVuKemTheo + icon =========
-  if (contractServices) {
-    if (contract && Array.isArray(contract.dichVuKemTheo) && contract.dichVuKemTheo.length) {
-      contractServices.innerHTML = contract.dichVuKemTheo.map(renderServiceItem).join('');
-    } else if (contract) {
-      contractServices.innerHTML = '<li class="muted">Không có</li>';
-    } else {
-      contractServices.innerHTML = '<li class="muted">Không có hợp đồng.</li>';
-    }
-  }
-
-  // ========= Nút gia hạn =========
-  if (extendBtn) {
-    if (contract && contract.coTheGiaHan) {
-      extendBtn.style.display = 'inline-flex';
-      extendBtn.textContent = "Gia hạn hợp đồng";
-
-      extendBtn.classList.remove('btn-disabled','btn-warning','btn-danger','btn-accent');
-
-      if (monthsLeft != null) {
-        if (monthsLeft <= 1) extendBtn.classList.add("btn-danger");
-        else if (monthsLeft <= 2) extendBtn.classList.add("btn-warning");
-        else extendBtn.classList.add("btn-accent");
-      } else {
-        extendBtn.classList.add("btn-accent");
-      }
-
-      const statusText = contract.trangThai ? contract.trangThai.toString().toLowerCase() : '';
-      if (statusText.includes('hết hạn')) extendBtn.classList.add('btn-danger');
-      else if (statusText.includes('sắp hết')) extendBtn.classList.add('btn-warning');
-    } else {
-      extendBtn.style.display = 'none';
-    }
-  }
-
-  // ========= Danh sách người & xe =========
-  if (membersBody) {
-    membersBody.innerHTML = '';
-    const members = Array.isArray(data.members) ? data.members : [];
-
-    if (!members.length) {
-      membersBody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có người ở.</td></tr>';
-    } else {
-      members.forEach(m => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${escapeHtml(m.hoTen || '')}</td>
-          <td>${escapeHtml(m.dienThoai || '')}</td>
-          <td>${escapeHtml(m.cccd || '')}</td>
-          <td>${escapeHtml(m.bienSo || '')}</td>
-          <td>${m.ngayTamTru ? escapeHtml(formatDateDDMMYYYY(m.ngayTamTru)) : ''}</td>
-          <td>${renderTamTruStatusCell(m.trangThaiTamTru)}</td>
-        `;
-        membersBody.appendChild(tr);
-      });
-    }
-  }
-
-  // ========= Danh sách thiết bị / tài sản =========
-  const assetsBody = $('assetsTableBody');
-  if (assetsBody) {
-    assetsBody.innerHTML = '';
-    const assets = Array.isArray(data.assets) ? data.assets : [];
-
-    if (!assets.length) {
-      assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có thiết bị / tài sản cho phòng.</td></tr>';
-    } else {
-      assets.forEach((a)=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="assets-name">${escapeHtml(a.tenThietBi || a.tenTaiSan || '')}</td>
-          <td>${escapeHtml(a.tinhTrang || '')}</td>
-          <td>${escapeHtml(a.baoHanh || '')}</td>
-          <td>${a.baoTriGanNhat ? escapeHtml(formatDateDDMMYYYY(a.baoTriGanNhat)) : ''}</td>
-          <td>
-            <button type="button" class="btn btn-outline btn-sm"
-              onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,'&#39;')}')">Báo hỏng</button>
-          </td>
-        `;
-        assetsBody.appendChild(tr);
-      });
-    }
-  }
-}
-
-    /*
-    if (contractStatusEl) {
-      contractStatusEl.classList.remove("contract-alert-red","contract-alert-yellow");
-      if (warningClass) contractStatusEl.classList.add(warningClass);
-    }
-    */
-    function getStatusClass(statusText) {
-      if (!statusText) return '';
+    function getContractStatusBadgeClass(statusText) {
+      if (!statusText) return 'badge-neutral';
       const s = statusText.toString().toLowerCase();
       if (s.includes('hiệu lực') || s.includes('đang thuê')) return 'badge-success';
       if (s.includes('sắp hết') || s.includes('chờ gia hạn')) return 'badge-warning';
       if (s.includes('hết hạn') || s.includes('thanh lý') || s.includes('ngưng')) return 'badge-danger';
       return 'badge-neutral';
     }
-    
+
+    function renderServiceItem(serviceText){
+      const raw = String(serviceText ?? '').trim();
+      if (!raw) return '';
+
+      const t = raw.toLowerCase();
+      let icon = '🔹';
+      if (t.includes('điện') || t.includes('dien')) icon = '⚡';
+      else if (t.includes('nước') || t.includes('nuoc')) icon = '🚰';
+      else if (t.includes('wifi')) icon = '📶';
+      else if (t.includes('giặt') || t.includes('giat')) icon = '🧺';
+      else if (t.includes('rác') || t.includes('rac')) icon = '🗑️';
+      else if (t.includes('xe') || t.includes('giữ xe') || t.includes('giu xe')) icon = '🅿️';
+
+      return `<li><span class="svc-icon">${icon}</span>${escapeHtml(raw)}</li>`;
+    }
+
+    function renderTamTruStatusCell(statusText){
+      const raw = (statusText == null) ? '' : String(statusText).trim();
+      if (!raw) return '<span class="status-text muted">--</span>';
+
+      const lower = raw.toLowerCase();
+      const isDone =
+        lower.includes('đã đăng ký') ||
+        lower.includes('da dang ky') ||
+        lower.includes('đã khai báo') ||
+        lower.includes('da khai bao');
+
+      if (isDone) return `<span class="status-text status-ok">${escapeHtml(raw)}</span>`;
+
+      const isIncomplete =
+        lower.includes('chưa') ||
+        lower.includes('chua') ||
+        lower.includes('còn thiếu') ||
+        lower.includes('con thieu');
+
+      if (!isIncomplete) return `<span class="status-text">${escapeHtml(raw)}</span>`;
+
+      const safeStatus = escapeHtml(raw);
+      return `
+        <button type="button"
+          class="status-chip status-chip-warning"
+          onclick="openStatusDetail('tamtru','${safeStatus}')">
+          ${escapeHtml(raw)}
+        </button>`;
+    }
+
+    if (isEmptyData) {
+      const skeletonTargets = [
+        roomBadge, roomLabel,
+        ownerName, ownerCCCD, ownerPhone,
+        contractStatusEl, contractTypeEl,
+        contractPeriodEl, contractRentEl,
+        contractDepositEl, contractDueDayEl
+      ];
+
+      skeletonTargets.forEach(el => {
+        if (!el) return;
+        el.textContent = '';
+        el.classList.add('skeleton');
+      });
+
+      if (contractServices) {
+        contractServices.innerHTML = '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
+      }
+
+      if (membersBody) {
+        membersBody.innerHTML = '<tr><td colspan="6" class="muted skeleton">Đang tải danh sách người ở...</td></tr>';
+      }
+
+      if (contractAlertBadge) {
+        contractAlertBadge.textContent = '';
+        contractAlertBadge.classList.add('hidden');
+        contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
+      }
+
+      if (extendBtn) extendBtn.style.display = 'none';
+      return;
+    }
+
+    const allTargets = [
+      roomBadge, roomLabel,
+      ownerName, ownerCCCD, ownerPhone,
+      contractStatusEl, contractTypeEl,
+      contractPeriodEl, contractRentEl,
+      contractDepositEl, contractDueDayEl
+    ];
+    allTargets.forEach(el => { if (el) el.classList.remove('skeleton'); });
+
+    const roomCode = (data && data.roomCode) ? data.roomCode : '--';
+    if (roomBadge) roomBadge.textContent = 'Phòng: ' + roomCode;
+    if (roomLabel) roomLabel.textContent = roomCode;
+
+    const chuPhong = (data && data.chuPhong) ? data.chuPhong : {};
+    if (ownerName)  ownerName.textContent  = chuPhong.hoTen     || '--';
+    if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd ? maskLast4Digits(chuPhong.cccd) : '--';
+    if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai ? maskLast4Digits(chuPhong.dienThoai) : '--';
+
+    const contract = (data && data.contract) ? data.contract : null;
+
+    let monthsLeft = null;
+    if (contract && contract.ngayKT) monthsLeft = monthsBetween(new Date(), contract.ngayKT);
+
+    let warningClass = "";
+    if (monthsLeft != null) {
+      if (monthsLeft <= 1) warningClass = "contract-alert-red";
+      else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
+    }
+
+    // Badge cảnh báo ngay sau “Phòng”
+    if (contractAlertBadge) {
+      contractAlertBadge.classList.add('hidden');
+      contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
+      contractAlertBadge.textContent = '';
+
+      if (warningClass) {
+        const m = (monthsLeft == null) ? '' : String(monthsLeft);
+        contractAlertBadge.textContent =
+          (warningClass === 'contract-alert-red')
+            ? `⚠ Sắp hết hạn (${m} tháng)`
+            : `⏳ Còn ${m} tháng`;
+        contractAlertBadge.classList.remove('hidden');
+        contractAlertBadge.classList.add(warningClass);
+      }
+    }
+
     if (contractStatusEl) {
       const text = contract ? (contract.trangThai || '--') : '--';
       contractStatusEl.textContent = text;
-    
       contractStatusEl.classList.remove('badge-success','badge-warning','badge-danger','badge-neutral');
-      const statusClass = getStatusClass(text);
-      if (statusClass) contractStatusEl.classList.add(statusClass);
+      contractStatusEl.classList.add(getContractStatusBadgeClass(text));
     }
 
     if (contractTypeEl) contractTypeEl.textContent = contract ? (contract.loaiHD || '--') : '--';
@@ -825,43 +657,25 @@
           }
         }
       }
-      
-      contractPeriodEl.innerHTML = baseText + daysLeftText;
+      contractPeriodEl.innerHTML = escapeHtml(baseText) + daysLeftText;
     }
 
-    if (contractRentEl) {
-      contractRentEl.textContent = (contract && contract.tienThue != null) ? formatVND(contract.tienThue) : '--';
-    }
-    if (contractDepositEl) {
-      contractDepositEl.textContent = (contract && contract.tienCoc != null) ? formatVND(contract.tienCoc) : '--';
-    }
+    if (contractRentEl) contractRentEl.textContent = (contract && contract.tienThue != null) ? formatVND(contract.tienThue) : '--';
+    if (contractDepositEl) contractDepositEl.textContent = (contract && contract.tienCoc != null) ? formatVND(contract.tienCoc) : '--';
     if (contractDueDayEl) contractDueDayEl.textContent = contract ? (contract.ngayThuTien || '--') : '--';
 
+    // Dịch vụ kèm theo (mảng dichVuKemTheo) + icon
     if (contractServices) {
-      contractServices.innerHTML = '';
-      if (contract) {
-        ['1','2','3'].forEach(n => {
-          const ma = contract['maDV' + n];
-          const dg = contract['donGiaDV' + n];
-          if (ma) {
-            const li = document.createElement('li');
-            li.textContent = ma + (dg != null ? (' – ' + formatVND(dg)) : '');
-            contractServices.appendChild(li);
-          }
-        });
-
-        if (!contractServices.childElementCount) {
-          const li = document.createElement('li');
-          li.textContent = 'Chưa cấu hình dịch vụ.';
-          contractServices.appendChild(li);
-        }
+      if (contract && Array.isArray(contract.dichVuKemTheo) && contract.dichVuKemTheo.length) {
+        contractServices.innerHTML = contract.dichVuKemTheo.map(renderServiceItem).join('');
+      } else if (contract) {
+        contractServices.innerHTML = '<li class="muted">Không có</li>';
       } else {
-        const li = document.createElement('li');
-        li.textContent = 'Không có hợp đồng để hiển thị dịch vụ.';
-        contractServices.appendChild(li);
+        contractServices.innerHTML = '<li class="muted">Không có hợp đồng.</li>';
       }
     }
 
+    // Nút gia hạn
     if (extendBtn) {
       if (contract && contract.coTheGiaHan) {
         extendBtn.style.display = 'inline-flex';
@@ -873,16 +687,15 @@
           if (monthsLeft <= 1) extendBtn.classList.add("btn-danger");
           else if (monthsLeft <= 2) extendBtn.classList.add("btn-warning");
           else extendBtn.classList.add("btn-accent");
+        } else {
+          extendBtn.classList.add("btn-accent");
         }
-
-        const statusText = contract.trangThai ? contract.trangThai.toString().toLowerCase() : '';
-        if (statusText.includes('hết hạn')) extendBtn.classList.add('btn-danger');
-        else if (statusText.includes('sắp hết')) extendBtn.classList.add('btn-warning');
       } else {
         extendBtn.style.display = 'none';
       }
     }
 
+    // Danh sách người & xe
     if (membersBody) {
       membersBody.innerHTML = '';
       const members = Array.isArray(data.members) ? data.members : [];
@@ -893,19 +706,19 @@
         members.forEach(m => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${m.hoTen || ''}</td>
-            <td>${m.dienThoai || ''}</td>
-            <td>${m.cccd || ''}</td>
-            <td>${m.bienSo || ''}</td>
-            <td>${m.ngayTamTru ? formatDateDDMMYYYY(m.ngayTamTru) : ''}</td>
-            <td>${renderStatusHTML(m.trangThaiTamTru, 'tamtru')}</td>
+            <td>${escapeHtml(m.hoTen || '')}</td>
+            <td>${escapeHtml(m.dienThoai || '')}</td>
+            <td>${escapeHtml(m.cccd || '')}</td>
+            <td>${escapeHtml(m.bienSo || '')}</td>
+            <td>${m.ngayTamTru ? escapeHtml(formatDateDDMMYYYY(m.ngayTamTru)) : ''}</td>
+            <td>${renderTamTruStatusCell(m.trangThaiTamTru)}</td>
           `;
           membersBody.appendChild(tr);
         });
       }
     }
 
-    // 8. Danh sách thiết bị / tài sản trong phòng
+    // Thiết bị/tài sản
     const assetsBody = $('assetsTableBody');
     if (assetsBody) {
       assetsBody.innerHTML = '';
@@ -914,15 +727,16 @@
       if (!assets.length) {
         assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có thiết bị / tài sản cho phòng.</td></tr>';
       } else {
-        assets.forEach((a, i)=>{
+        assets.forEach((a)=>{
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td class="assets-name">${a.tenThietBi || a.tenTaiSan || ''}</td>
-            <td>${a.tinhTrang || ''}</td>
-            <td>${a.baoHanh || ''}</td>
-            <td>${a.baoTriGanNhat ? formatDateDDMMYYYY(a.baoTriGanNhat) : ''}</td>
+            <td class="assets-name">${escapeHtml(a.tenThietBi || a.tenTaiSan || '')}</td>
+            <td>${escapeHtml(a.tinhTrang || '')}</td>
+            <td>${escapeHtml(a.baoHanh || '')}</td>
+            <td>${a.baoTriGanNhat ? escapeHtml(formatDateDDMMYYYY(a.baoTriGanNhat)) : ''}</td>
             <td>
-              <button type="button" class="btn btn-outline btn-sm" onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,"&#39;")}')">Báo hỏng</button>
+              <button type="button" class="btn btn-outline btn-sm"
+                onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,'&#39;')}', '${escapeHtml(a.tenThietBi || a.tenTaiSan || '')}')">Báo hỏng</button>
             </td>
           `;
           assetsBody.appendChild(tr);
@@ -930,34 +744,13 @@
       }
     }
   }
-  function renderServiceItem(serviceText) {
-    const t = String(serviceText || '').toLowerCase();
-    let icon = '🔹';
-    if (t.includes('điện')) icon = '⚡';
-    else if (t.includes('nước')) icon = '🚰';
-    else if (t.includes('wifi')) icon = '📶';
-    else if (t.includes('giặt')) icon = '🧺';
-    else if (t.includes('rác')) icon = '🗑️';
-    return `<li><span class="svc-icon">${icon}</span>${serviceText}</li>`;
-  }
-  
-  if (contractServices) {
-    if (contract && Array.isArray(contract.dichVuKemTheo) && contract.dichVuKemTheo.length) {
-      contractServices.innerHTML = contract.dichVuKemTheo.map(renderServiceItem).join('');
-    } else if (contract) {
-      contractServices.innerHTML = '<li class="muted">Chưa cấu hình dịch vụ.</li>';
-    } else {
-      contractServices.innerHTML = '<li class="muted">Không có hợp đồng để hiển thị dịch vụ.</li>';
-    }
+
+  // Wrapper để không bị lỗi “openAssetReportModal is not defined”
+  function openAssetReportModal(assetId, assetName){
+    alert('Báo hỏng thiết bị: ' + (assetName || '') + '\n(ID: ' + (assetId || '-') + ')');
   }
 
-
-  // =========================
-  // THANH TOÁN (giữ nguyên logic)
-  // =========================
-  let __selectedInvoiceIndex = 0;
-  let __portalDataCache = null;
-
+  // ========= THANH TOÁN =========
   function isInvoicePaid_(inv){
     const st = String(inv && inv.trangThai || '').toLowerCase();
     return (
@@ -988,15 +781,13 @@
       !!(data && data.contract && String(data.contract.trangThai || '').toLowerCase().includes('hiệu lực'));
 
     if (!isContractActive) {
-      historyBody.innerHTML = `
-        <tr><td colspan="4" class="muted">Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.</td></tr>`;
+      historyBody.innerHTML = `<tr><td colspan="4" class="muted">Hợp đồng không còn hiệu lực, không còn kỳ thanh toán mới.</td></tr>`;
       renderInvoiceDetail_(null);
       return;
     }
 
     if (!invoices.length){
-      historyBody.innerHTML = `
-        <tr><td colspan="4" class="muted">Chưa có hóa đơn nào cho phòng này.</td></tr>`;
+      historyBody.innerHTML = `<tr><td colspan="4" class="muted">Chưa có hóa đơn nào cho phòng này.</td></tr>`;
       renderInvoiceDetail_(null);
       return;
     }
@@ -1009,9 +800,7 @@
         <td>${formatVND(inv.tongPhaiThu)}</td>
         <td>${renderInvoiceStatusCell_(inv, i)}</td>
         <td>
-          <button type="button" class="btn btn-outline btn-sm" onclick="selectInvoice(${i})">
-            Chi tiết
-          </button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="selectInvoice(${i})">Chi tiết</button>
         </td>
       `;
       historyBody.appendChild(tr);
@@ -1094,9 +883,7 @@
       const filtered = services.filter(s=>{
         const maDV = String(s.maDV || s.tenDichVu || '').trim();
         const thanhTien = Number(s.thanhTien || 0);
-        if (!maDV) return false;
-        if (thanhTien === 0) return false;
-        return true;
+        return !!maDV && thanhTien !== 0;
       });
 
       if (!filtered.length){
@@ -1114,19 +901,14 @@
           const metaByMa = !metaById && maDV && serviceMap[maDV] ? serviceMap[maDV] : null;
           const meta = metaById || metaByMa || {};
           const loai = String(meta.loai || meta['Loại'] || meta.type || '').trim().toLowerCase();
-
           const isTheoSoLuong = loai === 'theo số lượng' || loai === 'theo so luong';
-
-          const soDau  = (s.soDau == null ? '' : s.soDau);
-          const soCuoi = (s.soCuoi == null ? '' : s.soCuoi);
-          const soLuong = (s.soLuong == null ? '' : s.soLuong);
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td class="dv-name">${maDV}</td>
-            <td>${isTheoSoLuong ? '-' : soDau}</td>
-            <td>${isTheoSoLuong ? '-' : soCuoi}</td>
-            <td>${soLuong}</td>
+            <td>${isTheoSoLuong ? '-' : (s.soDau ?? '')}</td>
+            <td>${isTheoSoLuong ? '-' : (s.soCuoi ?? '')}</td>
+            <td>${s.soLuong ?? ''}</td>
             <td class="dv-money">${formatVND(s.donGia)}</td>
             <td class="dv-money">${formatVND(thanhTien)}</td>
           `;
@@ -1137,19 +919,15 @@
       }
     }
 
-    // ✅ BANK + QR theo hóa đơn đang chọn
     updateBankAndQr_(inv);
   }
 
-  // ✅ CLEAN: bỏ fetch ownerBank riêng, dùng bankInfo đã được Apps Script bơm vào invoice
   function updateBankAndQr_(inv){
     const bankInfoEl = document.getElementById('invBankInfo');
     const qrContainer = document.getElementById('qrContainer');
 
-    // BANK ưu tiên từ inv.chiTiet.bankInfo
     const bankInfo =
-      (inv && inv.chiTiet && inv.chiTiet.bankInfo) ? inv.chiTiet.bankInfo :
-      null;
+      (inv && inv.chiTiet && inv.chiTiet.bankInfo) ? inv.chiTiet.bankInfo : null;
 
     if (bankInfoEl){
       const bankText = [
@@ -1162,15 +940,12 @@
       bankInfoEl.innerHTML = bankText || '--';
     }
 
-    // QR giữ nguyên
     if (!qrContainer) return;
     qrContainer.innerHTML = '';
 
     const c = (inv && inv.chiTiet) ? inv.chiTiet : {};
-    const qr =
-      (c && (c.qrCode || c.qr || c.qr_code || c["QR Code"])) ||
-      (inv && (inv.qrCode || inv.qr || inv.qr_code || inv["QR Code"])) ||
-      '';
+    const qr = (c && (c.qrCode || c.qr || c.qr_code || c["QR Code"])) ||
+               (inv && (inv.qrCode || inv.qr || inv.qr_code || inv["QR Code"])) || '';
 
     if (qr){
       const img = document.createElement('img');
@@ -1229,15 +1004,9 @@
   }
 
   function openMaintenanceForm(){ alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.'); }
-  function openAssetReport(assetId, assetName){
-      alert('Báo hỏng thiết bị: ' + (assetName || '') + '\n(ID: ' + (assetId || '-') + ')');
-    }
+  function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
 
-    function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
-
-  // =========================
-  // POPUP THANH TOÁN (giữ nguyên)
-  // =========================
+  // ========= POPUP THANH TOÁN =========
   function openPaymentModal(index){
     if (index !== undefined && index !== null) __selectedInvoiceIndex = Number(index) || 0;
 
@@ -1349,6 +1118,7 @@
 
   function downloadInvoicePdf(){ window.print(); }
 
+  // ========= FETCH =========
   async function fetchData(roomCode, identity){
     const note = document.getElementById('portalStatusNote');
     if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
@@ -1382,14 +1152,12 @@
       renderMaintenance(data);
       renderMessages(data);
 
-      // ✅ nếu hoá đơn đang chọn có bankInfo thì hiển thị luôn (tránh lúc chưa click tab detail)
       const invoices = Array.isArray(data.invoices) ? data.invoices : [];
       if (invoices.length) updateBankAndQr_(invoices[__selectedInvoiceIndex] || invoices[0]);
 
     } catch(err){
-      console.error('fetchTenantPortalData error:',err);
-      const noteEl = document.getElementById('portalStatusNote');
-      if (noteEl) noteEl.textContent = 'Lỗi kết nối tới Apps Script, vui lòng thử lại.';
+      console.error('fetchData error:',err);
+      if (note) note.textContent = 'Lỗi kết nối tới Apps Script, vui lòng thử lại.';
     }
   }
 
@@ -1412,26 +1180,9 @@
       return;
     }
 
-    // ✅ gọi đúng hàm (đã define)
     fetchData(tenant.maPhong, tenant.identity || '');
   });
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
