@@ -940,7 +940,7 @@
 
   // ✅ JSONP GET
   function fetchTempStayGet_(roomCode, cccd){
-    return callApi('tenantTempStayGet', {
+    return callApi('tempStayGet', {
       roomCode: roomCode || '',
       cccd: cccd || ''
     });
@@ -954,7 +954,7 @@
     if (notice) notice.textContent = 'Đang gửi xác nhận...';
 
     try{
-      const out = await callApi('tenantTempStayConfirm', {
+      const out = await callApi('tempStaySubmit', {
         roomCode: roomCode || '',
         cccd: cccd || '',
         hoTen: document.getElementById('tsHoTen').value || '',
@@ -1341,7 +1341,8 @@
     try{
       const data = await callApi('tenantPortal', {
         roomCode: roomCode,
-        identity: identity || ''
+        // doGet của bạn hiện tenantPortalObj_ chưa dùng phoneOrCCCD, nhưng truyền vào cũng không sao
+        phoneOrCCCD: identity || ''
       });
 
       if (!data || !data.success){
@@ -1390,3 +1391,4 @@
 
 </body>
 </html>
+
