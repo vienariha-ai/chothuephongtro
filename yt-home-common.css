@@ -2253,7 +2253,7 @@ td .status-text-success{
 }
 /* ===== BẢNG NGƯỜI & XE: GIẢM CỠ CHỮ TOÀN BỘ ===== */
 .table-center {
-  font-size: 0.78rem; /* cỡ chữ chung toàn bảng */
+  font-size: 0.5rem; /* cỡ chữ chung toàn bảng */
 }
 
 .table-center th {
@@ -2263,6 +2263,7 @@ td .status-text-success{
 .table-center td {
   font-size: 0.78rem;
 }
+
 
 
 
