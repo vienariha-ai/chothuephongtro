@@ -2251,6 +2251,19 @@ td .status-text-success{
   align-items: center;
   justify-content: center;
 }
+/* ===== BẢNG NGƯỜI & XE: GIẢM CỠ CHỮ TOÀN BỘ ===== */
+.table-center {
+  font-size: 0.78rem; /* cỡ chữ chung toàn bảng */
+}
+
+.table-center th {
+  font-size: 0.7rem;  /* tiêu đề nhỏ hơn nội dung */
+}
+
+.table-center td {
+  font-size: 0.78rem;
+}
+
 
 
 
