@@ -431,70 +431,119 @@
   </div>
 
 <script>
+  /************************************************************
+   * ✅ CONFIG
+   ************************************************************/
   const TENANT_STORAGE_KEY = "ytHomeTenant";
   const API_URL = "https://script.google.com/macros/s/AKfycbwIohVbvtVl7x1kTj_P_MdWFjckp8ZniicvjPuLWHIgNqfF0SMA6JGUiCNXNGpDMfww/exec";
 
-  /* ======================================================
-   * ✅ SID STORAGE (ĐỌC SID ĐÃ LƯU TỪ tenant.html)
-   * ====================================================== */
+  /************************************************************
+   * ✅ SID / TS / NONCE (CHUẨN HÓA 1 LẦN DUY NHẤT)
+   * - sid: đọc từ sessionStorage/localStorage (được set ở tenant.html)
+   * - ts : Date.now()
+   * - nonce: random + timestamp (cho action GHI)
+   ************************************************************/
   const YTH_SID_KEY = "YTH_SID";
 
   function getSID() {
-    let sid = "";
-    try { sid = sessionStorage.getItem(YTH_SID_KEY) || ""; } catch(e) {}
-    if (!sid) { try { sid = localStorage.getItem(YTH_SID_KEY) || ""; } catch(e) {} }
-    return sid;
+    return (
+      (function(){
+        try { return sessionStorage.getItem(YTH_SID_KEY) || ""; } catch(e) { return ""; }
+      })()
+      || (function(){
+        try { return localStorage.getItem(YTH_SID_KEY) || ""; } catch(e) { return ""; }
+      })()
+      || ""
+    );
   }
+
   function clearSID() {
     try { sessionStorage.removeItem(YTH_SID_KEY); } catch(e) {}
     try { localStorage.removeItem(YTH_SID_KEY); } catch(e) {}
   }
+
   function makeNonce() {
-    return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    // nonce không cần "crypto" để tương thích rộng
+    return `${Date.now()}_${Math.random().toString(16).slice(2)}_${Math.floor(Math.random()*1e9)}`;
   }
 
-  /* ======================================================
-   * ✅ JSONP CALL – AUTO gắn sid + ts vào MỌI request
-   * ====================================================== */
+  function buildParams(baseParams = {}, { write = false } = {}) {
+    const sid = getSID();
+    const ts = Date.now();
+    const p = { ...baseParams, ts };
+
+    // sid luôn đi kèm nếu có
+    if (sid) p.sid = sid;
+
+    // action ghi -> thêm nonce
+    if (write) p.nonce = makeNonce();
+
+    return p;
+  }
+
+  /************************************************************
+   * ✅ JSONP CALL (GET)
+   * - Apps Script WebApp dùng doGet + callback -> JSONP
+   * - Tự động gắn sid + ts cho mọi request
+   ************************************************************/
   function callApi(action, params = {}) {
     return new Promise((resolve, reject) => {
       const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-      window[cb] = (data) => { cleanup(); resolve(data); };
 
-      // ✅ AUTO sid + ts
-      const sid = getSID();
-      const ts  = Date.now();
+      const cleanupRefs = { script: null };
 
-      const mergedParams = { ...params, ts };
-      if (sid) mergedParams.sid = sid;
+      window[cb] = (data) => {
+        cleanup();
+        resolve(data);
+      };
 
-      const qs = new URLSearchParams({ action, ...mergedParams, callback: cb }).toString();
+      const merged = buildParams(params, { write: false });
+      const qs = new URLSearchParams({ action, ...merged, callback: cb }).toString();
+
       const s = document.createElement("script");
       s.src = API_URL + "?" + qs;
-      s.onerror = () => { cleanup(); reject(new Error("JSONP load failed")); };
+      s.async = true;
+      s.onerror = () => {
+        cleanup();
+        reject(new Error("JSONP load failed"));
+      };
+
+      cleanupRefs.script = s;
       document.body.appendChild(s);
 
       function cleanup() {
         try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-        if (s.parentNode) s.parentNode.removeChild(s);
+        if (cleanupRefs.script && cleanupRefs.script.parentNode) {
+          cleanupRefs.script.parentNode.removeChild(cleanupRefs.script);
+        }
       }
     });
   }
 
-  // ✅ Wrapper cho action GHI: auto nonce
+  // ✅ Action GHI: vẫn JSONP (doGet) nhưng thêm nonce
   function callApiWrite(action, params = {}) {
-    return callApi(action, { ...params, nonce: makeNonce() });
+    const merged = buildParams(params, { write: true });
+    return callApi(action, merged);
   }
 
+  /************************************************************
+   * ✅ STATE
+   ************************************************************/
   let __selectedInvoiceIndex = 0;
   let __portalDataCache = null;
 
+  /************************************************************
+   * ✅ AUTH / LOGOUT
+   ************************************************************/
   function logoutTenant() {
     try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
-    clearSID(); // ✅ xoá sid khi logout
+    clearSID();
     window.location.href = "tenant.html";
   }
 
+  /************************************************************
+   * ✅ HELPERS
+   ************************************************************/
   function formatVND(amount){
     if(amount===null||amount===undefined||amount==='') return '--';
     const num = Number(String(amount).replace(/[^\d.-]/g,''));
@@ -584,6 +633,9 @@
       </button>`;
   }
 
+  /************************************************************
+   * ✅ RENDER: INFO CARD
+   ************************************************************/
   function renderInfoCard(data){
     const $ = (id) => document.getElementById(id);
 
@@ -844,14 +896,16 @@
       } else {
         assets.forEach((a)=>{
           const tr = document.createElement('tr');
+          const idSafe = String(a.id||'').replace(/'/g,'&#39;');
+          const nameSafe = escapeHtml(a.tenThietBi || a.tenTaiSan || '');
           tr.innerHTML = `
-            <td class="assets-name">${escapeHtml(a.tenThietBi || a.tenTaiSan || '')}</td>
+            <td class="assets-name">${nameSafe}</td>
             <td>${escapeHtml(a.tinhTrang || '')}</td>
             <td>${escapeHtml(a.baoHanh || '')}</td>
             <td>${a.baoTriGanNhat ? escapeHtml(formatDateDDMMYYYY(a.baoTriGanNhat)) : ''}</td>
             <td>
               <button type="button" class="btn btn-outline btn-sm"
-                onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,'&#39;')}', '${escapeHtml(a.tenThietBi || a.tenTaiSan || '')}')">Báo hỏng</button>
+                onclick="openAssetReportModal('${idSafe}', '${nameSafe}')">Báo hỏng</button>
             </td>
           `;
           assetsBody.appendChild(tr);
@@ -864,9 +918,9 @@
     alert('Báo hỏng thiết bị: ' + (assetName || '') + '\n(ID: ' + (assetId || '-') + ')');
   }
 
-  // =========================
-  // ✅ TẠM TRÚ
-  // =========================
+  /************************************************************
+   * ✅ TẠM TRÚ
+   ************************************************************/
   let __tempStayCurrent = { cccd:'', roomCode:'', status:'' };
 
   function openTempStayModal(cccd, hoTen, statusText){
@@ -971,10 +1025,10 @@
   }
 
   function fetchTempStayGet_(roomCode, cccd){
-    return callApi('tempStayGet', {
+    return callApi('tempStayGet', buildParams({
       roomCode: roomCode || '',
       cccd: cccd || ''
-    });
+    }));
   }
 
   async function submitTempStayConfirm(){
@@ -985,7 +1039,6 @@
     if (notice) notice.textContent = 'Đang gửi xác nhận...';
 
     try{
-      // ✅ ACTION GHI -> dùng callApiWrite để auto nonce
       const out = await callApiWrite('tempStaySubmit', {
         roomCode: roomCode || '',
         cccd: cccd || '',
@@ -1015,6 +1068,9 @@
     }
   }
 
+  /************************************************************
+   * ✅ PAYMENT
+   ************************************************************/
   function isInvoicePaid_(inv){
     const st = String(inv && inv.trangThai || '').toLowerCase();
     return (
@@ -1223,6 +1279,9 @@
     }
   }
 
+  /************************************************************
+   * ✅ MAINTENANCE / MESSAGES
+   ************************************************************/
   function renderMaintenance(data){
     const tbody = document.getElementById('maintenanceBody');
     if (!tbody) return;
@@ -1269,6 +1328,9 @@
 
   function openMaintenanceForm(){ alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.'); }
 
+  /************************************************************
+   * ✅ PAYMENT MODAL (proof)
+   ************************************************************/
   function openPaymentModal(index){
     if (index !== undefined && index !== null) __selectedInvoiceIndex = Number(index) || 0;
 
@@ -1332,7 +1394,6 @@
     const note = noteInput ? (noteInput.value || '') : '';
 
     try{
-      // ✅ ACTION GHI -> dùng callApiWrite để auto nonce
       const out = await callApiWrite('tenantPaymentProof', {
         roomCode: (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '',
         invoiceId: inv && (inv.id || inv.invoiceId || inv.maHoaDon) ? (inv.id || inv.invoiceId || inv.maHoaDon) : '',
@@ -1361,6 +1422,9 @@
 
   function downloadInvoicePdf(){ window.print(); }
 
+  /************************************************************
+   * ✅ FETCH DATA (AUTO sid + ts)
+   ************************************************************/
   async function fetchData(roomCode, identity){
     const note = document.getElementById('portalStatusNote');
     if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
@@ -1368,10 +1432,10 @@
     renderInfoCard(null);
 
     try{
-      const data = await callApi('tenantPortal', {
+      const data = await callApi('tenantPortal', buildParams({
         roomCode: roomCode,
         phoneOrCCCD: identity || ''
-      });
+      }));
 
       if (!data || !data.success){
         if (note) note.textContent = (data && data.message) || 'Không lấy được dữ liệu portal.';
@@ -1394,6 +1458,9 @@
     }
   }
 
+  /************************************************************
+   * ✅ INIT
+   ************************************************************/
   document.addEventListener('DOMContentLoaded', ()=>{
     document.querySelectorAll('.tab-btn.tab-info').forEach(btn=>{
       btn.addEventListener('click', ()=> setActiveTab('info', btn.dataset.tab));
@@ -1402,14 +1469,25 @@
       btn.addEventListener('click', ()=> setActiveTab('pay', btn.dataset.tab));
     });
 
+    // ✅ bắt buộc có tenant + sid
     let tenant = null;
     try {
       const saved = localStorage.getItem(TENANT_STORAGE_KEY);
       if (saved) tenant = JSON.parse(saved);
     } catch(e){}
 
+    const sid = getSID();
+    const note = document.getElementById('portalStatusNote');
+
     if (!tenant || !tenant.maPhong){
       window.location.href = 'tenant.html';
+      return;
+    }
+
+    if (!sid){
+      if (note) note.textContent = 'Thiếu SID phiên đăng nhập. Vui lòng đăng nhập lại.';
+      // an toàn: quay về tenant.html sau 600ms để user kịp thấy thông báo
+      setTimeout(()=> window.location.href = 'tenant.html', 600);
       return;
     }
 
