@@ -1,0 +1,230 @@
+<!-- YT-HOME-BUILD: 2025-12-14-JSONP-ONLY -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>YT Home – Đăng nhập tài khoản phòng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="yt-home-api" content="https://script.google.com/macros/s/AKfycbxvNg5kgodSLQsrmXqIfK0EacabM20hOxaK1xgXocfTgh4Hl3_bFb_oEGooEqwKeCifVg/exec" />
+
+  <!-- NHỚ sửa lại href cho đúng tên file CSS chung của bạn -->
+  <link rel="stylesheet" href="yt-home-common.css" />
+
+  <style>
+    /* Giới hạn rộng khung login trong trang tenant */
+    body.tenant-body .page-wrapper {
+      width: 100%;
+      max-width: 420px;
+    }
+  </style>
+</head>
+
+<body class="tenant-body">
+  <div class="container">
+    <div class="page-wrapper">
+      <div class="card">
+        <!-- Logo -->
+        <div class="logo-row">
+          <div class="logo-icon">YT</div>
+          <div class="logo-text">
+            <div class="logo-text-main">YT Home</div>
+            <div class="logo-text-sub">Portal tài khoản phòng</div>
+          </div>
+        </div>
+
+        <!-- Tiêu đề & mô tả -->
+        <div class="page-title">Đăng nhập tài khoản phòng</div>
+        <div class="page-subtitle">
+          Nhập <strong>Mã phòng</strong> và <strong>Số điện thoại/CCCD</strong> của chủ phòng để xem portal nội bộ.
+        </div>
+
+        <!-- Badge hiển thị phòng từ URL -->
+        <div id="roomBadge" class="badge" style="display:none;"></div>
+
+        <!-- Form đăng nhập -->
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginCode">Mã phòng</label>
+            <input id="loginCode" class="form-control" type="text" autocomplete="off" required />
+          </div>
+
+          <div class="form-group">
+            <label for="loginPhone">Số điện thoại/CCCD chủ phòng</label>
+            <input id="loginPhone" class="form-control" type="tel" autocomplete="off" required />
+          </div>
+
+          <button type="submit" class="btn">
+            Đăng nhập
+          </button>
+        </form>
+
+        <!-- Trạng thái đăng nhập -->
+        <div id="loginStatus" class="portal-status"></div>
+
+        <!-- Ghi chú nhỏ -->
+        <div class="small-note">
+          Sau khi đăng nhập thành công, hệ thống sẽ lưu tài khoản phòng để những lần sau tự chuyển thẳng vào portal.
+        </div>
+
+        <!-- Footer: quay lại & đăng xuất/đổi phòng -->
+        <div class="tenant-footer-actions">
+          <a href="index.html" class="tenant-back-link">
+            ← Quay lại trang xem phòng
+          </a>
+
+          <button type="button" id="logoutBtn" class="btn-logout">
+            <span class="btn-logout-icon">⇄</span>
+            <span>Đăng xuất / Đổi phòng</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ <script>
+  /* ======================================================
+   * CẤU HÌNH CHUNG
+   * ====================================================== */
+  const API_URL = (
+    window.YT_HOME_API_URL ||
+    document.querySelector("meta[name=yt-home-api]")?.content ||
+    "https://script.google.com/macros/s/AKfycbxvNg5kgodSLQsrmXqIfK0EacabM20hOxaK1xgXocfTgh4Hl3_bFb_oEGooEqwKeCifVg/exec"
+  );
+  const TENANT_STORAGE_KEY = "ytHomeTenant";
+
+  /* ======================================================
+   * JSONP CALL (DUY NHẤT)
+   * ====================================================== */
+  function callApi(action, params = {}) {
+    return new Promise((resolve, reject) => {
+      const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      window[cb] = (data) => { cleanup(); resolve(data); };
+
+      const qs = new URLSearchParams({ action, ...params, callback: cb }).toString();
+      const s = document.createElement("script");
+      s.src = API_URL + "?" + qs;
+      s.onerror = () => { cleanup(); reject(new Error("JSONP load failed")); };
+      document.body.appendChild(s);
+
+      function cleanup() {
+        try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+        if (s.parentNode) s.parentNode.removeChild(s);
+      }
+    });
+  }
+
+  /* ======================================================
+   * LOCAL STORAGE
+   * ====================================================== */
+  function saveTenantToStorage(tenant) {
+    try {
+      if (tenant) localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant));
+      else localStorage.removeItem(TENANT_STORAGE_KEY);
+    } catch (e) {
+      console.error("saveTenantToStorage error:", e);
+    }
+  }
+
+  function logoutTenant() {
+    saveTenantToStorage(null);
+
+    const status = document.getElementById("loginStatus");
+    if (status) status.textContent = "Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.";
+
+    const phoneEl = document.getElementById("loginPhone");
+    if (phoneEl) phoneEl.value = "";
+
+    const badgeEl = document.getElementById("roomBadge");
+    if (badgeEl) { badgeEl.style.display = "none"; badgeEl.textContent = ""; }
+  }
+
+  /* ======================================================
+   * LOGIN SUBMIT (CHỈ 1 HÀM DUY NHẤT)
+   * ====================================================== */
+  async function handleLoginSubmit(event) {
+    event.preventDefault();
+
+    const statusEl   = document.getElementById("loginStatus");
+    const roomCodeEl = document.getElementById("loginCode");
+    const phoneEl    = document.getElementById("loginPhone");
+
+    const roomCode = roomCodeEl ? roomCodeEl.value.trim().toUpperCase() : "";
+    const phoneOrCCCD = phoneEl ? phoneEl.value.trim() : "";
+
+    if (!roomCode || !phoneOrCCCD) {
+      if (statusEl) statusEl.textContent = "Vui lòng nhập đầy đủ Mã phòng và Số điện thoại/CCCD.";
+      return;
+    }
+
+    if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
+
+    try {
+      const data = await callApi("tenantLogin", { roomCode, phoneOrCCCD });
+
+      if (!data || !data.success) {
+        if (statusEl) statusEl.textContent = (data && data.message) || "Đăng nhập không hợp lệ.";
+        return;
+      }
+
+      // ✅ Backend trả roomCode, không phải maPhong
+      const tenant = {
+        maPhong: data.roomCode || roomCode,
+        identity: phoneOrCCCD,
+        name: data.tenKhach || data.tenChuPhong || ""
+      };
+
+      saveTenantToStorage(tenant);
+
+      if (statusEl) statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
+      window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+
+    } catch (err) {
+      console.error("handleLoginSubmit error:", err);
+      if (statusEl) statusEl.textContent = "Lỗi kết nối Apps Script. Vui lòng thử lại.";
+    }
+  }
+
+  /* ======================================================
+   * DOM READY
+   * ====================================================== */
+  document.addEventListener("DOMContentLoaded", () => {
+    const params      = new URLSearchParams(window.location.search);
+    const roomFromURL = params.get("room");
+
+    const loginCodeEl = document.getElementById("loginCode");
+    const roomBadgeEl = document.getElementById("roomBadge");
+
+    // Auto redirect nếu đã đăng nhập trước đó
+    try {
+      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+      if (saved) {
+        const tenant = JSON.parse(saved);
+        if (tenant && tenant.maPhong) {
+          if (!roomFromURL || roomFromURL === tenant.maPhong) {
+            window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.error("check existing tenant error:", e);
+    }
+
+    // Gán phòng từ URL
+    if (roomFromURL && loginCodeEl) {
+      loginCodeEl.value = roomFromURL;
+      if (roomBadgeEl) {
+        roomBadgeEl.style.display = "inline-block";
+        roomBadgeEl.textContent = "Đang đăng nhập cho phòng: " + roomFromURL;
+      }
+    }
+
+    const form = document.getElementById("loginForm");
+    if (form) form.addEventListener("submit", handleLoginSubmit);
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) logoutBtn.addEventListener("click", logoutTenant);
+  });
+</script>
+</body>
+</html>
