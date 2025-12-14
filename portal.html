@@ -474,6 +474,7 @@
     const extendBtn         = $('extendContractBtn');
 
     const membersBody       = $('membersTableBody');
+    const contractAlertBadge = $('contractAlertBadge');
 
     const isEmptyData =
       !data || typeof data !== 'object' || Object.keys(data).length === 0;
@@ -494,13 +495,7 @@
       });
 
       if (contractServices) {
-        if (Array.isArray(contract.dichVuKemTheo) && contract.dichVuKemTheo.length) {
-          contractServices.innerHTML = contract.dichVuKemTheo
-            .map(renderServiceItem)
-            .join('');
-        } else {
-          contractServices.innerHTML = '<li class="muted">Không có</li>';
-        }
+        contractServices.innerHTML = '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
       }
 
       if (membersBody) {
@@ -562,11 +557,12 @@
         contractAlertBadge.classList.add(warningClass);
       }
     }
+    /*
     if (contractStatusEl) {
       contractStatusEl.classList.remove("contract-alert-red","contract-alert-yellow");
       if (warningClass) contractStatusEl.classList.add(warningClass);
     }
-
+    */
     function getStatusClass(statusText) {
       if (!statusText) return '';
       const s = statusText.toString().toLowerCase();
@@ -575,11 +571,11 @@
       if (s.includes('hết hạn') || s.includes('thanh lý') || s.includes('ngưng')) return 'badge-danger';
       return 'badge-neutral';
     }
-
+    
     if (contractStatusEl) {
       const text = contract ? (contract.trangThai || '--') : '--';
       contractStatusEl.textContent = text;
-
+    
       contractStatusEl.classList.remove('badge-success','badge-warning','badge-danger','badge-neutral');
       const statusClass = getStatusClass(text);
       if (statusClass) contractStatusEl.classList.add(statusClass);
@@ -721,18 +717,26 @@
     }
   }
   function renderServiceItem(serviceText) {
-    const text = String(serviceText || '').toLowerCase();
-  
-    let icon = '🔹'; // mặc định
-  
-    if (text.includes('điện')) icon = '⚡';
-    else if (text.includes('nước')) icon = '🚰';
-    else if (text.includes('wifi')) icon = '📶';
-    else if (text.includes('giặt')) icon = '🧺';
-    else if (text.includes('rác')) icon = '🗑️';
-  
+    const t = String(serviceText || '').toLowerCase();
+    let icon = '🔹';
+    if (t.includes('điện')) icon = '⚡';
+    else if (t.includes('nước')) icon = '🚰';
+    else if (t.includes('wifi')) icon = '📶';
+    else if (t.includes('giặt')) icon = '🧺';
+    else if (t.includes('rác')) icon = '🗑️';
     return `<li><span class="svc-icon">${icon}</span>${serviceText}</li>`;
   }
+  
+  if (contractServices) {
+    if (contract && Array.isArray(contract.dichVuKemTheo) && contract.dichVuKemTheo.length) {
+      contractServices.innerHTML = contract.dichVuKemTheo.map(renderServiceItem).join('');
+    } else if (contract) {
+      contractServices.innerHTML = '<li class="muted">Chưa cấu hình dịch vụ.</li>';
+    } else {
+      contractServices.innerHTML = '<li class="muted">Không có hợp đồng để hiển thị dịch vụ.</li>';
+    }
+  }
+
 
   // =========================
   // THANH TOÁN (giữ nguyên logic)
@@ -1201,6 +1205,7 @@
 
 </body>
 </html>
+
 
 
 
