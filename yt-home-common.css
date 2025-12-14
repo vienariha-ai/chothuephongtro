@@ -2368,6 +2368,56 @@ body.tenant-body .table-like th{
   min-height: 0 !important;
   align-self: start;
 }
+/* ===== TABLE TYPOGRAPHY – RESPONSIVE ===== */
+
+/* Nội dung bảng */
+.table-like td,
+.table-like th{
+  font-size: clamp(12px, 0.9vw, 14px);
+  line-height: 1.4;
+  padding: 8px 6px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Header nhỏ hơn nội dung chút, rõ ràng */
+.table-like th{
+  font-size: clamp(11px, 0.85vw, 13px);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* Mobile: cho phép xuống dòng nếu cần */
+@media (max-width: 768px){
+  .table-like td,
+  .table-like th{
+    white-space: normal;
+    font-size: 12px;
+  }
+}
+.grid{
+  align-items: start;
+}
+
+.card{
+  height: auto !important;
+  min-height: 0 !important;
+}
+.table-center,
+.table-center th,
+.table-center td{
+  text-align: center;
+}
+.status-text{
+  font-size: clamp(11px, 0.85vw, 13px);
+}
+
+.status-text-success{
+  color: #16a34a;
+  font-weight: 600;
+}
+
 
 
 
