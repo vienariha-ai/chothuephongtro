@@ -2225,6 +2225,11 @@ span:contains("Đã đăng ký") {
   color: #22c55e;
   font-weight: 600;
 }
+.status-text-success{
+  color: #22c55e;   /* xanh lá */
+  font-weight: 600;
+}
+
 
 
 
