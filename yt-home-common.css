@@ -2313,3 +2313,31 @@ td .status-text-success{
   text-align: center;
   margin-right: 6px;
 }
+/* Icon trước dịch vụ kèm theo */
+.svc-icon{
+  display:inline-block;
+  width:22px;
+  text-align:center;
+  margin-right:6px;
+  opacity: .95;
+}
+
+/* “Đã đăng ký” xanh lá */
+.status-ok{
+  color:#22c55e;
+  font-weight:700;
+}
+
+/* Canh giữa toàn bộ bảng danh sách người & xe + tiêu đề + chữ nhỏ hơn */
+#membersTable th,
+#membersTable td,
+body.tenant-body .table-like th,
+body.tenant-body .table-like td{
+  text-align:center;
+  font-size:0.78rem;
+}
+
+body.tenant-body .table-like th{
+  font-size:0.74rem;
+}
+
