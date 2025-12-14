@@ -2236,6 +2236,22 @@ span:contains("Đã đăng ký") {
 td .status-text-success{
   width: 100%;
 }
+/* ===== CANH GIỮA BẢNG DANH SÁCH NGƯỜI & XE ===== */
+.table-center th,
+.table-center td {
+  text-align: center;       /* canh giữa ngang */
+  vertical-align: middle;   /* canh giữa dọc */
+}
+
+/* Nếu trong ô có span / button */
+.table-center td > *,
+.table-center td .status-text,
+.table-center td .status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 
 
