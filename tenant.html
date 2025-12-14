@@ -97,32 +97,66 @@
   function callApi(action, params = {}) {
     return new Promise((resolve, reject) => {
       const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-      window[cb] = (data) => {
-        cleanup();
-        resolve(data);
-      };
-
-      const qs = new URLSearchParams({
-        action,
-        ...params,
-        callback: cb
-      }).toString();
-
+      window[cb] = (data) => { cleanup(); resolve(data); };
+  
+      const qs = new URLSearchParams({ action, ...params, callback: cb }).toString();
       const s = document.createElement("script");
       s.src = API_URL + "?" + qs;
-      s.onerror = () => {
-        cleanup();
-        reject(new Error("JSONP load failed"));
-      };
-
+      s.onerror = () => { cleanup(); reject(new Error("JSONP load failed")); };
       document.body.appendChild(s);
-
+  
       function cleanup() {
-        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+        try { delete window[cb]; } catch(e) { window[cb] = undefined; }
         if (s.parentNode) s.parentNode.removeChild(s);
       }
     });
   }
+
+  async function handleLoginSubmit(event) {
+    event.preventDefault();
+  
+    const statusEl   = document.getElementById("loginStatus");
+    const roomCodeEl = document.getElementById("loginCode");
+    const phoneEl    = document.getElementById("loginPhone");
+  
+    const roomCode = roomCodeEl ? roomCodeEl.value.trim().toUpperCase() : "";
+    const phoneOrCCCD = phoneEl ? phoneEl.value.trim() : "";
+  
+    if (!roomCode || !phoneOrCCCD) {
+      if (statusEl) statusEl.textContent = "Vui lòng nhập đầy đủ Mã phòng và Số điện thoại/CCCD.";
+      return;
+    }
+  
+    if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
+  
+    try {
+      // ✅ KHỚP doGet của bạn: action=tenantLogin + param phoneOrCCCD
+      const data = await callApi("tenantLogin", {
+        roomCode,
+        phoneOrCCCD
+      });
+  
+      if (!data || !data.success) {
+        if (statusEl) statusEl.textContent = (data && data.message) || "Đăng nhập không hợp lệ.";
+        return;
+      }
+  
+      const tenant = {
+        maPhong: data.roomCode || roomCode,
+        identity: phoneOrCCCD,
+        name: data.tenKhach || data.tenChuPhong || ""
+      };
+      saveTenantToStorage(tenant);
+  
+      if (statusEl) statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
+      window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+  
+    } catch (err) {
+      console.error("handleLoginSubmit error:", err);
+      if (statusEl) statusEl.textContent = "Lỗi kết nối Apps Script. Vui lòng thử lại.";
+    }
+  }
+
 
   /* ======================================================
    * LOCAL STORAGE
@@ -266,6 +300,7 @@
 </script>
 </body>
 </html>
+
 
 
 
