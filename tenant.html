@@ -81,150 +81,190 @@
   </div>
 
   <script>
-    const API_URL = (window.YT_HOME_API_URL || document.querySelector("meta[name=yt-home-api]")?.content || "https://script.google.com/macros/s/AKfycbwJ6i5jZRwhwSohFTU46ZRFAYUE8_5vQ5gvVwCuK0n_h-r0lobn9or39u6jlo1SjYzg/exec");
-    const TENANT_STORAGE_KEY = "ytHomeTenant";
+  /* ======================================================
+   * CẤU HÌNH CHUNG
+   * ====================================================== */
+  const API_URL = (
+    window.YT_HOME_API_URL ||
+    document.querySelector("meta[name=yt-home-api]")?.content ||
+    "https://script.google.com/macros/s/AKfycbwJ6i5jZRwhwSohFTU46ZRFAYUE8_5vQ5gvVwCuK0n_h-r0lobn9or39u6jlo1SjYzg/exec"
+  );
+  const TENANT_STORAGE_KEY = "ytHomeTenant";
 
-    function saveTenantToStorage(tenant) {
-      try {
-        if (tenant) {
-          localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant));
-        } else {
-          localStorage.removeItem(TENANT_STORAGE_KEY);
-        }
-      } catch (e) {
-        console.error("saveTenantToStorage error:", e);
+  /* ======================================================
+   * JSONP CALL (DUY NHẤT – DÙNG CHO TOÀN PORTAL)
+   * ====================================================== */
+  function callApi(action, params = {}) {
+    return new Promise((resolve, reject) => {
+      const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      window[cb] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+
+      const qs = new URLSearchParams({
+        action,
+        ...params,
+        callback: cb
+      }).toString();
+
+      const s = document.createElement("script");
+      s.src = API_URL + "?" + qs;
+      s.onerror = () => {
+        cleanup();
+        reject(new Error("JSONP load failed"));
+      };
+
+      document.body.appendChild(s);
+
+      function cleanup() {
+        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+        if (s.parentNode) s.parentNode.removeChild(s);
       }
+    });
+  }
+
+  /* ======================================================
+   * LOCAL STORAGE
+   * ====================================================== */
+  function saveTenantToStorage(tenant) {
+    try {
+      if (tenant) {
+        localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant));
+      } else {
+        localStorage.removeItem(TENANT_STORAGE_KEY);
+      }
+    } catch (e) {
+      console.error("saveTenantToStorage error:", e);
+    }
+  }
+
+  function logoutTenant() {
+    saveTenantToStorage(null);
+    const status = document.getElementById("loginStatus");
+    if (status) {
+      status.textContent = "Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.";
     }
 
-    function logoutTenant() {
-      saveTenantToStorage(null);
-      const status = document.getElementById("loginStatus");
-      if (status) {
-        status.textContent = "Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.";
-      }
+    const phoneEl = document.getElementById("loginPhone");
+    if (phoneEl) phoneEl.value = "";
 
-      const phoneEl = document.getElementById("loginPhone");
-      if (phoneEl) phoneEl.value = "";
+    const badgeEl = document.getElementById("roomBadge");
+    if (badgeEl) {
+      badgeEl.style.display = "none";
+      badgeEl.textContent = "";
+    }
+  }
 
-      const badgeEl = document.getElementById("roomBadge");
-      if (badgeEl) {
-        badgeEl.style.display = "none";
-        badgeEl.textContent = "";
+  /* ======================================================
+   * LOGIN SUBMIT (ĐÃ CHUYỂN SANG JSONP doGet)
+   * ====================================================== */
+  async function handleLoginSubmit(event) {
+    event.preventDefault();
+
+    const statusEl   = document.getElementById("loginStatus");
+    const roomCodeEl = document.getElementById("loginCode");
+    const phoneEl    = document.getElementById("loginPhone");
+
+    const roomCode = roomCodeEl ? roomCodeEl.value.trim().toUpperCase() : "";
+    const identity = phoneEl ? phoneEl.value.trim() : "";
+
+    if (!roomCode || !identity) {
+      if (statusEl) {
+        statusEl.textContent = "Vui lòng nhập đầy đủ Mã phòng và Số điện thoại/CCCD.";
       }
+      return;
     }
 
-    async function handleLoginSubmit(event) {
-      event.preventDefault();
+    if (statusEl) {
+      statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
+    }
 
-      const statusEl   = document.getElementById("loginStatus");
-      const roomCodeEl = document.getElementById("loginCode");
-      const phoneEl    = document.getElementById("loginPhone");
+    try {
+      // 🔴 CHỈ DÒNG NÀY LÀ GỌI BACKEND
+      const data = await callApi("tenantLogin", {
+        roomCode: roomCode,
+        phoneOrCCCD: identity
+      });
 
-      const roomCode = roomCodeEl ? roomCodeEl.value.trim() : "";
-      const identity = phoneEl ? phoneEl.value.trim() : "";
-
-      if (!roomCode || !identity) {
+      if (!data || !data.success) {
         if (statusEl) {
-          statusEl.textContent = "Vui lòng nhập đầy đủ Mã phòng và Số điện thoại/CCCD.";
+          statusEl.textContent =
+            (data && data.message) ||
+            "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD không khớp.";
         }
         return;
       }
 
+      const tenant = {
+        maPhong: data.maPhong || roomCode,
+        identity: identity,
+        name: data.tenKhach || data.tenChuPhong || ""
+      };
+      saveTenantToStorage(tenant);
+
       if (statusEl) {
-        statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
+        statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
       }
 
-      try {
-        const body = new URLSearchParams({
-          action:   "tenantLogin",
-          roomCode: roomCode,
-          identity: identity
-        });
+      window.location.href =
+        "portal.html?room=" + encodeURIComponent(tenant.maPhong);
 
-        const res  = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-          },
-          body
-        });
+    } catch (err) {
+      console.error("handleLoginSubmit error:", err);
+      if (statusEl) {
+        statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
+      }
+    }
+  }
 
-        const data = await res.json();
+  /* ======================================================
+   * DOM READY
+   * ====================================================== */
+  document.addEventListener("DOMContentLoaded", () => {
+    const params       = new URLSearchParams(window.location.search);
+    const roomFromURL  = params.get("room");
+    const loginCodeEl  = document.getElementById("loginCode");
+    const roomBadgeEl  = document.getElementById("roomBadge");
 
-        if (!data || !data.success) {
-          if (statusEl) {
-            statusEl.textContent =
-              (data && data.message) ||
-              "Không tìm thấy Hợp đồng hiệu lực hoặc Số điện thoại/CCCD không khớp.";
+    // Auto redirect nếu đã đăng nhập trước đó
+    try {
+      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+      if (saved) {
+        const tenant = JSON.parse(saved);
+        if (tenant && tenant.maPhong) {
+          if (!roomFromURL || roomFromURL === tenant.maPhong) {
+            window.location.href =
+              "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+            return;
           }
-          return;
         }
+      }
+    } catch (e) {
+      console.error("check existing tenant error:", e);
+    }
 
-        const tenant = {
-          maPhong: data.maPhong || roomCode,
-          identity: identity,
-          name: data.tenKhach || data.tenChuPhong || ""
-        };
-        saveTenantToStorage(tenant);
-
-        if (statusEl) {
-          statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
-        }
-
-        const targetRoom = tenant.maPhong;
-        window.location.href = "portal.html?room=" + encodeURIComponent(targetRoom);
-
-      } catch (err) {
-        console.error("handleLoginSubmit error:", err);
-        if (statusEl) {
-          statusEl.textContent = "Có lỗi khi đăng nhập. Vui lòng thử lại sau.";
-        }
+    // Gán phòng từ URL
+    if (roomFromURL && loginCodeEl) {
+      loginCodeEl.value = roomFromURL;
+      if (roomBadgeEl) {
+        roomBadgeEl.style.display = "inline-block";
+        roomBadgeEl.textContent = "Đang đăng nhập cho phòng: " + roomFromURL;
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const params       = new URLSearchParams(window.location.search);
-      const roomFromURL  = params.get("room");
-      const loginCodeEl  = document.getElementById("loginCode");
-      const roomBadgeEl  = document.getElementById("roomBadge");
+    const form = document.getElementById("loginForm");
+    if (form) {
+      form.addEventListener("submit", handleLoginSubmit);
+    }
 
-      // Nếu có tenant trong localStorage → auto redirect vào portal
-      try {
-        const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-        if (saved) {
-          const tenant = JSON.parse(saved);
-          if (tenant && tenant.maPhong) {
-            // Nếu URL không yêu cầu phòng khác thì redirect luôn
-            if (!roomFromURL || roomFromURL === tenant.maPhong) {
-              window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
-              return;
-            }
-          }
-        }
-      } catch (e) {
-        console.error("check existing tenant error:", e);
-      }
-
-      // Nếu có room trên URL → auto điền & hiển thị badge
-      if (roomFromURL && loginCodeEl) {
-        loginCodeEl.value = roomFromURL;
-        if (roomBadgeEl) {
-          roomBadgeEl.style.display = "inline-block";
-          roomBadgeEl.textContent = "Đang đăng nhập cho phòng: " + roomFromURL;
-        }
-      }
-
-      const form = document.getElementById("loginForm");
-      if (form) {
-        form.addEventListener("submit", handleLoginSubmit);
-      }
-
-      const logoutBtn = document.getElementById("logoutBtn");
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", logoutTenant);
-      }
-    });
-  </script>
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", logoutTenant);
+    }
+  });
+</script>
 </body>
 </html>
+
 
