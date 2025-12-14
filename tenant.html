@@ -4,17 +4,12 @@
   <meta charset="UTF-8" />
   <title>YT Home – Đăng nhập tài khoản phòng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="yt-home-api" content="https://script.google.com/macros/s/AKfycbxdqNQ-0du0IUFJC5mQmXPKDtH3DLNBCW1uFuakvVZSaivBUaiTQKuXp2Rfx5-vG2m0eQ/exec" />
+  <meta name="yt-home-api" content="https://script.google.com/macros/s/AKfycbwIohVbvtVl7x1kTj_P_MdWFjckp8ZniicvjPuLWHIgNqfF0SMA6JGUiCNXNGpDMfww/exec" />
 
-  <!-- NHỚ sửa lại href cho đúng tên file CSS chung của bạn -->
   <link rel="stylesheet" href="yt-home-common.css" />
 
   <style>
-    /* Giới hạn rộng khung login trong trang tenant */
-    body.tenant-body .page-wrapper {
-      width: 100%;
-      max-width: 420px;
-    }
+    body.tenant-body .page-wrapper { width: 100%; max-width: 420px; }
   </style>
 </head>
 
@@ -22,7 +17,6 @@
   <div class="container">
     <div class="page-wrapper">
       <div class="card">
-        <!-- Logo -->
         <div class="logo-row">
           <div class="logo-icon">YT</div>
           <div class="logo-text">
@@ -31,16 +25,13 @@
           </div>
         </div>
 
-        <!-- Tiêu đề & mô tả -->
         <div class="page-title">Đăng nhập tài khoản phòng</div>
         <div class="page-subtitle">
           Nhập <strong>Mã phòng</strong> và <strong>Số điện thoại/CCCD</strong> của chủ phòng để xem portal nội bộ.
         </div>
 
-        <!-- Badge hiển thị phòng từ URL -->
         <div id="roomBadge" class="badge" style="display:none;"></div>
 
-        <!-- Form đăng nhập -->
         <form id="loginForm">
           <div class="form-group">
             <label for="loginCode">Mã phòng</label>
@@ -52,24 +43,17 @@
             <input id="loginPhone" class="form-control" type="tel" autocomplete="off" required />
           </div>
 
-          <button type="submit" class="btn">
-            Đăng nhập
-          </button>
+          <button type="submit" class="btn">Đăng nhập</button>
         </form>
 
-        <!-- Trạng thái đăng nhập -->
         <div id="loginStatus" class="portal-status"></div>
 
-        <!-- Ghi chú nhỏ -->
         <div class="small-note">
           Sau khi đăng nhập thành công, hệ thống sẽ lưu tài khoản phòng để những lần sau tự chuyển thẳng vào portal.
         </div>
 
-        <!-- Footer: quay lại & đăng xuất/đổi phòng -->
         <div class="tenant-footer-actions">
-          <a href="index.html" class="tenant-back-link">
-            ← Quay lại trang xem phòng
-          </a>
+          <a href="index.html" class="tenant-back-link">← Quay lại trang xem phòng</a>
 
           <button type="button" id="logoutBtn" class="btn-logout">
             <span class="btn-logout-icon">⇄</span>
@@ -80,26 +64,56 @@
     </div>
   </div>
 
- <script>
+<script>
   /* ======================================================
    * CẤU HÌNH CHUNG
    * ====================================================== */
   const API_URL = (
     window.YT_HOME_API_URL ||
     document.querySelector("meta[name=yt-home-api]")?.content ||
-    "https://script.google.com/macros/s/AKfycbxdqNQ-0du0IUFJC5mQmXPKDtH3DLNBCW1uFuakvVZSaivBUaiTQKuXp2Rfx5-vG2m0eQ/exec"
+    "https://script.google.com/macros/s/AKfycbwIohVbvtVl7x1kTj_P_MdWFjckp8ZniicvjPuLWHIgNqfF0SMA6JGUiCNXNGpDMfww/exec"
   );
   const TENANT_STORAGE_KEY = "ytHomeTenant";
 
   /* ======================================================
-   * JSONP CALL (DUY NHẤT)
+   * SID + TS + NONCE (ĐẶT TRƯỚC callApi)
+   * ====================================================== */
+  const YTH_SID_KEY = "YTH_SID";
+
+  function setSID(sid) {
+    if (!sid) return;
+    try { sessionStorage.setItem(YTH_SID_KEY, sid); } catch(e) {}
+    try { localStorage.setItem(YTH_SID_KEY, sid); } catch(e) {}
+  }
+  function getSID() {
+    let sid = "";
+    try { sid = sessionStorage.getItem(YTH_SID_KEY) || ""; } catch(e) {}
+    if (!sid) { try { sid = localStorage.getItem(YTH_SID_KEY) || ""; } catch(e) {} }
+    return sid;
+  }
+  function clearSID() {
+    try { sessionStorage.removeItem(YTH_SID_KEY); } catch(e) {}
+    try { localStorage.removeItem(YTH_SID_KEY); } catch(e) {}
+  }
+  function makeNonce() {
+    return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  }
+
+  /* ======================================================
+   * JSONP CALL (DUY NHẤT) - AUTO gắn sid + ts
    * ====================================================== */
   function callApi(action, params = {}) {
     return new Promise((resolve, reject) => {
       const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
       window[cb] = (data) => { cleanup(); resolve(data); };
 
-      const qs = new URLSearchParams({ action, ...params, callback: cb }).toString();
+      const sid = getSID();
+      const ts  = Date.now();
+
+      const mergedParams = { ...params, ts };
+      if (sid) mergedParams.sid = sid;
+
+      const qs = new URLSearchParams({ action, ...mergedParams, callback: cb }).toString();
       const s = document.createElement("script");
       s.src = API_URL + "?" + qs;
       s.onerror = () => { cleanup(); reject(new Error("JSONP load failed")); };
@@ -110,6 +124,11 @@
         if (s.parentNode) s.parentNode.removeChild(s);
       }
     });
+  }
+
+  // Nếu sau này tenant cần action GHI qua JSONP:
+  function callApiWrite(action, params = {}) {
+    return callApi(action, { ...params, nonce: makeNonce() });
   }
 
   /* ======================================================
@@ -126,6 +145,7 @@
 
   function logoutTenant() {
     saveTenantToStorage(null);
+    clearSID(); // ✅ xoá sid luôn
 
     const status = document.getElementById("loginStatus");
     if (status) status.textContent = "Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.";
@@ -138,7 +158,7 @@
   }
 
   /* ======================================================
-   * LOGIN SUBMIT (CHỈ 1 HÀM DUY NHẤT)
+   * LOGIN SUBMIT
    * ====================================================== */
   async function handleLoginSubmit(event) {
     event.preventDefault();
@@ -165,7 +185,9 @@
         return;
       }
 
-      // ✅ Backend trả roomCode, không phải maPhong
+      // ✅ LƯU SID SAU LOGIN
+      if (data.sid) setSID(data.sid);
+
       const tenant = {
         maPhong: data.roomCode || roomCode,
         identity: phoneOrCCCD,
@@ -209,7 +231,6 @@
       console.error("check existing tenant error:", e);
     }
 
-    // Gán phòng từ URL
     if (roomFromURL && loginCodeEl) {
       loginCodeEl.value = roomFromURL;
       if (roomBadgeEl) {
@@ -227,4 +248,3 @@
 </script>
 </body>
 </html>
-
