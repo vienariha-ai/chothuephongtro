@@ -2251,6 +2251,21 @@ td .status-text-success{
   align-items: center;
   justify-content: center;
 }
+/* ===== BẢNG NGƯỜI & XE: CANH GIỮA + FONT NHỎ ===== */
+.table-center th {
+  text-align: center;        /* canh giữa tiêu đề */
+  vertical-align: middle;
+  font-size: 0.72rem;        /* nhỏ hơn */
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.table-center td {
+  text-align: center;        /* canh giữa nội dung */
+  vertical-align: middle;
+  font-size: 0.8rem;
+}
 /* ===== BẢNG NGƯỜI & XE: GIẢM CỠ CHỮ TOÀN BỘ ===== */
 .table-center {
   font-size: 0.5rem; /* cỡ chữ chung toàn bảng */
@@ -2263,6 +2278,7 @@ td .status-text-success{
 .table-center td {
   font-size: 0.78rem;
 }
+
 
 
 
