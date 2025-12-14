@@ -181,9 +181,16 @@
       const data = await callApi("tenantLogin", { roomCode, phoneOrCCCD });
 
       if (!data || !data.success) {
-        if (statusEl) statusEl.textContent = (data && data.message) || "Đăng nhập không hợp lệ.";
+        if (statusEl) statusEl.textContent = data?.message || "Đăng nhập không hợp lệ.";
         return;
       }
+      
+      // ✅ BẮT BUỘC: LƯU SID
+      if (data.sid) {
+        sessionStorage.setItem('YTH_SID', data.sid);
+        localStorage.setItem('YTH_SID', data.sid);
+      }
+
 
       // ✅ LƯU SID SAU LOGIN
       if (data.sid) setSID(data.sid);
@@ -248,3 +255,4 @@
 </script>
 </body>
 </html>
+
