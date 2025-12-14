@@ -332,6 +332,13 @@
     try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
     window.location.href = "tenant.html";
   }
+  function renderRegisterStatus(statusText) {
+    const s = String(statusText || '').toLowerCase();
+    if (s.includes('đã')) {
+      return `<span class="status-registered">Đã đăng ký</span>`;
+    }
+    return `<span class="status-unregistered">Chưa đăng ký</span>`;
+  }
 
   function formatVND(amount){
     if(amount===null||amount===undefined||amount==='') return '--';
@@ -1132,5 +1139,6 @@
 
 </body>
 </html>
+
 
 
