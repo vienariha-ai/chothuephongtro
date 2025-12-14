@@ -1,4 +1,4 @@
-<!DOCTYPE html - Ver 2.0>
+<!DOCTYPE html - Ver 2.1>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
@@ -431,119 +431,78 @@
   </div>
 
 <script>
-  /************************************************************
-   * ✅ CONFIG
-   ************************************************************/
   const TENANT_STORAGE_KEY = "ytHomeTenant";
-  const API_URL = "https://script.google.com/macros/s/AKfycbw35ypUOrhsEqDA2qR7AmdBrjtOwaJamu25f0occ4OWCdIQ22ion9vNxlpKwwSAB0nBpg/exec";
 
-  /************************************************************
-   * ✅ SID / TS / NONCE (CHUẨN HÓA 1 LẦN DUY NHẤT)
-   * - sid: đọc từ sessionStorage/localStorage (được set ở tenant.html)
-   * - ts : Date.now()
-   * - nonce: random + timestamp (cho action GHI)
-   ************************************************************/
+  // ✅ API_URL: dùng đúng URL /exec bạn đang deploy
+  const API_URL = "https://script.google.com/macros/s/AKfycbwIohVbvtVl7x1kTj_P_MdWFjckp8ZniicvjPuLWHIgNqfF0SMA6JGUiCNXNGpDMfww/exec";
+
+  /* ======================================================
+   * ✅ SID/TS/NONCE (chuẩn hoá)
+   * ====================================================== */
   const YTH_SID_KEY = "YTH_SID";
 
-  function getSID() {
-    return (
-      (function(){
-        try { return sessionStorage.getItem(YTH_SID_KEY) || ""; } catch(e) { return ""; }
-      })()
-      || (function(){
-        try { return localStorage.getItem(YTH_SID_KEY) || ""; } catch(e) { return ""; }
-      })()
-      || ""
-    );
+  function getSID(){
+    return (sessionStorage.getItem(YTH_SID_KEY) || localStorage.getItem(YTH_SID_KEY) || "").trim();
+  }
+  function clearSID(){
+    try { sessionStorage.removeItem(YTH_SID_KEY); } catch(e){}
+    try { localStorage.removeItem(YTH_SID_KEY); } catch(e){}
+  }
+  function nowTs(){ return Date.now(); }
+  function makeNonce(){
+    return `${Date.now()}_${Math.random().toString(16).slice(2)}_${Math.floor(Math.random()*1e6)}`;
   }
 
-  function clearSID() {
-    try { sessionStorage.removeItem(YTH_SID_KEY); } catch(e) {}
-    try { localStorage.removeItem(YTH_SID_KEY); } catch(e) {}
-  }
-
-  function makeNonce() {
-    // nonce không cần "crypto" để tương thích rộng
-    return `${Date.now()}_${Math.random().toString(16).slice(2)}_${Math.floor(Math.random()*1e9)}`;
-  }
-
-  function buildParams(baseParams = {}, { write = false } = {}) {
-    const sid = getSID();
-    const ts = Date.now();
-    const p = { ...baseParams, ts };
-
-    // sid luôn đi kèm nếu có
-    if (sid) p.sid = sid;
-
-    // action ghi -> thêm nonce
-    if (write) p.nonce = makeNonce();
-
-    return p;
-  }
-
-  /************************************************************
-   * ✅ JSONP CALL (GET)
-   * - Apps Script WebApp dùng doGet + callback -> JSONP
-   * - Tự động gắn sid + ts cho mọi request
-   ************************************************************/
+  /* ======================================================
+   * ✅ JSONP CALL (bắt buộc để tránh CORS)
+   * - AUTO gắn sid + ts vào MỌI request
+   * - ACTION GHI: thêm nonce
+   * ====================================================== */
   function callApi(action, params = {}) {
     return new Promise((resolve, reject) => {
+      const act = String(action || "").trim();
+      if (!act) return reject(new Error("Missing action"));
+
       const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      const sid = getSID();
+      const ts  = nowTs();
 
-      const cleanupRefs = { script: null };
+      const mergedParams = { ...params, ts };
+      if (sid) mergedParams.sid = sid;
 
-      window[cb] = (data) => {
-        cleanup();
-        resolve(data);
-      };
+      window[cb] = (data) => { cleanup(); resolve(data); };
 
-      const merged = buildParams(params, { write: false });
-      const qs = new URLSearchParams({ action, ...merged, callback: cb }).toString();
-
+      const qs = new URLSearchParams({ action: act, ...mergedParams, callback: cb }).toString();
       const s = document.createElement("script");
       s.src = API_URL + "?" + qs;
       s.async = true;
-      s.onerror = () => {
-        cleanup();
-        reject(new Error("JSONP load failed"));
-      };
 
-      cleanupRefs.script = s;
+      s.onerror = () => { cleanup(); reject(new Error("JSONP load failed")); };
       document.body.appendChild(s);
 
       function cleanup() {
         try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-        if (cleanupRefs.script && cleanupRefs.script.parentNode) {
-          cleanupRefs.script.parentNode.removeChild(cleanupRefs.script);
-        }
+        if (s && s.parentNode) s.parentNode.removeChild(s);
       }
     });
   }
 
-  // ✅ Action GHI: vẫn JSONP (doGet) nhưng thêm nonce
   function callApiWrite(action, params = {}) {
-    const merged = buildParams(params, { write: true });
-    return callApi(action, merged);
+    return callApi(action, { ...params, nonce: makeNonce() });
   }
 
-  /************************************************************
-   * ✅ STATE
-   ************************************************************/
+  /* ======================================================
+   * ✅ HELPERS UI
+   * ====================================================== */
   let __selectedInvoiceIndex = 0;
   let __portalDataCache = null;
 
-  /************************************************************
-   * ✅ AUTH / LOGOUT
-   ************************************************************/
   function logoutTenant() {
     try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
     clearSID();
     window.location.href = "tenant.html";
   }
 
-  /************************************************************
-   * ✅ HELPERS
-   ************************************************************/
   function formatVND(amount){
     if(amount===null||amount===undefined||amount==='') return '--';
     const num = Number(String(amount).replace(/[^\d.-]/g,''));
@@ -633,9 +592,9 @@
       </button>`;
   }
 
-  /************************************************************
-   * ✅ RENDER: INFO CARD
-   ************************************************************/
+  /* ======================================================
+   * ✅ RENDER THÔNG TIN PHÒNG
+   * ====================================================== */
   function renderInfoCard(data){
     const $ = (id) => document.getElementById(id);
 
@@ -895,17 +854,18 @@
         assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có thiết bị / tài sản cho phòng.</td></tr>';
       } else {
         assets.forEach((a)=>{
+          const assetId = String(a.id || a.assetId || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+          const assetName = String(a.tenThietBi || a.tenTaiSan || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
           const tr = document.createElement('tr');
-          const idSafe = String(a.id||'').replace(/'/g,'&#39;');
-          const nameSafe = escapeHtml(a.tenThietBi || a.tenTaiSan || '');
           tr.innerHTML = `
-            <td class="assets-name">${nameSafe}</td>
+            <td class="assets-name">${escapeHtml(a.tenThietBi || a.tenTaiSan || '')}</td>
             <td>${escapeHtml(a.tinhTrang || '')}</td>
             <td>${escapeHtml(a.baoHanh || '')}</td>
             <td>${a.baoTriGanNhat ? escapeHtml(formatDateDDMMYYYY(a.baoTriGanNhat)) : ''}</td>
             <td>
               <button type="button" class="btn btn-outline btn-sm"
-                onclick="openAssetReportModal('${idSafe}', '${nameSafe}')">Báo hỏng</button>
+                onclick="openAssetReportModal('${assetId}','${assetName}')">Báo hỏng</button>
             </td>
           `;
           assetsBody.appendChild(tr);
@@ -918,9 +878,9 @@
     alert('Báo hỏng thiết bị: ' + (assetName || '') + '\n(ID: ' + (assetId || '-') + ')');
   }
 
-  /************************************************************
+  /* ======================================================
    * ✅ TẠM TRÚ
-   ************************************************************/
+   * ====================================================== */
   let __tempStayCurrent = { cccd:'', roomCode:'', status:'' };
 
   function openTempStayModal(cccd, hoTen, statusText){
@@ -954,7 +914,7 @@
     modal.classList.remove('hidden');
     modal.classList.add('show');
 
-    fetchTempStayGet_(roomCode, cccd)
+    callApi('tempStayGet', { roomCode: roomCode || '', cccd: cccd || '' })
       .then(out=>{
         if (!out || !out.success){
           if (notice) notice.textContent = (out && out.message) ? out.message : 'Không lấy được thông tin tạm trú.';
@@ -1024,13 +984,6 @@
     if (btn) btn.style.display = visible ? 'inline-flex' : 'none';
   }
 
-  function fetchTempStayGet_(roomCode, cccd){
-    return callApi('tempStayGet', buildParams({
-      roomCode: roomCode || '',
-      cccd: cccd || ''
-    }));
-  }
-
   async function submitTempStayConfirm(){
     const roomCode = (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '';
     const cccd = document.getElementById('tsCCCD').value || '';
@@ -1068,9 +1021,9 @@
     }
   }
 
-  /************************************************************
-   * ✅ PAYMENT
-   ************************************************************/
+  /* ======================================================
+   * ✅ HÓA ĐƠN / THANH TOÁN
+   * ====================================================== */
   function isInvoicePaid_(inv){
     const st = String(inv && inv.trangThai || '').toLowerCase();
     return (
@@ -1279,9 +1232,6 @@
     }
   }
 
-  /************************************************************
-   * ✅ MAINTENANCE / MESSAGES
-   ************************************************************/
   function renderMaintenance(data){
     const tbody = document.getElementById('maintenanceBody');
     if (!tbody) return;
@@ -1328,9 +1278,6 @@
 
   function openMaintenanceForm(){ alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.'); }
 
-  /************************************************************
-   * ✅ PAYMENT MODAL (proof)
-   ************************************************************/
   function openPaymentModal(index){
     if (index !== undefined && index !== null) __selectedInvoiceIndex = Number(index) || 0;
 
@@ -1422,9 +1369,10 @@
 
   function downloadInvoicePdf(){ window.print(); }
 
-  /************************************************************
-   * ✅ FETCH DATA (AUTO sid + ts)
-   ************************************************************/
+  /* ======================================================
+   * ✅ FETCH DATA (QUAN TRỌNG)
+   * - Đổi action: tenantPortalObj (đúng theo function bạn đang có)
+   * ====================================================== */
   async function fetchData(roomCode, identity){
     const note = document.getElementById('portalStatusNote');
     if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
@@ -1432,10 +1380,10 @@
     renderInfoCard(null);
 
     try{
-      const data = await callApi('tenantPortal', buildParams({
+      const data = await callApi('tenantPortalObj', {
         roomCode: roomCode,
         phoneOrCCCD: identity || ''
-      }));
+      });
 
       if (!data || !data.success){
         if (note) note.textContent = (data && data.message) || 'Không lấy được dữ liệu portal.';
@@ -1458,9 +1406,6 @@
     }
   }
 
-  /************************************************************
-   * ✅ INIT
-   ************************************************************/
   document.addEventListener('DOMContentLoaded', ()=>{
     document.querySelectorAll('.tab-btn.tab-info').forEach(btn=>{
       btn.addEventListener('click', ()=> setActiveTab('info', btn.dataset.tab));
@@ -1469,25 +1414,22 @@
       btn.addEventListener('click', ()=> setActiveTab('pay', btn.dataset.tab));
     });
 
-    // ✅ bắt buộc có tenant + sid
     let tenant = null;
     try {
       const saved = localStorage.getItem(TENANT_STORAGE_KEY);
       if (saved) tenant = JSON.parse(saved);
     } catch(e){}
 
-    const sid = getSID();
-    const note = document.getElementById('portalStatusNote');
-
     if (!tenant || !tenant.maPhong){
       window.location.href = 'tenant.html';
       return;
     }
 
+    // Nếu backend đang enforce SID thì phải có SID
+    // (Nếu bạn muốn "mềm" hơn thì comment 3 dòng này)
+    const sid = getSID();
     if (!sid){
-      if (note) note.textContent = 'Thiếu SID phiên đăng nhập. Vui lòng đăng nhập lại.';
-      // an toàn: quay về tenant.html sau 600ms để user kịp thấy thông báo
-      setTimeout(()=> window.location.href = 'tenant.html', 600);
+      window.location.href = 'tenant.html';
       return;
     }
 
@@ -1497,5 +1439,3 @@
 
 </body>
 </html>
-
-
