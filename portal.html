@@ -37,6 +37,17 @@
       font-weight:700;
     }
   </style>
+
+  <style>
+    /* ✅ Minor additions for tạm trú popup + status chips */
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    @media (max-width: 720px){ .grid-2{grid-template-columns:1fr;} }
+
+    .status-chip{border:none;cursor:pointer;padding:6px 10px;border-radius:999px;font-weight:600;font-size:12px;line-height:1;display:inline-flex;align-items:center;justify-content:center;}
+    .status-chip-warning{background:#fff4cc;color:#8a5a00;}
+    .status-chip-success{background:#dcfce7;color:#166534;}
+    .status-chip-info{background:#dbeafe;color:#1e3a8a;}
+  </style>
 </head>
 
 <body class="tenant-body">
@@ -116,10 +127,7 @@
               </tbody>
             </table>
 
-            <div class="tenant-footer-actions">
-              <span class="muted">Đăng ký tạm trú cho người ở.</span>
-              <button class="btn" type="button" onclick="openTempStayForm()">Đăng ký tạm trú</button>
-            </div>
+            <div class="small-note">Nhấn vào trạng thái <strong>tạm trú</strong> (ví dụ: "Chưa đăng ký") để mở form xác nhận.</div>
           </div>
 
           <!-- TAB HỢP ĐỒNG -->
@@ -310,6 +318,94 @@
     </main>
   </div>
 
+
+  <!-- POPUP TẠM TRÚ (xác nhận thông tin) -->
+  <div class="modal hidden" id="tempStayModal" role="dialog" aria-modal="true" aria-labelledby="tempStayModalTitle">
+    <div class="modal-backdrop" onclick="closeTempStayModal()"></div>
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="tempStayModalTitle">Xác nhận thông tin tạm trú</div>
+        <button class="modal-x" type="button" onclick="closeTempStayModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="small-note" id="tempStayMeta">Phòng: -- • Trạng thái: --</div>
+
+        <div class="grid-2">
+          <label class="field">
+            <div class="field-label">Họ và tên</div>
+            <input type="text" id="tsHoTen" placeholder="Nhập họ tên" />
+          </label>
+
+          <label class="field">
+            <div class="field-label">Số CCCD (khóa định danh)</div>
+            <input type="text" id="tsCCCD" readonly />
+          </label>
+
+          <label class="field">
+            <div class="field-label">Ngày sinh</div>
+            <input type="text" id="tsNgaySinh" placeholder="DD/MM/YYYY" />
+          </label>
+
+          <label class="field">
+            <div class="field-label">Giới tính</div>
+            <select id="tsGioiTinh">
+              <option value="">-- Chọn --</option>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <div class="field-label">Số điện thoại</div>
+            <input type="text" id="tsDienThoai" placeholder="Ví dụ: 09xx..." />
+          </label>
+
+          <label class="field">
+            <div class="field-label">Email</div>
+            <input type="email" id="tsEmail" placeholder="name@example.com" />
+          </label>
+
+          <label class="field">
+            <div class="field-label">Nghề nghiệp</div>
+            <input type="text" id="tsNgheNghiep" placeholder="Ví dụ: Nhân viên văn phòng" />
+          </label>
+
+          <label class="field">
+            <div class="field-label">Nơi thường trú</div>
+            <input type="text" id="tsNoiThuongTru" placeholder="Địa chỉ thường trú" />
+          </label>
+        </div>
+
+        <label class="field">
+          <div class="field-label">Địa chỉ đăng ký tạm trú (theo mẫu CT)</div>
+          <input type="text" id="tsDiaChiTamTru" readonly />
+          <div class="field-help">Lấy từ sheet <strong>ConfigLienHe</strong> (key = <code>diachi</code>).</div>
+        </label>
+
+        <div class="grid-2" style="margin-top:8px;">
+          <div class="field">
+            <div class="field-label">Thời hạn / Thời gian tạm trú</div>
+            <div id="tsThoiGian" class="small-note">--</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Ghi chú nội bộ</div>
+            <div id="tsGhiChuNoiBo" class="small-note">--</div>
+          </div>
+        </div>
+
+        <div id="tsNotice" class="portal-status" style="margin-top:10px;">Vui lòng kiểm tra thông tin trước khi xác nhận.</div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" type="button" onclick="closeTempStayModal()">Đóng</button>
+        <button class="btn" id="tsConfirmBtn" type="button" onclick="submitTempStayConfirm()">Xác nhận</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- POPUP THANH TOÁN -->
   <div class="modal hidden" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
     <div class="modal-backdrop" onclick="closePaymentModal()"></div>
@@ -345,7 +441,7 @@
 
 <script>
   const TENANT_STORAGE_KEY = "ytHomeTenant";
-  const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLg7vq9YkbiRKVZKAMrNoDlFZiIGgVifKxQf8_6VVm5HR5l6A3Abw3s4gFDz_h_VJ9xAq6pSAvZWwCTLHCxkqbxWWbBfCAJtPzIe6FvO8TdWZdazrqy7OSY75ba-_X81IhJSeRoNx4cKTRRSKbkXhEdPdNxpycfCjUm2oglBwdzBpvybBC6WzWINERje-0TBbJ8-jV7yo-iXWM3A2CoH9M4PzcJrNz6ULzkleSw_GiVAFnUuf6nnv3Cp2P16jO_nRAtqzn5TcecQpF2NIqsK4cmKq7umogQ8IXWJwB7w&lib=MtVQbqUXTpEgVrH980JTnuJXzDZp-E7dP";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwJ6i5jZRwhwSohFTU46ZRFAYUE8_5vQ5gvVwCuK0n_h-r0lobn9or39u6jlo1SjYzg/exec";
 
   let __selectedInvoiceIndex = 0;
   let __portalDataCache = null;
@@ -512,35 +608,38 @@
       return `<li><span class="svc-icon">${icon}</span>${escapeHtml(raw)}</li>`;
     }
 
-    function renderTamTruStatusCell(statusText){
-      const raw = (statusText == null) ? '' : String(statusText).trim();
-      if (!raw) return '<span class="status-text muted">--</span>';
+    
+  // Status tạm trú: click vào trạng thái để mở popup (gợi ý/đã xác nhận/đang xử lý/hoàn tất)
+  function renderTamTruStatusCell(member){
+    const rawStatus = member && member.trangThaiTamTru ? String(member.trangThaiTamTru).trim() : '';
+    const status = rawStatus || 'Chưa đăng ký';
 
-      const lower = raw.toLowerCase();
-      const isDone =
-        lower.includes('đã đăng ký') ||
-        lower.includes('da dang ky') ||
-        lower.includes('đã khai báo') ||
-        lower.includes('da khai bao');
+    const cccd = member && member.cccd ? String(member.cccd).trim() : '';
+    const hoTen = member && member.hoTen ? String(member.hoTen).trim() : '';
 
-      if (isDone) return `<span class="status-text status-ok">${escapeHtml(raw)}</span>`;
+    const lower = status.toLowerCase();
 
-      const isIncomplete =
-        lower.includes('chưa') ||
-        lower.includes('chua') ||
-        lower.includes('còn thiếu') ||
-        lower.includes('con thieu');
+    let cls = 'status-chip status-chip-warning';
+    if (lower.includes('đã đăng ký') || lower.includes('da dang ky')) cls = 'status-chip status-chip-success';
+    else if (lower.includes('đã xác nhận') || lower.includes('da xac nhan')) cls = 'status-chip status-chip-info';
+    else if (lower.includes('ký tên') || lower.includes('ky ten')) cls = 'status-chip status-chip-info';
+    else if (lower.includes('chờ kết quả') || lower.includes('cho ket qua')) cls = 'status-chip status-chip-info';
+    else if (lower.includes('nhận kết quả') || lower.includes('nhan ket qua')) cls = 'status-chip status-chip-info';
 
-      if (!isIncomplete) return `<span class="status-text">${escapeHtml(raw)}</span>`;
+    // luôn cho click để mở popup xem chi tiết (kèm ghi chú nội bộ/thời hạn)
+    const safeCCCD = escapeHtml(cccd);
+    const safeName = escapeHtml(hoTen);
+    const safeStatus = escapeHtml(status);
 
-      const safeStatus = escapeHtml(raw);
-      return `
-        <button type="button"
-          class="status-chip status-chip-warning"
-          onclick="openStatusDetail('tamtru','${safeStatus}')">
-          ${escapeHtml(raw)}
-        </button>`;
-    }
+    return `
+      <button type="button"
+        class="${cls}"
+        onclick="openTempStayModal('${safeCCCD}','${safeName}','${safeStatus}')">
+        ${escapeHtml(status)}
+      </button>
+    `;
+  }
+
 
     if (isEmptyData) {
       const skeletonTargets = [
@@ -712,7 +811,7 @@
             <td>${escapeHtml(m.cccd || '')}</td>
             <td>${escapeHtml(m.bienSo || '')}</td>
             <td>${m.ngayTamTru ? escapeHtml(formatDateDDMMYYYY(m.ngayTamTru)) : ''}</td>
-            <td>${renderTamTruStatusCell(m.trangThaiTamTru)}</td>
+            <td>${renderTamTruStatusCell(m)}</td>
           `;
           membersBody.appendChild(tr);
         });
@@ -750,6 +849,179 @@
   function openAssetReportModal(assetId, assetName){
     alert('Báo hỏng thiết bị: ' + (assetName || '') + '\n(ID: ' + (assetId || '-') + ')');
   }
+
+  // =========================
+  // ✅ TẠM TRÚ (popup + xác nhận)
+  // =========================
+  let __tempStayCurrent = { cccd:'', roomCode:'', status:'' };
+
+  function openTempStayModal(cccd, hoTen, statusText){
+    const modal = document.getElementById('tempStayModal');
+    if (!modal) return;
+
+    const roomCode = (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '';
+    __tempStayCurrent = { cccd: String(cccd||''), roomCode: String(roomCode||''), status: String(statusText||'') };
+
+    // reset UI
+    setTempStayEditable_(false);
+    setTempStayConfirmVisible_(false);
+
+    document.getElementById('tsHoTen').value = hoTen || '';
+    document.getElementById('tsCCCD').value = cccd || '';
+    document.getElementById('tsNgaySinh').value = '';
+    document.getElementById('tsGioiTinh').value = '';
+    document.getElementById('tsDienThoai').value = '';
+    document.getElementById('tsNgheNghiep').value = '';
+    document.getElementById('tsNoiThuongTru').value = '';
+    document.getElementById('tsEmail').value = '';
+    document.getElementById('tsDiaChiTamTru').value = '';
+    document.getElementById('tsThoiGian').textContent = '--';
+    document.getElementById('tsGhiChuNoiBo').textContent = '--';
+
+    const meta = document.getElementById('tempStayMeta');
+    if (meta) meta.textContent = `Phòng: ${roomCode || '--'} • Trạng thái: ${statusText || '--'}`;
+
+    const notice = document.getElementById('tsNotice');
+    if (notice) notice.textContent = 'Đang tải thông tin tạm trú...';
+
+    modal.classList.remove('hidden');
+
+    // gọi API lấy gợi ý + hồ sơ tạm trú
+    fetchTempStayGet_(roomCode, cccd)
+      .then(out=>{
+        if (!out || !out.success){
+          if (notice) notice.textContent = (out && out.message) ? out.message : 'Không lấy được thông tin tạm trú.';
+          return;
+        }
+
+        const tenant = out.tenant || {};
+        const tempStay = out.tempStay || null;
+
+        // fill gợi ý
+        document.getElementById('tsHoTen').value = tenant.hoTen || (hoTen||'');
+        document.getElementById('tsCCCD').value = tenant.cccd || (cccd||'');
+        document.getElementById('tsNgaySinh').value = tenant.ngaySinh || '';
+        document.getElementById('tsGioiTinh').value = tenant.gioiTinh || '';
+        document.getElementById('tsDienThoai').value = tenant.dienThoai || '';
+        document.getElementById('tsNgheNghiep').value = tenant.ngheNghiep || '';
+        document.getElementById('tsNoiThuongTru').value = tenant.noiThuongTru || '';
+        document.getElementById('tsEmail').value = tenant.email || '';
+        document.getElementById('tsDiaChiTamTru').value = out.diaChiTamTru || '';
+
+        // trạng thái ưu tiên từ Tạm trú nếu có
+        const st = (tempStay && tempStay.trangThai) ? String(tempStay.trangThai) : (statusText || '');
+        if (meta) meta.textContent = `Phòng: ${roomCode || '--'} • Trạng thái: ${st || '--'}`;
+
+        document.getElementById('tsThoiGian').textContent =
+          (tempStay && tempStay.thoiGianTamTru) ? String(tempStay.thoiGianTamTru) : '--';
+        document.getElementById('tsGhiChuNoiBo').textContent =
+          (tempStay && tempStay.ghiChuNoiBo) ? String(tempStay.ghiChuNoiBo) : '--';
+
+        const lower = (st || '').toLowerCase();
+        const canConfirm =
+          !tempStay && (lower.includes('chưa') || lower === '' || lower.includes('dang') === false) ||
+          (lower.includes('chưa đăng ký') || lower.includes('chua dang ky'));
+
+        if (canConfirm){
+          setTempStayEditable_(true);
+          setTempStayConfirmVisible_(true);
+          if (notice) notice.textContent = 'Vui lòng kiểm tra, chỉnh sửa (nếu cần) rồi bấm Xác nhận.';
+        } else {
+          setTempStayEditable_(false);
+          setTempStayConfirmVisible_(false);
+          if (notice) notice.textContent = 'Hồ sơ đã được ghi nhận. Bạn có thể xem trạng thái, thời hạn và ghi chú nội bộ tại đây.';
+        }
+      })
+      .catch(err=>{
+        console.error('openTempStayModal error:', err);
+        if (notice) notice.textContent = 'Lỗi kết nối (không tải được thông tin tạm trú).';
+      });
+  }
+
+  function closeTempStayModal(){
+    const modal = document.getElementById('tempStayModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function setTempStayEditable_(editable){
+    ['tsHoTen','tsNgaySinh','tsGioiTinh','tsDienThoai','tsNgheNghiep','tsNoiThuongTru','tsEmail'].forEach(id=>{
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.readOnly = !editable;
+      if (el.tagName === 'SELECT') el.disabled = !editable;
+    });
+  }
+
+  function setTempStayConfirmVisible_(visible){
+    const btn = document.getElementById('tsConfirmBtn');
+    if (btn) btn.style.display = visible ? 'inline-flex' : 'none';
+  }
+
+  async function fetchTempStayGet_(roomCode, cccd){
+    const body = new URLSearchParams({
+      action: 'tenantTempStayGet',
+      roomCode: roomCode || '',
+      cccd: cccd || ''
+    });
+
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body
+    });
+
+    try { return await res.json(); } catch(e){ return null; }
+  }
+
+  async function submitTempStayConfirm(){
+    const roomCode = (__portalDataCache && __portalDataCache.roomCode) ? __portalDataCache.roomCode : '';
+    const cccd = document.getElementById('tsCCCD').value || '';
+
+    const notice = document.getElementById('tsNotice');
+    if (notice) notice.textContent = 'Đang gửi xác nhận...';
+
+    try{
+      const body = new URLSearchParams({
+        action: 'tenantTempStayConfirm',
+        roomCode: roomCode || '',
+        cccd: cccd || '',
+        hoTen: document.getElementById('tsHoTen').value || '',
+        ngaySinh: document.getElementById('tsNgaySinh').value || '',
+        gioiTinh: document.getElementById('tsGioiTinh').value || '',
+        dienThoai: document.getElementById('tsDienThoai').value || '',
+        ngheNghiep: document.getElementById('tsNgheNghiep').value || '',
+        noiThuongTru: document.getElementById('tsNoiThuongTru').value || '',
+        email: document.getElementById('tsEmail').value || ''
+      });
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body
+      });
+
+      let out = null;
+      try { out = await res.json(); } catch(e){}
+
+      if (out && out.success){
+        if (notice) notice.textContent = 'Đã ghi nhận xác nhận tạm trú. Chủ nhà sẽ tiếp nhận và xử lý.';
+        closeTempStayModal();
+
+        // reload portal
+        const tenant = JSON.parse(localStorage.getItem(TENANT_STORAGE_KEY) || '{}');
+        if (tenant && tenant.maPhong){
+          fetchData(tenant.maPhong, tenant.identity || '');
+        }
+      } else {
+        if (notice) notice.textContent = (out && out.message) ? out.message : 'Không gửi được xác nhận.';
+      }
+    }catch(err){
+      console.error('submitTempStayConfirm error:', err);
+      if (notice) notice.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+    }
+  }
+
+
 
   // ========= THANH TOÁN =========
   function isInvoicePaid_(inv){
@@ -1005,8 +1277,6 @@
   }
 
   function openMaintenanceForm(){ alert('Form báo hỏng: bạn có thể dùng tenantMaintenance API như đã cấu hình ở Apps Script.'); }
-  function openTempStayForm(){ alert('Form đăng ký tạm trú: dùng tenantTempStay API.'); }
-
   // ========= POPUP THANH TOÁN =========
   function openPaymentModal(index){
     if (index !== undefined && index !== null) __selectedInvoiceIndex = Number(index) || 0;
@@ -1187,8 +1457,4 @@
 
 </body>
 </html>
-
-
-
-
 
