@@ -990,7 +990,7 @@
     if (notice) notice.textContent = 'Đang tải thông tin tạm trú...';
 
     modal.classList.remove('hidden');
-
+    modal.classList.add('show');
     // gọi API lấy gợi ý + hồ sơ tạm trú
     fetchTempStayGet_(roomCode, cccd)
       .then(out=>{
@@ -1045,7 +1045,10 @@
 
   function closeTempStayModal(){
     const modal = document.getElementById('tempStayModal');
-    if (modal) modal.classList.add('hidden');
+    if (!modal) return;
+  
+    modal.classList.remove('show');
+    modal.classList.add('hidden');
   }
 
   function setTempStayEditable_(editable){
@@ -1588,6 +1591,7 @@
 
 </body>
 </html>
+
 
 
 
