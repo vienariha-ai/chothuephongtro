@@ -456,107 +456,321 @@
   // INFO CARD (giữ nguyên code bạn)
   // =========================
   function renderInfoCard(data){
-    const $ = (id) => document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
 
-    const roomBadge   = $('roomBadge');
-    const roomLabel   = $('roomLabel');
-    const ownerName   = $('ownerName');
-    const ownerCCCD   = $('ownerCCCD');
-    const ownerPhone  = $('ownerPhone');
+  const roomBadge   = $('roomBadge');
+  const roomLabel   = $('roomLabel');
+  const ownerName   = $('ownerName');
+  const ownerCCCD   = $('ownerCCCD');
+  const ownerPhone  = $('ownerPhone');
 
-    const contractStatusEl  = $('contractStatus');
-    const contractTypeEl    = $('contractType');
-    const contractPeriodEl  = $('contractPeriod');
-    const contractRentEl    = $('contractRent');
-    const contractDepositEl = $('contractDeposit');
-    const contractDueDayEl  = $('contractDueDay');
-    const contractServices  = $('contractServices');
-    const extendBtn         = $('extendContractBtn');
+  const contractStatusEl  = $('contractStatus');
+  const contractTypeEl    = $('contractType');
+  const contractPeriodEl  = $('contractPeriod');
+  const contractRentEl    = $('contractRent');
+  const contractDepositEl = $('contractDeposit');
+  const contractDueDayEl  = $('contractDueDay');
+  const contractServices  = $('contractServices');
+  const extendBtn         = $('extendContractBtn');
 
-    const membersBody       = $('membersTableBody');
-    const contractAlertBadge = $('contractAlertBadge');
+  const membersBody       = $('membersTableBody');
+  const contractAlertBadge = $('contractAlertBadge');
 
-    const isEmptyData =
-      !data || typeof data !== 'object' || Object.keys(data).length === 0;
+  const isEmptyData =
+    !data || typeof data !== 'object' || Object.keys(data).length === 0;
 
-    if (isEmptyData) {
-      const skeletonTargets = [
-        roomBadge, roomLabel,
-        ownerName, ownerCCCD, ownerPhone,
-        contractStatusEl, contractTypeEl,
-        contractPeriodEl, contractRentEl,
-        contractDepositEl, contractDueDayEl
-      ];
+  // ========= Helpers =========
+  function escapeHtml(s){
+    return String(s ?? '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
 
-      skeletonTargets.forEach(el => {
-        if (!el) return;
-        el.textContent = '';
-        el.classList.add('skeleton');
-      });
+  function getContractStatusBadgeClass(statusText) {
+    if (!statusText) return 'badge-neutral';
+    const s = statusText.toString().toLowerCase();
+    if (s.includes('hiệu lực') || s.includes('đang thuê')) return 'badge-success';
+    if (s.includes('sắp hết') || s.includes('chờ gia hạn')) return 'badge-warning';
+    if (s.includes('hết hạn') || s.includes('thanh lý') || s.includes('ngưng')) return 'badge-danger';
+    return 'badge-neutral';
+  }
 
-      if (contractServices) {
-        contractServices.innerHTML = '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
-      }
+  // Icon cho dòng dịch vụ kèm theo
+  function renderServiceItem(serviceText){
+    const raw = String(serviceText ?? '').trim();
+    if (!raw) return '';
 
-      if (membersBody) {
-        membersBody.innerHTML = '<tr><td colspan="6" class="muted skeleton">Đang tải danh sách người ở...</td></tr>';
-      }
-      // ✅ NEW: khi đang loading thì ẩn badge cảnh báo
-      if (contractAlertBadge) {
-        contractAlertBadge.textContent = '';
-        contractAlertBadge.classList.add('hidden');
-        contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
-      }
-      if (extendBtn) extendBtn.style.display = 'none';
-      return;
-      }
+    const t = raw.toLowerCase();
+    let icon = '🔹';
+    if (t.includes('điện') || t.includes('dien')) icon = '⚡';
+    else if (t.includes('nước') || t.includes('nuoc')) icon = '🚰';
+    else if (t.includes('wifi')) icon = '📶';
+    else if (t.includes('giặt') || t.includes('giat')) icon = '🧺';
+    else if (t.includes('rác') || t.includes('rac')) icon = '🗑️';
+    else if (t.includes('xe') || t.includes('giữ xe') || t.includes('giu xe')) icon = '🅿️';
 
-    const allTargets = [
+    return `<li><span class="svc-icon">${icon}</span>${escapeHtml(raw)}</li>`;
+  }
+
+  // Status tạm trú: “Đã đăng ký” xanh lá, “Chưa…” giữ dạng chip vàng
+  function renderTamTruStatusCell(statusText){
+    const raw = (statusText == null) ? '' : String(statusText).trim();
+    if (!raw) return '<span class="status-text muted">--</span>';
+
+    const lower = raw.toLowerCase();
+
+    const isDone =
+      lower.includes('đã đăng ký') ||
+      lower.includes('da dang ky') ||
+      lower.includes('đã khai báo') ||
+      lower.includes('da khai bao');
+
+    if (isDone) {
+      return `<span class="status-text status-ok">${escapeHtml(raw)}</span>`;
+    }
+
+    const isIncomplete =
+      lower.includes('chưa') ||
+      lower.includes('chua') ||
+      lower.includes('còn thiếu') ||
+      lower.includes('con thieu');
+
+    if (!isIncomplete) return `<span class="status-text">${escapeHtml(raw)}</span>`;
+
+    const safeStatus = escapeHtml(raw);
+    return `
+      <button type="button"
+        class="status-chip status-chip-warning"
+        onclick="openStatusDetail('tamtru','${safeStatus}')">
+        ${escapeHtml(raw)}
+      </button>`;
+  }
+
+  // ========= Loading state =========
+  if (isEmptyData) {
+    const skeletonTargets = [
       roomBadge, roomLabel,
       ownerName, ownerCCCD, ownerPhone,
       contractStatusEl, contractTypeEl,
       contractPeriodEl, contractRentEl,
       contractDepositEl, contractDueDayEl
     ];
-    allTargets.forEach(el => { if (el) el.classList.remove('skeleton'); });
-    if (membersBody) membersBody.classList.remove('skeleton');
-    if (contractServices) contractServices.classList.remove('skeleton');
 
-    const roomCode = (data && data.roomCode) ? data.roomCode : '--';
-    if (roomBadge) roomBadge.textContent = 'Phòng: ' + roomCode;
-    if (roomLabel) roomLabel.textContent = roomCode;
+    skeletonTargets.forEach(el => {
+      if (!el) return;
+      el.textContent = '';
+      el.classList.add('skeleton');
+    });
 
-    const chuPhong = (data && data.chuPhong) ? data.chuPhong : {};
-    if (ownerName)  ownerName.textContent  = chuPhong.hoTen     || '--';
-    if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd ? maskLast4Digits(chuPhong.cccd) : '--';
-    if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai ? maskLast4Digits(chuPhong.dienThoai) : '--';
-
-    const contract = (data && data.contract) ? data.contract : null;
-
-    let monthsLeft = null;
-    if (contract && contract.ngayKT) monthsLeft = monthsBetween(new Date(), contract.ngayKT);
-
-    let warningClass = "";
-    if (monthsLeft != null) {
-      if (monthsLeft <= 1) warningClass = "contract-alert-red";
-      else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
+    if (contractServices) {
+      contractServices.innerHTML = '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
     }
-    // ✅ NEW: Hiển thị cảnh báo ngay sau badge "Phòng"
+
+    if (membersBody) {
+      membersBody.innerHTML = '<tr><td colspan="6" class="muted skeleton">Đang tải danh sách người ở...</td></tr>';
+    }
+
+    // Ẩn badge cảnh báo khi loading
     if (contractAlertBadge) {
+      contractAlertBadge.textContent = '';
       contractAlertBadge.classList.add('hidden');
       contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
-      contractAlertBadge.textContent = '';
-  
-      if (warningClass) {
-        // bạn có thể đổi text theo ý
-        contractAlertBadge.textContent =
-          (warningClass === 'contract-alert-red')
-            ? `⚠ Sắp hết hạn (${monthsLeft} tháng)`
-            : `⏳ Còn ${monthsLeft} tháng`;
-        contractAlertBadge.classList.remove('hidden');
-        contractAlertBadge.classList.add(warningClass);
+    }
+
+    if (extendBtn) extendBtn.style.display = 'none';
+    return;
+  }
+
+  // ========= Clear skeleton =========
+  const allTargets = [
+    roomBadge, roomLabel,
+    ownerName, ownerCCCD, ownerPhone,
+    contractStatusEl, contractTypeEl,
+    contractPeriodEl, contractRentEl,
+    contractDepositEl, contractDueDayEl
+  ];
+  allTargets.forEach(el => { if (el) el.classList.remove('skeleton'); });
+  if (membersBody) membersBody.classList.remove('skeleton');
+  if (contractServices) contractServices.classList.remove('skeleton');
+
+  // ========= Room + owner =========
+  const roomCode = (data && data.roomCode) ? data.roomCode : '--';
+  if (roomBadge) roomBadge.textContent = 'Phòng: ' + roomCode;
+  if (roomLabel) roomLabel.textContent = roomCode;
+
+  const chuPhong = (data && data.chuPhong) ? data.chuPhong : {};
+  if (ownerName)  ownerName.textContent  = chuPhong.hoTen     || '--';
+  if (ownerCCCD)  ownerCCCD.textContent  = chuPhong.cccd ? maskLast4Digits(chuPhong.cccd) : '--';
+  if (ownerPhone) ownerPhone.textContent = chuPhong.dienThoai ? maskLast4Digits(chuPhong.dienThoai) : '--';
+
+  // ========= Contract =========
+  const contract = (data && data.contract) ? data.contract : null;
+
+  let monthsLeft = null;
+  if (contract && contract.ngayKT) monthsLeft = monthsBetween(new Date(), contract.ngayKT);
+
+  let warningClass = "";
+  if (monthsLeft != null) {
+    if (monthsLeft <= 1) warningClass = "contract-alert-red";
+    else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
+  }
+
+  // Hiển thị badge cảnh báo ngay sau badge "Phòng"
+  if (contractAlertBadge) {
+    contractAlertBadge.classList.add('hidden');
+    contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
+    contractAlertBadge.textContent = '';
+
+    if (warningClass) {
+      const m = (monthsLeft == null) ? '' : String(monthsLeft);
+      contractAlertBadge.textContent =
+        (warningClass === 'contract-alert-red')
+          ? `⚠ Sắp hết hạn (${m} tháng)`
+          : `⏳ Còn ${m} tháng`;
+      contractAlertBadge.classList.remove('hidden');
+      contractAlertBadge.classList.add(warningClass);
+    }
+  }
+
+  // Trạng thái hợp đồng: chỉ dùng badge-* (không trộn contract-alert-*)
+  if (contractStatusEl) {
+    const text = contract ? (contract.trangThai || '--') : '--';
+    contractStatusEl.textContent = text;
+
+    contractStatusEl.classList.remove('badge-success','badge-warning','badge-danger','badge-neutral');
+    contractStatusEl.classList.add(getContractStatusBadgeClass(text));
+  }
+
+  if (contractTypeEl) contractTypeEl.textContent = contract ? (contract.loaiHD || '--') : '--';
+
+  if (contractPeriodEl) {
+    let baseText = '--';
+    let daysLeftText = '';
+
+    if (contract && (contract.ngayBD || contract.ngayKT)) {
+      const startRaw = contract.ngayBD ? contract.ngayBD : '';
+      const endRaw   = contract.ngayKT ? contract.ngayKT : '';
+
+      const start = startRaw ? formatDateDDMMYYYY(startRaw) : '';
+      const end   = endRaw   ? formatDateDDMMYYYY(endRaw)   : '';
+
+      baseText = (start && end) ? (start + ' – ' + end) : (start || end || '--');
+
+      const endDateObj = toDateObject(endRaw);
+      if (endDateObj) {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const diffMs   = endDateObj.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays >= 0) {
+          let cls = '';
+          if (diffDays < 30) cls = 'days-left-red';
+          else if (diffDays < 60) cls = 'days-left-yellow';
+          if (cls) daysLeftText = ` <span class="${cls}">(còn ${diffDays} ngày)</span>`;
+        }
       }
     }
+
+    contractPeriodEl.innerHTML = escapeHtml(baseText) + daysLeftText;
+  }
+
+  if (contractRentEl) {
+    contractRentEl.textContent = (contract && contract.tienThue != null) ? formatVND(contract.tienThue) : '--';
+  }
+  if (contractDepositEl) {
+    contractDepositEl.textContent = (contract && contract.tienCoc != null) ? formatVND(contract.tienCoc) : '--';
+  }
+  if (contractDueDayEl) contractDueDayEl.textContent = contract ? (contract.ngayThuTien || '--') : '--';
+
+  // ========= Dịch vụ kèm theo: dùng dichVuKemTheo + icon =========
+  if (contractServices) {
+    if (contract && Array.isArray(contract.dichVuKemTheo) && contract.dichVuKemTheo.length) {
+      contractServices.innerHTML = contract.dichVuKemTheo.map(renderServiceItem).join('');
+    } else if (contract) {
+      contractServices.innerHTML = '<li class="muted">Không có</li>';
+    } else {
+      contractServices.innerHTML = '<li class="muted">Không có hợp đồng.</li>';
+    }
+  }
+
+  // ========= Nút gia hạn =========
+  if (extendBtn) {
+    if (contract && contract.coTheGiaHan) {
+      extendBtn.style.display = 'inline-flex';
+      extendBtn.textContent = "Gia hạn hợp đồng";
+
+      extendBtn.classList.remove('btn-disabled','btn-warning','btn-danger','btn-accent');
+
+      if (monthsLeft != null) {
+        if (monthsLeft <= 1) extendBtn.classList.add("btn-danger");
+        else if (monthsLeft <= 2) extendBtn.classList.add("btn-warning");
+        else extendBtn.classList.add("btn-accent");
+      } else {
+        extendBtn.classList.add("btn-accent");
+      }
+
+      const statusText = contract.trangThai ? contract.trangThai.toString().toLowerCase() : '';
+      if (statusText.includes('hết hạn')) extendBtn.classList.add('btn-danger');
+      else if (statusText.includes('sắp hết')) extendBtn.classList.add('btn-warning');
+    } else {
+      extendBtn.style.display = 'none';
+    }
+  }
+
+  // ========= Danh sách người & xe =========
+  if (membersBody) {
+    membersBody.innerHTML = '';
+    const members = Array.isArray(data.members) ? data.members : [];
+
+    if (!members.length) {
+      membersBody.innerHTML = '<tr><td colspan="6" class="muted">Chưa có người ở.</td></tr>';
+    } else {
+      members.forEach(m => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(m.hoTen || '')}</td>
+          <td>${escapeHtml(m.dienThoai || '')}</td>
+          <td>${escapeHtml(m.cccd || '')}</td>
+          <td>${escapeHtml(m.bienSo || '')}</td>
+          <td>${m.ngayTamTru ? escapeHtml(formatDateDDMMYYYY(m.ngayTamTru)) : ''}</td>
+          <td>${renderTamTruStatusCell(m.trangThaiTamTru)}</td>
+        `;
+        membersBody.appendChild(tr);
+      });
+    }
+  }
+
+  // ========= Danh sách thiết bị / tài sản =========
+  const assetsBody = $('assetsTableBody');
+  if (assetsBody) {
+    assetsBody.innerHTML = '';
+    const assets = Array.isArray(data.assets) ? data.assets : [];
+
+    if (!assets.length) {
+      assetsBody.innerHTML = '<tr><td colspan="5" class="muted">Chưa có thiết bị / tài sản cho phòng.</td></tr>';
+    } else {
+      assets.forEach((a)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="assets-name">${escapeHtml(a.tenThietBi || a.tenTaiSan || '')}</td>
+          <td>${escapeHtml(a.tinhTrang || '')}</td>
+          <td>${escapeHtml(a.baoHanh || '')}</td>
+          <td>${a.baoTriGanNhat ? escapeHtml(formatDateDDMMYYYY(a.baoTriGanNhat)) : ''}</td>
+          <td>
+            <button type="button" class="btn btn-outline btn-sm"
+              onclick="openAssetReportModal('${String(a.id||'').replace(/'/g,'&#39;')}')">Báo hỏng</button>
+          </td>
+        `;
+        assetsBody.appendChild(tr);
+      });
+    }
+  }
+}
+
     /*
     if (contractStatusEl) {
       contractStatusEl.classList.remove("contract-alert-red","contract-alert-yellow");
@@ -1205,6 +1419,7 @@
 
 </body>
 </html>
+
 
 
 
