@@ -151,104 +151,7 @@
               Hiển thị từ sheet <strong>Hợp đồng</strong>. Nút "Ký tiếp hợp đồng" chỉ hiện khi còn &lt;= 1 tháng trước ngày kết thúc.
             </div>
           </div>
-          <!-- POPUP XÁC NHẬN THÔNG TIN ĐĂNG KÝ TẠM TRÚ-->
-          <div class="modal-overlay">
-            <div class="modal-card">
-              <!-- Header -->
-              <div class="modal-header">
-                <div>
-                  <h2>Xác nhận thông tin tạm trú</h2>
-                  <span class="badge badge-warning">Phòng P205 · Chưa đăng ký</span>
-                </div>
-                <button class="btn-close">✕</button>
-              </div>
-          
-              <!-- Body -->
-              <div class="modal-body">
-                <!-- Section 1 -->
-                <div class="section">
-                  <h3>👤 Thông tin cá nhân</h3>
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label>Họ và tên</label>
-                      <input type="text" />
-                    </div>
-          
-                    <div class="form-group">
-                      <label>Số CCCD</label>
-                      <input type="text" />
-                    </div>
-          
-                    <div class="form-group">
-                      <label>Ngày sinh</label>
-                      <input type="date" />
-                    </div>
-          
-                    <div class="form-group">
-                      <label>Giới tính</label>
-                      <select>
-                        <option>-- Chọn --</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-          
-                <!-- Section 2 -->
-                <div class="section">
-                  <h3>📞 Liên hệ & cư trú</h3>
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label>Số điện thoại</label>
-                      <input type="text" />
-                    </div>
-          
-                    <div class="form-group">
-                      <label>Email</label>
-                      <input type="email" />
-                    </div>
-          
-                    <div class="form-group full">
-                      <label>Địa chỉ thường trú</label>
-                      <input type="text" />
-                    </div>
-          
-                    <div class="form-group full">
-                      <label>Địa chỉ đăng ký tạm trú</label>
-                      <input type="text" />
-                    </div>
-                  </div>
-                </div>
-          
-                <!-- Section 3 -->
-                <div class="section">
-                  <h3>🕒 Thông tin tạm trú</h3>
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label>Từ ngày</label>
-                      <input type="date" />
-                    </div>
-          
-                    <div class="form-group">
-                      <label>Đến ngày</label>
-                      <input type="date" />
-                    </div>
-          
-                    <div class="form-group full">
-                      <label>Ghi chú nội bộ</label>
-                      <textarea rows="3"></textarea>
-                    </div>
-                  </div>
-                </div>
-              </div>
-          
-              <!-- Footer -->
-              <div class="modal-footer">
-                <button class="btn-secondary">Đóng</button>
-                <button class="btn-primary">Xác nhận & gửi đăng ký</button>
-              </div>
-            </div>
-          </div>
-
+         
           <!-- TAB THIẾT BỊ / TÀI SẢN -->
           <div class="tab-pane tab-pane-info hidden" id="tab-assets">
             <table class="table-like table-fixed">
@@ -535,6 +438,111 @@
       </div>
     </div>
   </div>
+ <!-- POPUP XÁC NHẬN THÔNG TIN ĐĂNG KÝ TẠM TRÚ-->
+ <div id="tempStayModal" class="modal-overlay" style="display:none">
+  <div class="modal-card">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div>
+        <h2>Xác nhận thông tin tạm trú</h2>
+        <span id="tempStayStatus" class="badge badge-warning">
+          Phòng P205 · Chưa đăng ký
+        </span>
+      </div>
+      <button class="btn-close" onclick="closeTempStayModal()">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+
+      <!-- THÔNG TIN CÁ NHÂN -->
+      <div class="section">
+        <h3>👤 Thông tin cá nhân</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Họ và tên</label>
+            <input id="ts_fullname" type="text">
+          </div>
+
+          <div class="form-group">
+            <label>Số CCCD</label>
+            <input id="ts_cccd" type="text" readonly>
+          </div>
+
+          <div class="form-group">
+            <label>Ngày sinh</label>
+            <input id="ts_dob" type="date">
+          </div>
+
+          <div class="form-group">
+            <label>Giới tính</label>
+            <select id="ts_gender">
+              <option value="">-- Chọn --</option>
+              <option>Nam</option>
+              <option>Nữ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIÊN HỆ -->
+      <div class="section">
+        <h3>📞 Liên hệ & cư trú</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input id="ts_phone" type="text">
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input id="ts_email" type="email">
+          </div>
+
+          <div class="form-group full">
+            <label>Địa chỉ thường trú</label>
+            <input id="ts_address_home" type="text">
+          </div>
+
+          <div class="form-group full">
+            <label>Địa chỉ đăng ký tạm trú</label>
+            <input id="ts_address_temp" type="text">
+          </div>
+        </div>
+      </div>
+
+      <!-- TẠM TRÚ -->
+      <div class="section">
+        <h3>🕒 Thông tin tạm trú</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Từ ngày</label>
+            <input id="ts_from" type="date">
+          </div>
+
+          <div class="form-group">
+            <label>Đến ngày</label>
+            <input id="ts_to" type="date">
+          </div>
+
+          <div class="form-group full">
+            <label>Ghi chú nội bộ</label>
+            <textarea id="ts_note" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeTempStayModal()">Đóng</button>
+      <button class="btn-primary" onclick="submitTempStay()">Xác nhận & gửi</button>
+    </div>
+
+  </div>
+</div>
 
 <script>
   const TENANT_STORAGE_KEY = "ytHomeTenant";
@@ -1554,5 +1562,6 @@
 
 </body>
 </html>
+
 
 
