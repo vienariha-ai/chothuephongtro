@@ -2278,6 +2278,36 @@ td .status-text-success{
 .table-center td {
   font-size: 0.65rem;
 }
+/* ===== BADGE PHÒNG + CẢNH BÁO HỢP ĐỒNG ===== */
+.room-badge-row{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.contract-alert-badge{
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* <= 60 ngày */
+.contract-alert-yellow{
+  background: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.5);
+}
+
+/* <= 30 ngày */
+.contract-alert-red{
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
 
 
 
