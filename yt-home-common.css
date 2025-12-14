@@ -1911,8 +1911,7 @@ body.tenant-body #invoiceDetailTable tfoot td {
 }
 
 .pay-status-paid {
-  background: #16a34a;
-  color: #ecfdf5;
+  color: #22c55e;        /* xanh lá */
   box-shadow: 0 6px 16px rgba(22, 163, 74, 0.6);
   cursor: default;
 }
@@ -2154,5 +2153,6 @@ body.tenant-body #invoiceDetailTable tfoot td {
   background: radial-gradient(1200px 600px at 10% -10%, #1b2a4a, #0b1220 60%);
   color: #fff;
 }
+
 
 
