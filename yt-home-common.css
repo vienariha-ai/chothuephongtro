@@ -2226,9 +2226,15 @@ span:contains("Đã đăng ký") {
   font-weight: 600;
 }
 .status-text-success{
-  color: #22c55e;   /* xanh lá */
+  color: #22c55e;        /* xanh lá */
   font-weight: 600;
+  display: inline-flex; /* canh giữa */
+  align-items: center;  /* canh giữa theo trục dọc */
+  justify-content: center;
+  text-align: center;
 }
+
+
 
 
 
