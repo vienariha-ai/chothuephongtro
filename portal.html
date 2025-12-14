@@ -500,10 +500,15 @@
       if (membersBody) {
         membersBody.innerHTML = '<tr><td colspan="6" class="muted skeleton">Đang tải danh sách người ở...</td></tr>';
       }
-
+      // ✅ NEW: khi đang loading thì ẩn badge cảnh báo
+      if (contractAlertBadge) {
+        contractAlertBadge.textContent = '';
+        contractAlertBadge.classList.add('hidden');
+        contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
+      }
       if (extendBtn) extendBtn.style.display = 'none';
       return;
-    }
+      }
 
     const allTargets = [
       roomBadge, roomLabel,
@@ -535,7 +540,22 @@
       if (monthsLeft <= 1) warningClass = "contract-alert-red";
       else if (monthsLeft <= 2) warningClass = "contract-alert-yellow";
     }
-
+    // ✅ NEW: Hiển thị cảnh báo ngay sau badge "Phòng"
+    if (contractAlertBadge) {
+      contractAlertBadge.classList.add('hidden');
+      contractAlertBadge.classList.remove('contract-alert-red','contract-alert-yellow');
+      contractAlertBadge.textContent = '';
+  
+      if (warningClass) {
+        // bạn có thể đổi text theo ý
+        contractAlertBadge.textContent =
+          (warningClass === 'contract-alert-red')
+            ? `⚠ Sắp hết hạn (${monthsLeft} tháng)`
+            : `⏳ Còn ${monthsLeft} tháng`;
+        contractAlertBadge.classList.remove('hidden');
+        contractAlertBadge.classList.add(warningClass);
+      }
+    }
     if (contractStatusEl) {
       contractStatusEl.classList.remove("contract-alert-red","contract-alert-yellow");
       if (warningClass) contractStatusEl.classList.add(warningClass);
@@ -1162,6 +1182,7 @@
 
 </body>
 </html>
+
 
 
 
