@@ -2233,6 +2233,10 @@ span:contains("Đã đăng ký") {
   justify-content: center;
   text-align: center;
 }
+td .status-text-success{
+  width: 100%;
+}
+
 
 
 
