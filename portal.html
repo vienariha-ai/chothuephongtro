@@ -639,7 +639,7 @@
             <td>${m.cccd || ''}</td>
             <td>${m.bienSo || ''}</td>
             <td>${m.ngayTamTru ? formatDateDDMMYYYY(m.ngayTamTru) : ''}</td>
-            <td>${renderStatusHTML(m.trangThaiTamTru, 'tamtru')}</td>
+            <td>${renderRegisterStatus(m.trangThaiTamTru, 'tamtru')}</td>
           `;
           membersBody.appendChild(tr);
         });
@@ -1139,6 +1139,7 @@
 
 </body>
 </html>
+
 
 
 
