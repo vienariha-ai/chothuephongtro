@@ -494,7 +494,13 @@
       });
 
       if (contractServices) {
-        contractServices.innerHTML = '<li class="skeleton">Đang tải thông tin dịch vụ...</li>';
+        if (Array.isArray(contract.dichVuKemTheo) && contract.dichVuKemTheo.length) {
+          contractServices.innerHTML = contract.dichVuKemTheo
+            .map(renderServiceItem)
+            .join('');
+        } else {
+          contractServices.innerHTML = '<li class="muted">Không có</li>';
+        }
       }
 
       if (membersBody) {
@@ -713,6 +719,19 @@
         });
       }
     }
+  }
+  function renderServiceItem(serviceText) {
+    const text = String(serviceText || '').toLowerCase();
+  
+    let icon = '🔹'; // mặc định
+  
+    if (text.includes('điện')) icon = '⚡';
+    else if (text.includes('nước')) icon = '🚰';
+    else if (text.includes('wifi')) icon = '📶';
+    else if (text.includes('giặt')) icon = '🧺';
+    else if (text.includes('rác')) icon = '🗑️';
+  
+    return `<li><span class="svc-icon">${icon}</span>${serviceText}</li>`;
   }
 
   // =========================
@@ -1182,6 +1201,7 @@
 
 </body>
 </html>
+
 
 
 
