@@ -2421,12 +2421,20 @@ body.tenant-body .table-like th{
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.55);
-  display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+
+  /* ❗❗ KHÔNG set display ở đây */
+ }
+
+.modal-overlay.hidden {
+  display: none !important;
 }
 
+.modal-overlay.show {
+  display: flex;
+}
 .modal-card {
   width: 920px;
   max-width: 95%;
@@ -2537,6 +2545,7 @@ input:focus, select:focus, textarea:focus {
   padding: 10px 18px;
   border-radius: 10px;
 }
+
 
 
 
