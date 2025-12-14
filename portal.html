@@ -308,7 +308,43 @@
   </div>
 
 <script>
-  const TENANT_STORAGE_KEY = "ytHomeTenant";
+  const TENANT_KEYS = ["ytHomeTenant","YT_HOME_TENANT","tenantRoom","tenantAuth","ytHomeTenantAuth"];
+  const JUST_LOGGED_OUT_KEY = "ytHomeJustLoggedOut";
+
+  function normRoomCode(s){ return String(s||"").trim().toUpperCase(); }
+  function normIdentity(s){ return String(s||"").trim(); }
+
+  function setTenant(t){
+    try{
+      const raw = t ? JSON.stringify(t) : "";
+      TENANT_KEYS.forEach(k=>{
+        try{
+          if (!t) localStorage.removeItem(k);
+          else localStorage.setItem(k, raw);
+        }catch(e){}
+      });
+    }catch(e){}
+  }
+
+  function getTenant(){
+    for (const k of TENANT_KEYS){
+      try{
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        const t = JSON.parse(raw);
+        const maPhong = normRoomCode(t?.maPhong || t?.roomCode || t?.room || t?.MaPhong || "");
+        if (!maPhong) continue;
+        return {
+          maPhong,
+          identity: normIdentity(t?.identity || t?.phone || t?.cccd || ""),
+          name: String(t?.name || t?.tenKhach || t?.tenChuPhong || "")
+        };
+      }catch(e){}
+    }
+    return null;
+  }
+
+  function clearTenant(){ setTenant(null); }
   const API_URL = "https://script.google.com/macros/s/AKfycbyTCSCKa4CS3FkmgQAjbvbMaeiZ4RhtZI_h4qBroK2ppLAstrfi3hKjHIGzbKEgWWXd7Q/exec";
   let CURRENT_INVOICES = [];
   let CURRENT_SELECTED_INVOICE = null;
@@ -318,10 +354,12 @@
   }
 
    function logoutTenant() {
-    try {
-      localStorage.removeItem(TENANT_STORAGE_KEY);
-      sessionStorage.setItem("ytHomeJustLoggedOut", "1"); // ✅ thêm dòng này
-    } catch(e){}
+    clearTenant();
+    try { sessionStorage.setItem(JUST_LOGGED_OUT_KEY, "1"); } catch(e){}
+    window.location.href = "tenant.html";
+  }
+
+catch(e){}
     window.location.href = "tenant.html";
   }
 
@@ -1099,19 +1137,23 @@
       btn.addEventListener('click', ()=> setActiveTab('pay', btn.dataset.tab));
     });
 
-    let tenant = null;
-    try {
-      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-      if (saved) tenant = JSON.parse(saved);
-    } catch(e){}
+    const roomFromURL = normRoomCode(new URLSearchParams(window.location.search).get('room') || '');
 
+    const tenant = getTenant();
     if (!tenant || !tenant.maPhong){
-      window.location.href = 'tenant.html';
+      // Nếu có room param thì chuyển về tenant.html kèm room (đỡ phải gõ lại)
+      const back = roomFromURL ? ('tenant.html?room=' + encodeURIComponent(roomFromURL)) : 'tenant.html';
+      window.location.href = back;
       return;
     }
 
-    fetchData(tenant.maPhong, tenant.identity || '');
-  });
+    // Nếu URL chỉ định room khác → cập nhật phòng (giữ identity)
+    if (roomFromURL && roomFromURL !== tenant.maPhong){
+      tenant.maPhong = roomFromURL;
+      setTenant(tenant);
+    }
+
+    fetchData(tenant.maPhong, tenant.identity || '');});
 </script>
 
 </body>
