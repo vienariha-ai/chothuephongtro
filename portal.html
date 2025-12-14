@@ -379,29 +379,49 @@
     return `${dd}/${mm}/${yyyy}`;
   }
 
-  function renderStatusHTML(text, context) {
-    const raw = (text == null) ? '' : String(text).trim();
-    if (!raw) return '<span class="status-text muted">--</span>';
+ function renderStatusHTML(text, context) {
+  const raw = (text == null) ? '' : String(text).trim();
+  if (!raw) return '<span class="status-text muted">--</span>';
 
-    const lower = raw.toLowerCase();
-    const isIncomplete =
-      lower.includes('chưa') ||
-      lower.includes('chua') ||
-      lower.includes('còn thiếu') ||
-      lower.includes('con thieu');
+  const lower = raw.toLowerCase();
 
-    if (!isIncomplete) return `<span class="status-text">${raw}</span>`;
+  /* ===== ĐÃ ĐĂNG KÝ / ĐÃ HOÀN TẤT ===== */
+  const isCompleted =
+    lower.includes('đã') ||
+    lower.includes('da ') ||
+    lower === 'ok' ||
+    lower === 'hợp lệ' ||
+    lower === 'hop le';
 
-    const safeStatus = raw.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    const safeContext = (context || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-
-    return `
-      <button type="button"
-        class="status-chip status-chip-warning"
-        onclick="openStatusDetail('${safeContext}','${safeStatus}')">
-        ${raw}
-      </button>`;
+  if (isCompleted) {
+    return `<span class="status-text status-text-success">${raw}</span>`;
   }
+
+  /* ===== CHƯA / CÒN THIẾU ===== */
+  const isIncomplete =
+    lower.includes('chưa') ||
+    lower.includes('chua') ||
+    lower.includes('còn thiếu') ||
+    lower.includes('con thieu');
+
+  if (!isIncomplete) {
+    return `<span class="status-text">${raw}</span>`;
+  }
+
+  /* ===== CHIP CẢNH BÁO CLICK ===== */
+  const safeStatus = raw.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const safeContext = (context || '')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  return `
+    <button type="button"
+      class="status-chip status-chip-warning"
+      onclick="openStatusDetail('${safeContext}','${safeStatus}')">
+      ${raw}
+    </button>`;
+}
+
 
   function openStatusDetail(context, statusText) {
     const ctx = context ? `Ngữ cảnh: ${context}\n` : '';
@@ -1139,6 +1159,7 @@
 
 </body>
 </html>
+
 
 
 
