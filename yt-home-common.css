@@ -2340,4 +2340,26 @@ body.tenant-body .table-like td{
 body.tenant-body .table-like th{
   font-size:0.74rem;
 }
+/* Canh giữa toàn bộ bảng table-like */
+.table-like {
+  text-align: center;
+}
+
+/* Canh giữa tiêu đề cột */
+.table-like th {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Canh giữa nội dung ô */
+.table-like td {
+  text-align: center;
+  vertical-align: middle;
+}
+/* Cho phép một số cột vẫn căn trái để dễ đọc */
+.table-like .text-left,
+.table-like td.text-left {
+  text-align: left;
+}
+
 
