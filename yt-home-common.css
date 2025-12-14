@@ -2206,6 +2206,20 @@ body.tenant-body #invoiceDetailTable tfoot td {
   padding: 0 !important;
   cursor: default !important;
 }
+/* ====== TRẠNG THÁI TẠM TRÚ ====== */
+
+/* ĐÃ ĐĂNG KÝ – chữ xanh lá, không nền */
+.status-registered {
+  color: #22c55e;        /* xanh lá */
+  font-weight: 600;
+}
+
+/* CHƯA ĐĂNG KÝ – vàng/cảnh báo */
+.status-unregistered {
+  color: #facc15;        /* vàng */
+  font-weight: 600;
+}
+
 
 
 
