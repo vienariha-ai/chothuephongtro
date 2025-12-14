@@ -1578,28 +1578,17 @@
   }
   function renderTempStayCard(row) {
     return `
-      <div class="card">
-        <div class="card-title">Tạm trú</div>
-  
-        <div class="card-row">
-          <span>Trạng thái:</span>
-          <strong>${row.trangThai}</strong>
-        </div>
-  
-        <button class="btn-primary"
-          onclick='openTempStayModal(${JSON.stringify(row)})'>
-          ${row.trangThai === 'Chưa đăng ký'
-            ? 'Đăng ký tạm trú'
-            : 'Xem thông tin'}
-        </button>
-      </div>
+      <button class="btn-primary"
+        onclick='openTempStayModal(${JSON.stringify(row)})'>
+        Đăng ký tạm trú
+      </button>
     `;
   }
-
 </script>
 
 </body>
 </html>
+
 
 
 
