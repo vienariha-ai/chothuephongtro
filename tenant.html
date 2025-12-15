@@ -215,6 +215,9 @@
 
     const phoneEl = document.getElementById("loginPhone");
     if (phoneEl) phoneEl.value = "";
+    
+    const codeEl = document.getElementById("loginCode");
+    if (codeEl) codeEl.value = "";
 
     const badgeEl = document.getElementById("roomBadge");
     if (badgeEl) { badgeEl.style.display = "none"; badgeEl.textContent = ""; }
@@ -242,32 +245,26 @@
 
     try {
       const data = await callApi("tenantLogin", { roomCode, identity: phoneOrCCCD });
-
+    
       if (!data || !data.success) {
         if (statusEl) statusEl.textContent = data?.message || "Đăng nhập không hợp lệ.";
         return;
       }
-      
+    
       // ✅ LƯU SID SAU LOGIN
       if (data.sid) setSID(data.sid);
-      
+    
       const tenant = {
         maPhong: (data.roomCode || data.maPhong || roomCode || "").toUpperCase(),
         identity: phoneOrCCCD,
         name: data.tenantName || data.tenNguoiThue || ""
       };
-      
+    
       saveTenantToStorage(tenant);
-      
+    
       if (statusEl) statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
       safeGotoPortal(tenant.maPhong);
-
-      saveTenantToStorage(tenant);
-
-      if (statusEl) statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
-
-      safeGotoPortal(tenant.maPhong);
-
+    
     } catch (err) {
       console.error("handleLoginSubmit error:", err);
       if (statusEl) statusEl.textContent = "Lỗi kết nối Apps Script. Vui lòng thử lại.";
@@ -336,5 +333,6 @@
 </script>
 </body>
 </html>
+
 
 
