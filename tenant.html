@@ -76,6 +76,40 @@
   const TENANT_STORAGE_KEY = "ytHomeTenant";
 
   /* ======================================================
+   * CHỐNG VÒNG LẶP REDIRECT portal.html <-> tenant.html
+   * - tenant.html chỉ auto-redirect về portal khi:
+   *   (1) có tenant saved
+   *   (2) có SID
+   *   (3) portal.html có để lại "returnTo" hoặc URL room khớp
+   * ====================================================== */
+  const YTH_REDIRECT_GUARD_KEY = "YTH_REDIRECT_GUARD";
+  const YTH_RETURN_TO_KEY = "YTH_RETURN_TO";
+  const REDIRECT_MAX = 2;
+  const REDIRECT_TTL_MS = 15000;
+
+  function guardRedirectOnce(toUrl){
+    let g = {};
+    try { g = JSON.parse(sessionStorage.getItem(YTH_REDIRECT_GUARD_KEY) || "{}"); } catch(e){}
+    const now = Date.now();
+
+    if (!g.t || (now - g.t) > REDIRECT_TTL_MS) g = { t: now, c: 0 };
+    g.c = (g.c || 0) + 1;
+    g.t = now;
+    sessionStorage.setItem(YTH_REDIRECT_GUARD_KEY, JSON.stringify(g));
+
+    if (g.c > REDIRECT_MAX) return false;
+    location.replace(toUrl);
+    return true;
+  }
+
+  function getReturnTo(){
+    try { return sessionStorage.getItem(YTH_RETURN_TO_KEY) || ""; } catch(e){ return ""; }
+  }
+  function clearReturnTo(){
+    try { sessionStorage.removeItem(YTH_RETURN_TO_KEY); } catch(e){}
+  }
+
+  /* ======================================================
    * SID + TS + NONCE (ĐẶT TRƯỚC callApi)
    * ====================================================== */
   const YTH_SID_KEY = "YTH_SID";
@@ -89,7 +123,7 @@
     let sid = "";
     try { sid = sessionStorage.getItem(YTH_SID_KEY) || ""; } catch(e) {}
     if (!sid) { try { sid = localStorage.getItem(YTH_SID_KEY) || ""; } catch(e) {} }
-    return sid;
+    return (sid || "").trim();
   }
   function clearSID() {
     try { sessionStorage.removeItem(YTH_SID_KEY); } catch(e) {}
@@ -126,7 +160,6 @@
     });
   }
 
-  // Nếu sau này tenant cần action GHI qua JSONP:
   function callApiWrite(action, params = {}) {
     return callApi(action, { ...params, nonce: makeNonce() });
   }
@@ -143,9 +176,39 @@
     }
   }
 
+  function readTenantFromStorage(){
+    try {
+      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
+      if (!saved) return null;
+      const t = JSON.parse(saved);
+      return (t && t.maPhong) ? t : null;
+    } catch(e){
+      return null;
+    }
+  }
+
+  function safeGotoPortal(room){
+    const returnTo = getReturnTo();
+    clearReturnTo();
+
+    // ưu tiên quay về URL mà portal.html đã để lại (nếu có)
+    if (returnTo) {
+      const ok = guardRedirectOnce(returnTo);
+      if (!ok) {
+        // fallback
+        window.location.href = "portal.html?room=" + encodeURIComponent(room || "");
+      }
+      return;
+    }
+
+    // fallback theo room
+    window.location.href = "portal.html?room=" + encodeURIComponent(room || "");
+  }
+
   function logoutTenant() {
     saveTenantToStorage(null);
-    clearSID(); // ✅ xoá sid luôn
+    clearSID();
+    clearReturnTo();
 
     const status = document.getElementById("loginStatus");
     if (status) status.textContent = "Đã xoá phiên đăng nhập. Bạn có thể đăng nhập lại với phòng khác.";
@@ -184,15 +247,8 @@
         if (statusEl) statusEl.textContent = data?.message || "Đăng nhập không hợp lệ.";
         return;
       }
-      
-      // ✅ BẮT BUỘC: LƯU SID
-      if (data.sid) {
-        sessionStorage.setItem('YTH_SID', data.sid);
-        localStorage.setItem('YTH_SID', data.sid);
-      }
 
-
-      // ✅ LƯU SID SAU LOGIN
+      // ✅ LƯU SID SAU LOGIN (chỉ 1 lần, bỏ trùng)
       if (data.sid) setSID(data.sid);
 
       const tenant = {
@@ -204,7 +260,8 @@
       saveTenantToStorage(tenant);
 
       if (statusEl) statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
-      window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
+
+      safeGotoPortal(tenant.maPhong);
 
     } catch (err) {
       console.error("handleLoginSubmit error:", err);
@@ -217,33 +274,52 @@
    * ====================================================== */
   document.addEventListener("DOMContentLoaded", () => {
     const params      = new URLSearchParams(window.location.search);
-    const roomFromURL = params.get("room");
+    const roomFromURL = (params.get("room") || "").trim();
 
     const loginCodeEl = document.getElementById("loginCode");
     const roomBadgeEl = document.getElementById("roomBadge");
+    const statusEl    = document.getElementById("loginStatus");
 
-    // Auto redirect nếu đã đăng nhập trước đó
-    try {
-      const saved = localStorage.getItem(TENANT_STORAGE_KEY);
-      if (saved) {
-        const tenant = JSON.parse(saved);
-        if (tenant && tenant.maPhong) {
-          if (!roomFromURL || roomFromURL === tenant.maPhong) {
-            window.location.href = "portal.html?room=" + encodeURIComponent(tenant.maPhong);
-            return;
-          }
-        }
-      }
-    } catch (e) {
-      console.error("check existing tenant error:", e);
-    }
-
+    // ✅ PREFILL room từ URL (nếu có)
     if (roomFromURL && loginCodeEl) {
-      loginCodeEl.value = roomFromURL;
+      loginCodeEl.value = roomFromURL.toUpperCase();
       if (roomBadgeEl) {
         roomBadgeEl.style.display = "inline-block";
-        roomBadgeEl.textContent = "Đang đăng nhập cho phòng: " + roomFromURL;
+        roomBadgeEl.textContent = "Đang đăng nhập cho phòng: " + roomFromURL.toUpperCase();
       }
+    }
+
+    // ✅ AUTO REDIRECT nếu đã có tenant + có SID + phòng khớp (tránh loop)
+    const savedTenant = readTenantFromStorage();
+    const sid = getSID();
+
+    if (savedTenant && sid) {
+      const okRoom =
+        (!roomFromURL) ||
+        (roomFromURL.toUpperCase() === String(savedTenant.maPhong).toUpperCase());
+
+      if (okRoom) {
+        // chỉ tự chuyển khi đủ điều kiện, dùng guard để không loop
+        const msg = "Đã có phiên đăng nhập. Đang chuyển vào portal...";
+        if (statusEl) statusEl.textContent = msg;
+
+        // ưu tiên returnTo nếu portal vừa đá về
+        const returnTo = getReturnTo();
+        if (returnTo) {
+          const ok = guardRedirectOnce(returnTo);
+          if (!ok && statusEl) statusEl.textContent = "Đang ở trang đăng nhập (đã chặn vòng lặp chuyển trang). Bấm Đăng nhập để vào portal.";
+          return;
+        }
+
+        const ok = guardRedirectOnce("portal.html?room=" + encodeURIComponent(savedTenant.maPhong));
+        if (!ok && statusEl) statusEl.textContent = "Đang ở trang đăng nhập (đã chặn vòng lặp chuyển trang). Bấm Đăng nhập để vào portal.";
+        return;
+      }
+    }
+
+    // nếu có tenant saved nhưng thiếu SID => đừng auto-redirect
+    if (savedTenant && !sid) {
+      if (statusEl) statusEl.textContent = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
     }
 
     const form = document.getElementById("loginForm");
@@ -255,6 +331,3 @@
 </script>
 </body>
 </html>
-
-
-
