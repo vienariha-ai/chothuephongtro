@@ -437,6 +437,48 @@
   const API_URL = "https://script.google.com/macros/s/AKfycbzIkUL9SMr_N7bjLORoao8ehB35g1awY9xB7p6PoTWt-aFFB10orFdWn7nYzlyXta6gxw/exec";
 
   /* ======================================================
+   * ✅ CHỐNG VÒNG LẶP REDIRECT portal.html <-> tenant.html
+   * ====================================================== */
+  const YTH_REDIRECT_GUARD_KEY = "YTH_REDIRECT_GUARD";
+  const YTH_RETURN_TO_KEY = "YTH_RETURN_TO";
+  const REDIRECT_MAX = 2;        // tối đa 2 lần/phiên
+  const REDIRECT_TTL_MS = 15000; // trong 15s mà vẫn lặp => dừng
+
+  function guardRedirectOnce(toUrl){
+    let g = {};
+    try { g = JSON.parse(sessionStorage.getItem(YTH_REDIRECT_GUARD_KEY) || "{}"); } catch(e){}
+    const now = Date.now();
+
+    if (!g.t || (now - g.t) > REDIRECT_TTL_MS) g = { t: now, c: 0 };
+    g.c = (g.c || 0) + 1;
+    g.t = now;
+    sessionStorage.setItem(YTH_REDIRECT_GUARD_KEY, JSON.stringify(g));
+
+    // lưu returnTo để tenant.html quay về đúng portal sau login
+    try { sessionStorage.setItem(YTH_RETURN_TO_KEY, location.href); } catch(e){}
+
+    if (g.c > REDIRECT_MAX) return false; // stop redirect
+    location.replace(toUrl);
+    return true;
+  }
+
+  function ensureLoginActionUI(message){
+    const note = document.getElementById("portalStatusNote");
+    if (note) note.textContent = message || "Bạn chưa đăng nhập hoặc phiên đã hết hạn. Vui lòng đăng nhập lại.";
+
+    // thêm nút "Về trang đăng nhập" (không trùng)
+    const actions = document.querySelector(".header-actions");
+    if (actions && !document.getElementById("btnGoTenant")){
+      const a = document.createElement("a");
+      a.id = "btnGoTenant";
+      a.href = "tenant.html";
+      a.className = "btn btn-outline";
+      a.textContent = "Về trang đăng nhập";
+      actions.appendChild(a);
+    }
+  }
+
+  /* ======================================================
    * ✅ SID/TS/NONCE (chuẩn hoá)
    * ====================================================== */
   const YTH_SID_KEY = "YTH_SID";
@@ -1386,7 +1428,14 @@
       });
 
       if (!data || !data.success){
-        if (note) note.textContent = (data && data.message) || 'Không lấy được dữ liệu portal.';
+        // nếu do SID hết hạn / thiếu quyền => không redirect loop nữa
+        const msg = (data && data.message) ? String(data.message) : 'Không lấy được dữ liệu portal.';
+        if (note) note.textContent = msg;
+
+        // gợi ý đăng nhập lại khi gặp lỗi session
+        if (/sid|session|not defined|không hợp lệ|het han|hết hạn/i.test(msg)){
+          ensureLoginActionUI('Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.');
+        }
         return;
       }
 
@@ -1420,16 +1469,18 @@
       if (saved) tenant = JSON.parse(saved);
     } catch(e){}
 
+    // ✅ CHẶN VÒNG LẶP: không redirect cứng nữa
     if (!tenant || !tenant.maPhong){
-      window.location.href = 'tenant.html';
+      const ok = guardRedirectOnce('tenant.html');
+      if (!ok) ensureLoginActionUI('Bạn chưa đăng nhập (hoặc dữ liệu đăng nhập bị mất). Vui lòng đăng nhập lại.');
       return;
     }
 
     // Nếu backend đang enforce SID thì phải có SID
-    // (Nếu bạn muốn "mềm" hơn thì comment 3 dòng này)
     const sid = getSID();
     if (!sid){
-      window.location.href = 'tenant.html';
+      const ok = guardRedirectOnce('tenant.html');
+      if (!ok) ensureLoginActionUI('Phiên đăng nhập đã hết hạn (thiếu SID). Vui lòng đăng nhập lại.');
       return;
     }
 
@@ -1439,4 +1490,3 @@
 
 </body>
 </html>
-
