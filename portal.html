@@ -434,7 +434,7 @@
   const TENANT_STORAGE_KEY = "ytHomeTenant";
 
   // ✅ API_URL: dùng đúng URL /exec bạn đang deploy
-  const API_URL = "https://script.google.com/macros/s/AKfycbz4anbAXMS0fG7U30Dopgqsua6bC1Pe8C6zwc4e158aF3eDn3jY4Yp33kxhgcytKzwn9w/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbweDx9NdGglcbPwG-1opUq-tlL_rRAyxBqofrUYyXSpKJU3qy80dE8Y1dn_VXaG_tq6-Q/exec";
 
   /* ======================================================
    * ✅ CHỐNG VÒNG LẶP REDIRECT portal.html <-> tenant.html
@@ -482,6 +482,20 @@
    * ✅ SID/TS/NONCE (chuẩn hoá)
    * ====================================================== */
   const YTH_SID_KEY = "YTH_SID";
+  const YTH_NONCE_KEY = "YTH_NONCE";
+  
+  function setNonce(nonce){
+    if (!nonce) return;
+    try { sessionStorage.setItem(YTH_NONCE_KEY, String(nonce)); } catch(e){}
+  }
+  
+  function getNonce(){
+    try { return (sessionStorage.getItem(YTH_NONCE_KEY) || "").trim(); } catch(e){ return ""; }
+  }
+  
+  function clearNonce(){
+    try { sessionStorage.removeItem(YTH_NONCE_KEY); } catch(e){}
+  }
 
   function getSID(){
     return (sessionStorage.getItem(YTH_SID_KEY) || localStorage.getItem(YTH_SID_KEY) || "").trim();
@@ -536,8 +550,9 @@
     });
   }
 
-  function callApiWrite(action, params = {}) {
-    return callApi(action, { ...params, nonce: makeNonce() });
+   function callApiWrite(action, params = {}) {
+    const nonce = getNonce();
+    return callApi(action, { ...params, nonce });
   }
 
   /* ======================================================
@@ -549,6 +564,7 @@
   function logoutTenant() {
     try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
     clearSID();
+    clearNonce();   // ✅ thêm dòng này
     window.location.href = "tenant.html";
   }
 
@@ -1431,9 +1447,9 @@
     try {
       const data = await callApi("tenantPortalObj", {
         roomCode: roomCode,
-        phoneOrCCCD: identity || ""
+        identity: identity || ""
       });
-  
+
       console.log("RAW PORTAL DATA =", data);
   
       if (!data || !data.success) {
@@ -1442,7 +1458,15 @@
       }
   
       if (note) note.textContent = "Dữ liệu đã được tải thành công.";
-  
+      // ✅ lưu nonce do server cấp để dùng cho các action ghi
+      if (data.nonce) setNonce(data.nonce);
+      
+      // (tuỳ chọn) nếu server trả sid mới thì cập nhật
+      if (data.sid) {
+        try { sessionStorage.setItem(YTH_SID_KEY, data.sid); } catch(e){}
+        try { localStorage.setItem(YTH_SID_KEY, data.sid); } catch(e){}
+      }
+
       renderInfoCard(data);
       renderPaymentCard(data);
       renderMaintenance(data);
@@ -1522,6 +1546,7 @@
 </script>
 </body>
 </html>
+
 
 
 
