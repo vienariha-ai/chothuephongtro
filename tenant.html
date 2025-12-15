@@ -241,21 +241,26 @@
     if (statusEl) statusEl.textContent = "Đang kiểm tra thông tin đăng nhập...";
 
     try {
-      const data = await callApi("tenantLogin", { roomCode, phoneOrCCCD });
+      const data = await callApi("tenantLogin", { roomCode, identity: phoneOrCCCD });
 
       if (!data || !data.success) {
         if (statusEl) statusEl.textContent = data?.message || "Đăng nhập không hợp lệ.";
         return;
       }
-
-      // ✅ LƯU SID SAU LOGIN (chỉ 1 lần, bỏ trùng)
+      
+      // ✅ LƯU SID SAU LOGIN
       if (data.sid) setSID(data.sid);
-
+      
       const tenant = {
-        maPhong: data.roomCode || roomCode,
+        maPhong: (data.roomCode || data.maPhong || roomCode || "").toUpperCase(),
         identity: phoneOrCCCD,
-        name: data.tenKhach || data.tenChuPhong || ""
+        name: data.tenantName || data.tenNguoiThue || ""
       };
+      
+      saveTenantToStorage(tenant);
+      
+      if (statusEl) statusEl.textContent = "Đăng nhập thành công. Đang chuyển vào portal...";
+      safeGotoPortal(tenant.maPhong);
 
       saveTenantToStorage(tenant);
 
@@ -331,4 +336,5 @@
 </script>
 </body>
 </html>
+
 
