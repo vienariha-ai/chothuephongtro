@@ -500,31 +500,38 @@
    * - AUTO gắn sid + ts vào MỌI request
    * - ACTION GHI: thêm nonce
    * ====================================================== */
-  function callApi(action, params = {}) {
+   function callApi(action, params = {}) {
     return new Promise((resolve, reject) => {
-      const act = String(action || "").trim();
-      if (!act) return reject(new Error("Missing action"));
-
       const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
       const sid = getSID();
-      const ts  = nowTs();
-
-      const mergedParams = { ...params, ts };
-      if (sid) mergedParams.sid = sid;
-
-      window[cb] = (data) => { cleanup(); resolve(data); };
-
-      const qs = new URLSearchParams({ action: act, ...mergedParams, callback: cb }).toString();
+      const ts  = Date.now();
+  
+      const merged = { ...params, ts };
+      if (sid) merged.sid = sid;
+  
+      window[cb] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+  
+      const qs = new URLSearchParams({
+        action,
+        ...merged,
+        callback: cb
+      }).toString();
+  
       const s = document.createElement("script");
       s.src = API_URL + "?" + qs;
-      s.async = true;
-
-      s.onerror = () => { cleanup(); reject(new Error("JSONP load failed")); };
+      s.onerror = () => {
+        cleanup();
+        reject(new Error("JSONP load failed"));
+      };
+  
       document.body.appendChild(s);
-
-      function cleanup() {
-        try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-        if (s && s.parentNode) s.parentNode.removeChild(s);
+  
+      function cleanup(){
+        try { delete window[cb]; } catch(e){}
+        if (s.parentNode) s.parentNode.removeChild(s);
       }
     });
   }
@@ -1417,41 +1424,33 @@
    * ====================================================== */
   async function fetchData(roomCode, identity){
     const note = document.getElementById('portalStatusNote');
-    if (note) note.textContent = 'Đang đồng bộ dữ liệu từ Google Sheet (Apps Script)...';
-
-    renderInfoCard(null);
-
-    try{
-      const data = await callApi('tenantPortalObj', {
+    if (note) note.textContent = 'Đang đồng bộ dữ liệu từ hệ thống...';
+  
+    renderInfoCard(null); // skeleton
+  
+    try {
+      const data = await callApi("tenantPortalObj", {
         roomCode: roomCode,
-        phoneOrCCCD: identity || ''
+        phoneOrCCCD: identity || ""
       });
-
-      if (!data || !data.success){
-        // nếu do SID hết hạn / thiếu quyền => không redirect loop nữa
-        const msg = (data && data.message) ? String(data.message) : 'Không lấy được dữ liệu portal.';
-        if (note) note.textContent = msg;
-
-        // gợi ý đăng nhập lại khi gặp lỗi session
-        if (/sid|session|not defined|không hợp lệ|het han|hết hạn/i.test(msg)){
-          ensureLoginActionUI('Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.');
-        }
+  
+      console.log("RAW PORTAL DATA =", data);
+  
+      if (!data || !data.success) {
+        if (note) note.textContent = data?.message || "Không lấy được dữ liệu portal.";
         return;
       }
-
-      if (note) note.textContent = 'Dữ liệu đã được tải từ hệ thống (Google Sheet).';
-
+  
+      if (note) note.textContent = "Dữ liệu đã được tải thành công.";
+  
       renderInfoCard(data);
       renderPaymentCard(data);
       renderMaintenance(data);
       renderMessages(data);
-
-      const invoices = Array.isArray(data.invoices) ? data.invoices : [];
-      if (invoices.length) updateBankAndQr_(invoices[__selectedInvoiceIndex] || invoices[0]);
-
-    } catch(err){
-      console.error('fetchData error:',err);
-      if (note) note.textContent = 'Lỗi kết nối tới Apps Script, vui lòng thử lại.';
+  
+    } catch (err) {
+      console.error("fetchData error:", err);
+      if (note) note.textContent = "Lỗi kết nối tới Apps Script.";
     }
   }
 
@@ -1523,6 +1522,7 @@
 </script>
 </body>
 </html>
+
 
 
 
