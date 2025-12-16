@@ -1765,13 +1765,40 @@ function initMergedBoot_(){
     }
   }
 }
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+    window[cb] = (data) => { cleanup(); resolve(data); };
 
+    const s = document.createElement("script");
+    s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+    s.onerror = () => { cleanup(); reject(new Error("JSONP load error")); };
+
+    function cleanup() {
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (s && s.parentNode) s.parentNode.removeChild(s);
+    }
+
+    document.body.appendChild(s);
+  });
+}
+
+async function loadRoom(roomCode){
+  const url = `${API_URL}?action=roomInfo&roomCode=${encodeURIComponent(roomCode)}`;
+  const res = await jsonp(url);
+  if (!res || !res.ok) throw new Error(res?.error || "Không lấy được dữ liệu phòng");
+  return res.data;
+}
+
+// test nhanh
+// loadRoom("P205").then(console.log).catch(console.error);
 // Run after all portal DOMContentLoaded handlers, but safe to run now as well
 document.addEventListener("DOMContentLoaded", initMergedBoot_);
 
 </script>
 </body>
 </html>
+
 
 
 
