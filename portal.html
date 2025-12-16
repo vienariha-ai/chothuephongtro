@@ -79,7 +79,7 @@
             <input id="loginPhone" class="form-control" type="tel" autocomplete="off" required />
           </div>
 
-          <button type="submit" class="btn">Đăng nhập</button>
+          <button type="submit" class="btn" id="btnLogin">Đăng nhập</button>
         </form>
 
         <div id="loginStatus" class="portal-status"></div>
@@ -1663,38 +1663,71 @@ function showPortalView_(){
 
 async function handleLoginSubmit(ev){
   if (ev) ev.preventDefault();
+
   const statusEl = document.getElementById("loginStatus");
   const btn = document.getElementById("btnLogin");
-  const roomCode = String(document.getElementById("roomCode")?.value || "").trim().toUpperCase();
-  const identity = String(document.getElementById("identity")?.value || "").trim();
+
+  // ✅ ĐỌC ĐÚNG ID INPUT
+  const roomCode = String(document.getElementById("loginCode")?.value || "")
+    .trim()
+    .toUpperCase();
+  const identity = String(document.getElementById("loginPhone")?.value || "")
+    .trim();
+
+  console.log("[LOGIN SUBMIT]", { roomCode, identity });
 
   if (!roomCode || !identity){
-    if (statusEl){ statusEl.textContent = "Vui lòng nhập Mã phòng và SĐT/CCCD."; statusEl.className="muted"; }
+    if (statusEl){
+      statusEl.textContent = "Vui lòng nhập Mã phòng và SĐT/CCCD.";
+      statusEl.className = "portal-status muted";
+    }
     return;
   }
 
-  if (btn){ btn.disabled = true; btn.textContent = "Đang đăng nhập..."; }
-  if (statusEl){ statusEl.textContent = "Đang xác thực..."; statusEl.className="muted"; }
+  if (btn){
+    btn.disabled = true;
+    btn.textContent = "Đang đăng nhập...";
+  }
+  if (statusEl){
+    statusEl.textContent = "Đang xác thực...";
+    statusEl.className = "portal-status muted";
+  }
 
   try{
-    const res = await callApiWrite("tenantLogin", { roomCode, identity: identity });
+    // ✅ LOGIN: dùng action tenantLogin (backend bạn đã có)
+    const res = await callApiWrite("tenantLogin", { roomCode, identity });
+
     if (!res || res.success !== true){
       throw new Error(res?.message || "Đăng nhập thất bại");
     }
-    // Expected: res.sid, res.tenant
-    if (res.sid) setSID(res.sid);
-    if (res.tenant) saveTenantToStorage(res.tenant);
-    // Set return-to if missing
-    try{
-      if (!getReturnTo()) localStorage.setItem(YTH_RETURN_TO_KEY, location.href);
-    }catch(e){}
-    // go portal
+
+    // ✅ Lưu SID đúng hệ đang dùng trong callApi (YTH_SID_KEY)
+    if (res.sid){
+      try { sessionStorage.setItem(YTH_SID_KEY, res.sid); } catch(e){}
+      try { localStorage.setItem(YTH_SID_KEY, res.sid); } catch(e){}
+    }
+
+    // ✅ Lưu tenant: đảm bảo có maPhong/identity để fetchData
+    const tenantObj = res.tenant || { maPhong: roomCode, identity };
+    if (!tenantObj.maPhong) tenantObj.maPhong = roomCode;
+    if (!tenantObj.identity) tenantObj.identity = identity;
+    saveTenantToStorage(tenantObj);
+
+    // ✅ Vào portal và fetch data đúng tham số
     showPortalView_();
-    await fetchData(); // portal function
+    await fetchData(tenantObj.maPhong, tenantObj.identity);
+
   }catch(err){
-    if (statusEl){ statusEl.textContent = "Lỗi: " + (err?.message || err); statusEl.className="muted"; }
+    console.error("LOGIN ERROR:", err);
+    if (statusEl){
+      statusEl.textContent = "Lỗi: " + (err?.message || err);
+      statusEl.className = "portal-status muted";
+    }
   }finally{
-    if (btn){ btn.disabled = false; btn.textContent = "Đăng nhập"; }
+    if (btn){
+      btn.disabled = false;
+      btn.textContent = "Đăng nhập";
+    }
   }
 }
 
@@ -1720,7 +1753,10 @@ function initMergedBoot_(){
     showLoginView_(!hasSession ? "Vui lòng đăng nhập." : "");
   }else{
     showPortalView_();
-    fetchData();
+    const t = readTenantFromStorage();
+    if (t && (t.maPhong || t.roomCode)){
+      fetchData(t.maPhong || t.roomCode, t.identity || "");
+    }
   }
 }
 
@@ -1730,6 +1766,7 @@ document.addEventListener("DOMContentLoaded", initMergedBoot_);
 </script>
 </body>
 </html>
+
 
 
 
