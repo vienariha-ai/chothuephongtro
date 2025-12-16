@@ -1568,37 +1568,61 @@ function showPortalView_(){
       return;
     }
 
-    // ✅ A4.3b portal: tenantPortal & sid
-    const data = await callApi("tenantPortal", { sid });
+    const res = await callApi("tenantPortal", { sid });
+    console.log("RAW PORTAL DATA =", res);
 
-    console.log("RAW PORTAL DATA =", data);
+    // normalize ok flag
+    const ok = (res && (res.ok === true || res.success === true));
 
-    // Tuỳ backend bạn trả ok/true hay success/true: ưu tiên ok
-    if (!data || data.ok !== true){
-      if (note) note.textContent = data?.error || data?.message || "Không lấy được dữ liệu portal.";
-      // nếu SID sai/hết hạn thì quay về login
-      showLoginView_("Phiên không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
-      clearSID();
+    if (!res || !ok){
+      const msg = res?.error || res?.message || "Không lấy được dữ liệu portal.";
+      if (note) note.textContent = msg;
+
+      // chỉ logout nếu thật sự là lỗi SID/hết hạn
+      const sidErr = /sid|phiên|session|unauthor|expired|hết hạn|không hợp lệ/i.test(msg);
+      if (sidErr){
+        showLoginView_("Phiên không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
+        clearSID();
+      }
+      return;
+    }
+
+    // ✅ yêu cầu tối thiểu của tenantPortal: phải có data hoặc các field roomCode/info...
+    const hasUseful =
+      !!res.data ||
+      !!res.roomCode ||
+      !!res.room ||
+      !!res.info ||
+      !!res.phong;
+
+    if (!hasUseful){
+      if (note) note.textContent =
+        "API trả ok nhưng thiếu payload portal (tenantPortal). Kiểm tra actionTenantPortal_ trả về {ok:true, data:{...}}.";
+      // vẫn render skeleton/empty thay vì báo lỗi kết nối
+      renderInfoCard(res);
+      renderPaymentCard(res);
+      renderMaintenance(res);
+      renderMessages(res);
       return;
     }
 
     if (note) note.textContent = "Dữ liệu đã được tải thành công.";
 
-    // ✅ nếu server cấp nonce để action ghi thì lưu
-    if (data.nonce) setNonce(data.nonce);
+    if (res.nonce) setNonce(res.nonce);
 
-    __portalDataCache = data;
+    __portalDataCache = res;
 
-    renderInfoCard(data);
-    renderPaymentCard(data);
-    renderMaintenance(data);
-    renderMessages(data);
+    renderInfoCard(res);
+    renderPaymentCard(res);
+    renderMaintenance(res);
+    renderMessages(res);
 
   } catch (err) {
     console.error("fetchData error:", err);
     if (note) note.textContent = "Lỗi kết nối tới Apps Script.";
   }
 }
+
 
   document.addEventListener('DOMContentLoaded', ()=>{
     document.querySelectorAll('.tab-btn.tab-info').forEach(btn=>{
@@ -1798,6 +1822,7 @@ document.addEventListener("DOMContentLoaded", initMergedBoot_);
 </script>
 </body>
 </html>
+
 
 
 
