@@ -2,7 +2,7 @@
 // CẤU HÌNH CHUNG
 // =====================
 const API_URL = (window.YT_HOME_API_URL || document.querySelector('meta[name=yt-home-api]')?.content ||
-  "https://script.google.com/macros/s/AKfycbwYSeEoyXsntwGNfTFKZdCKTiMmrvYtRLTvQMa8-WNMA9_h4aSp1ZtDwpooqgtsGIMZdA/exec");
+  "https://script.google.com/macros/s/AKfycbzoK0qFRv1cPfrglrp9NThC-YLXAx26ashfM7T3LnsPjKRY52HN3eMak_IhE9W8j7Uehg/exec");
 
 const STORAGE_KEYS = {
   likes:   "ytHomeRoomLikes",
@@ -1127,3 +1127,4 @@ document.addEventListener("DOMContentLoaded", () => {
   initIndexPageIfNeeded();
   initRoomPageIfNeeded();
 });
+
