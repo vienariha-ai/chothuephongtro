@@ -135,12 +135,12 @@ function openTenantPortal() {
   } catch (e) {
     console.error("openTenantPortal error:", e);
   }
-  window.location.href = "tenant.html";
+  window.location.href = "portal.html";
 }
 
 function goTenantLogin(roomId) {
   if (!roomId) {
-    window.location.href = "tenant.html";
+    window.location.href = "portal.html";
     return;
   }
 
@@ -157,7 +157,7 @@ function goTenantLogin(roomId) {
     console.error("goTenantLogin error:", e);
   }
 
-  window.location.href = "tenant.html?room=" + encodeURIComponent(roomId);
+  window.location.href = "portal.html?room=" + encodeURIComponent(roomId);
 }
 
 function goRoomDetail(roomId) {
@@ -172,7 +172,7 @@ function copyRoomLink(encodedRoomId) {
   const id = decodeURIComponent(encodedRoomId || "");
   if (!id) return;
   const base = window.location.origin + window.location.pathname.replace(/index\.html$/i, "");
-  const url = base + "tenant.html?room=" + encodeURIComponent(id);
+  const url = base + "portal.html?room=" + encodeURIComponent(id);
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard
@@ -801,7 +801,7 @@ function renderRoomDetail(room) {
   document.title = maPhong + " – YT Home";
 
   if (tenantLink) {
-    tenantLink.href = "tenant.html?room=" + encodeURIComponent(maPhong);
+    tenantLink.href = "portal.html?room=" + encodeURIComponent(maPhong);
   }
 
   if (roomInfoCard) {
@@ -1127,4 +1127,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initIndexPageIfNeeded();
   initRoomPageIfNeeded();
 });
+
 
