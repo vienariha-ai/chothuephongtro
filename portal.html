@@ -508,7 +508,7 @@ function safeGotoPortal(){
   const TENANT_STORAGE_KEY = "ytHomeTenant";
 
   // ✅ API_URL: dùng đúng URL /exec bạn đang deploy
-  const API_URL = "https://script.google.com/macros/s/AKfycbwu1q0pYVw_9rFpBEj7wwFzzUgDBrM_MGAt5tXG80ik4X9IjAZuQ0wUs6LdPLPOZ3adZg/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycby0pm4AStDM61Hwnlq6w6KHnn152K58utyl0Na3NwM8pVcMpSveLU3GmtTEAhkFwTXEzA/exec";
 
 function resolveInternalUrl_(toUrl){
   // When merged into one file: map old resolveInternalUrl_("tenant.html") navigation to this same page's login view
@@ -1554,45 +1554,51 @@ function showPortalView_(){
    * ✅ FETCH DATA (QUAN TRỌNG)
    * - Đổi action: tenantPortalObj (đúng theo function bạn đang có)
    * ====================================================== */
-  async function fetchData(roomCode, identity){
-    const note = document.getElementById('portalStatusNote');
-    if (note) note.textContent = 'Đang đồng bộ dữ liệu từ hệ thống...';
-  
-    renderInfoCard(null); // skeleton
-  
-    try {
-      const data = await callApi("tenantPortalObj", {
-        roomCode: roomCode,
-        identity: identity || ""
-      });
+  async function fetchData(){
+  const note = document.getElementById('portalStatusNote');
+  if (note) note.textContent = 'Đang đồng bộ dữ liệu từ hệ thống...';
 
-      console.log("RAW PORTAL DATA =", data);
-  
-      if (!data || !data.success) {
-        if (note) note.textContent = data?.message || "Không lấy được dữ liệu portal.";
-        return;
-      }
-  
-      if (note) note.textContent = "Dữ liệu đã được tải thành công.";
-      // ✅ lưu nonce do server cấp để dùng cho các action ghi
-      if (data.nonce) setNonce(data.nonce);
-      
-      // (tuỳ chọn) nếu server trả sid mới thì cập nhật
-      if (data.sid) {
-        try { sessionStorage.setItem(YTH_SID_KEY, data.sid); } catch(e){}
-        try { localStorage.setItem(YTH_SID_KEY, data.sid); } catch(e){}
-      }
+  renderInfoCard(null); // skeleton
 
-      renderInfoCard(data);
-      renderPaymentCard(data);
-      renderMaintenance(data);
-      renderMessages(data);
-  
-    } catch (err) {
-      console.error("fetchData error:", err);
-      if (note) note.textContent = "Lỗi kết nối tới Apps Script.";
+  try {
+    const sid = getSID();
+    if (!sid){
+      if (note) note.textContent = "Thiếu SID (phiên hết hạn). Vui lòng đăng nhập lại.";
+      showLoginView_("Phiên đã hết hạn. Vui lòng đăng nhập lại.");
+      return;
     }
+
+    // ✅ A4.3b portal: tenantPortal & sid
+    const data = await callApi("tenantPortal", { sid });
+
+    console.log("RAW PORTAL DATA =", data);
+
+    // Tuỳ backend bạn trả ok/true hay success/true: ưu tiên ok
+    if (!data || data.ok !== true){
+      if (note) note.textContent = data?.error || data?.message || "Không lấy được dữ liệu portal.";
+      // nếu SID sai/hết hạn thì quay về login
+      showLoginView_("Phiên không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
+      clearSID();
+      return;
+    }
+
+    if (note) note.textContent = "Dữ liệu đã được tải thành công.";
+
+    // ✅ nếu server cấp nonce để action ghi thì lưu
+    if (data.nonce) setNonce(data.nonce);
+
+    __portalDataCache = data;
+
+    renderInfoCard(data);
+    renderPaymentCard(data);
+    renderMaintenance(data);
+    renderMessages(data);
+
+  } catch (err) {
+    console.error("fetchData error:", err);
+    if (note) note.textContent = "Lỗi kết nối tới Apps Script.";
   }
+}
 
   document.addEventListener('DOMContentLoaded', ()=>{
     document.querySelectorAll('.tab-btn.tab-info').forEach(btn=>{
@@ -1623,7 +1629,7 @@ function showPortalView_(){
       return;
     }
 
-    fetchData(tenant.maPhong, tenant.identity || '');
+    fetchData();
   });
   function jsonpCall(url, timeout = 15000) {
   return new Promise((resolve, reject) => {
@@ -1667,14 +1673,11 @@ async function handleLoginSubmit(ev){
   const statusEl = document.getElementById("loginStatus");
   const btn = document.getElementById("btnLogin");
 
-  // ✅ ĐỌC ĐÚNG ID INPUT
   const roomCode = String(document.getElementById("loginCode")?.value || "")
     .trim()
     .toUpperCase();
   const identity = String(document.getElementById("loginPhone")?.value || "")
     .trim();
-
-  console.log("[LOGIN SUBMIT]", { roomCode, identity });
 
   if (!roomCode || !identity){
     if (statusEl){
@@ -1694,28 +1697,30 @@ async function handleLoginSubmit(ev){
   }
 
   try{
-    // ✅ LOGIN: dùng action tenantLogin (backend bạn đã có)
-    const res = await callApiWrite("tenantLogin", { roomCode, identity });
+    // ✅ A4.3b login thật: TenantLogin (backend của bạn đang test)
+    const res = await callApi("TenantLogin", { roomCode, identity });
 
-    if (!res || res.success !== true){
-      throw new Error(res?.message || "Đăng nhập thất bại");
+    if (!res || res.ok !== true){
+      throw new Error(res?.error || res?.message || "Đăng nhập thất bại");
     }
 
-    // ✅ Lưu SID đúng hệ đang dùng trong callApi (YTH_SID_KEY)
+    // ✅ Lưu SID (+ expiresAt nếu có)
     if (res.sid){
       try { sessionStorage.setItem(YTH_SID_KEY, res.sid); } catch(e){}
       try { localStorage.setItem(YTH_SID_KEY, res.sid); } catch(e){}
     }
+    if (res.expiresAt){
+      try { localStorage.setItem("YTH_SID_EXPIRES", String(res.expiresAt)); } catch(e){}
+    }
 
-    // ✅ Lưu tenant: đảm bảo có maPhong/identity để fetchData
-    const tenantObj = res.tenant || { maPhong: roomCode, identity };
-    if (!tenantObj.maPhong) tenantObj.maPhong = roomCode;
-    if (!tenantObj.identity) tenantObj.identity = identity;
+    // ✅ Lưu tenant để UI biết phòng/identity
+    const tenantObj = { maPhong: roomCode, identity };
     saveTenantToStorage(tenantObj);
 
-    // ✅ Vào portal và fetch data đúng tham số
     showPortalView_();
-    await fetchData(tenantObj.maPhong, tenantObj.identity);
+
+    // ✅ vào portal bằng SID
+    await fetchData();
 
   }catch(err){
     console.error("LOGIN ERROR:", err);
@@ -1730,6 +1735,7 @@ async function handleLoginSubmit(ev){
     }
   }
 }
+
 
 function initMergedBoot_(){
   // bind login events if login page exists
@@ -1755,7 +1761,7 @@ function initMergedBoot_(){
     showPortalView_();
     const t = readTenantFromStorage();
     if (t && (t.maPhong || t.roomCode)){
-      fetchData(t.maPhong || t.roomCode, t.identity || "");
+      fetchData();
     }
   }
 }
@@ -1766,6 +1772,7 @@ document.addEventListener("DOMContentLoaded", initMergedBoot_);
 </script>
 </body>
 </html>
+
 
 
 
