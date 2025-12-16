@@ -395,24 +395,118 @@
 
   <!-- JS dùng chung (tất cả code trong <script> cũ đã chuyển sang file này) -->
   <script src="yt-home-common.js"></script>
+<script src="yt-home-common.js"></script>
 <script>
 /* ======================================================
- * Override openTenantPortal() for merged portal+tenant page
- * - tenant.html + portal.html đã gộp chung (giữ tên portal.html)
- * - index.html chỉ cần điều hướng sang portal.html?room=<Mã phòng>
+ * YT Home – Public index: lấy data từ roominfo (JSONP)
+ * - Đọc API_URL từ meta[name="yt-home-api"]
+ * - Nếu URL có ?room=P205 -> gọi action=roominfo&roomCode=P205
  * ====================================================== */
 (function () {
   const PORTAL_PAGE = "portal.html";
 
+  // ✅ lấy API_URL từ meta
+  const API_URL = (document.querySelector('meta[name="yt-home-api"]')?.content || "").trim();
+
+  // ✅ JSONP call (không cần SID cho roominfo)
+  function callApiPublic(action, params = {}) {
+    return new Promise((resolve, reject) => {
+      if (!API_URL) return reject(new Error("Missing API_URL (meta[name=yt-home-api])"));
+
+      const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      const ts = Date.now();
+      const merged = { ...params, ts };
+
+      let s = null;
+      let done = false;
+
+      const timeoutMs = 15000;
+      const timer = setTimeout(() => {
+        if (done) return;
+        done = true;
+        cleanup();
+        reject(new Error("JSONP timeout (" + timeoutMs + "ms)"));
+      }, timeoutMs);
+
+      window[cb] = (data) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        cleanup();
+        resolve(data);
+      };
+
+      const qs = new URLSearchParams({
+        action: String(action || "").trim(), // roominfo
+        ...merged,
+        callback: cb
+      }).toString();
+
+      s = document.createElement("script");
+      s.async = true;
+      s.src = API_URL + (API_URL.includes("?") ? "&" : "?") + qs;
+
+      s.onerror = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        cleanup();
+        reject(new Error("JSONP load failed"));
+      };
+
+      document.body.appendChild(s);
+
+      function cleanup() {
+        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+        if (s && s.parentNode) s.parentNode.removeChild(s);
+      }
+    });
+  }
+
+  // ✅ Override openTenantPortal(): điều hướng portal.html?room=<Mã phòng>
   window.openTenantPortal = function (roomCode) {
     const r = String(roomCode || "").trim();
     const url = r ? (PORTAL_PAGE + "?room=" + encodeURIComponent(r)) : PORTAL_PAGE;
     window.location.href = url;
   };
+
+  // ✅ Nếu index.html có ?room=... thì gọi roominfo để lấy data (demo)
+  async function loadRoomInfoFromQuery() {
+    const qs = new URLSearchParams(window.location.search);
+    const room = String(qs.get("room") || "").trim();
+    if (!room) return;
+
+    // bạn có thể đổi chỗ hiển thị tuỳ UI
+    const heroStatus = document.getElementById("heroStatus");
+    if (heroStatus) heroStatus.textContent = "Đang tải phòng " + room + "...";
+
+    try {
+      const res = await callApiPublic("roominfo", { roomCode: room });
+      console.log("ROOMINFO =", res);
+
+      if (res && res.ok === true && res.data) {
+        if (heroStatus) heroStatus.textContent = "Đã tải: " + room;
+        // Ví dụ: nếu data có trường "Tình trạng" / "Trang thái"
+        // bạn tự map đúng header sheet của bạn
+        // const st = res.data["Trạng thái"] || res.data["Tình trạng"];
+        // if (st && heroStatus) heroStatus.textContent = st;
+
+      } else {
+        if (heroStatus) heroStatus.textContent = res?.warning || res?.error || ("Không có dữ liệu phòng: " + room);
+      }
+    } catch (err) {
+      console.error(err);
+      if (heroStatus) heroStatus.textContent = "Lỗi gọi roominfo";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadRoomInfoFromQuery);
 })();
 </script>
+
 </body>
 </html>
+
 
 
 
