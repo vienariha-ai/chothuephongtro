@@ -1,7 +1,7 @@
-<!DOCTYPE html - Ver 2.2>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
+<meta charset="UTF-8" />
   <title>YT Home – Portal tài khoản phòng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="yt-home-common.css" />
@@ -41,10 +41,68 @@
     .status-chip-success{background:#dcfce7;color:#166534;}
     .status-chip-info{background:#dbeafe;color:#1e3a8a;}
   </style>
-</head>
 
+<style>
+  /* merged: view switch */
+  .hidden{display:none !important;}
+</style>
+
+</head>
 <body class="tenant-body">
-  <div class="container">
+<div id="loginPage" class="hidden">
+<div class="container">
+    <div class="page-wrapper">
+      <div class="card">
+        <div class="logo-row">
+          <div class="logo-icon">YT</div>
+          <div class="logo-text">
+            <div class="logo-text-main">YT Home</div>
+            <div class="logo-text-sub">Portal tài khoản phòng</div>
+          </div>
+        </div>
+
+        <div class="page-title">Đăng nhập tài khoản phòng</div>
+        <div class="page-subtitle">
+          Nhập <strong>Mã phòng</strong> và <strong>Số điện thoại/CCCD</strong> của chủ phòng để xem portal nội bộ.
+        </div>
+
+        <div id="roomBadgeLogin" class="badge" style="display:none;"></div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginCode">Mã phòng</label>
+            <input id="loginCode" class="form-control" type="text" autocomplete="off" required />
+          </div>
+
+          <div class="form-group">
+            <label for="loginPhone">Số điện thoại/CCCD chủ phòng</label>
+            <input id="loginPhone" class="form-control" type="tel" autocomplete="off" required />
+          </div>
+
+          <button type="submit" class="btn">Đăng nhập</button>
+        </form>
+
+        <div id="loginStatus" class="portal-status"></div>
+
+        <div class="small-note">
+          Sau khi đăng nhập thành công, hệ thống sẽ lưu tài khoản phòng để những lần sau tự chuyển thẳng vào portal.
+        </div>
+
+        <div class="tenant-footer-actions">
+          <a href="index.html" class="tenant-back-link">← Quay lại trang xem phòng</a>
+
+          <button type="button" id="logoutBtn" class="btn-logout">
+            <span class="btn-logout-icon">⇄</span>
+            <span>Đăng xuất / Đổi phòng</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="portalPage" class="hidden">
+<div class="container">
     <header class="header">
       <div class="logo-row">
         <div class="logo-icon">YT</div>
@@ -429,12 +487,70 @@
       </div>
     </div>
   </div>
-
+</div>
 <script>
+
+function setSID(sid){ try{ sessionStorage.setItem("YTH_SID", sid||""); }catch(e){} }
+function readTenantFromStorage(){
+  try{ const raw = localStorage.getItem(TENANT_STORAGE_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+function saveTenantToStorage(tenant){
+  try{ localStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant||{})); }catch(e){}
+}
+function safeGotoPortal(){
+  // In merged file, portal is the same page without view=login
+  const p = new URL(location.href);
+  p.searchParams.delete('view');
+  location.href = p.pathname + (p.searchParams.toString() ? ('?'+p.searchParams.toString()) : '');
+}
+
+
   const TENANT_STORAGE_KEY = "ytHomeTenant";
 
   // ✅ API_URL: dùng đúng URL /exec bạn đang deploy
   const API_URL = "https://script.google.com/macros/s/AKfycbwJV70Hw3GJFEjyt41t_j6k4qmnOqJv8AS1fL2X9DOfC0DYNiA5AeGpFzwV1YYkwrNRCw/exec";
+
+function resolveInternalUrl_(toUrl){
+  // When merged into one file: map old resolveInternalUrl_("tenant.html") navigation to this same page's login view
+  try{
+    const u = String(toUrl || '');
+    if (!u) return location.pathname + location.search;
+    const isTenant = /tenant\.html(\?|#|$)/i.test(u);
+    const isPortal = /portal\.html(\?|#|$)/i.test(u);
+    if (isTenant) {
+      const p = new URL(location.href);
+      p.searchParams.set('view','login');
+      return p.pathname + '?' + p.searchParams.toString();
+    }
+    if (isPortal) {
+      const p = new URL(location.href);
+      p.searchParams.delete('view');
+      return p.pathname + '?' + p.searchParams.toString();
+    }
+    return u;
+  }catch(e){
+    return toUrl;
+  }
+}
+
+function showLoginView_(msg){
+  const lp = document.getElementById('loginPage');
+  const pp = document.getElementById('portalPage');
+  if (pp) pp.classList.add('hidden');
+  if (lp) lp.classList.remove('hidden');
+
+  if (msg){
+    const el = document.getElementById('loginStatus');
+    if (el){ el.textContent = msg; el.className = 'muted'; }
+  }
+}
+
+function showPortalView_(){
+  const lp = document.getElementById('loginPage');
+  const pp = document.getElementById('portalPage');
+  if (lp) lp.classList.add('hidden');
+  if (pp) pp.classList.remove('hidden');
+}
 
   /* ======================================================
    * ✅ CHỐNG VÒNG LẶP REDIRECT portal.html <-> tenant.html
@@ -458,7 +574,7 @@
     try { sessionStorage.setItem(YTH_RETURN_TO_KEY, location.href); } catch(e){}
 
     if (g.c > REDIRECT_MAX) return false; // stop redirect
-    location.replace(toUrl);
+    location.replace(resolveInternalUrl_(toUrl));
     return true;
   }
 
@@ -471,7 +587,7 @@
     if (actions && !document.getElementById("btnGoTenant")){
       const a = document.createElement("a");
       a.id = "btnGoTenant";
-      a.href = "tenant.html";
+      a.href = resolveInternalUrl_("tenant.html");
       a.className = "btn btn-outline";
       a.textContent = "Về trang đăng nhập";
       actions.appendChild(a);
@@ -565,7 +681,7 @@
     try { localStorage.removeItem(TENANT_STORAGE_KEY); } catch(e){}
     clearSID();
     clearNonce();   // ✅ thêm dòng này
-    window.location.href = "tenant.html";
+    window.location.href = resolveInternalUrl_(resolveInternalUrl_("tenant.html"));
   }
 
   function formatVND(amount){
@@ -1494,7 +1610,7 @@
 
     // ✅ CHẶN VÒNG LẶP: không redirect cứng nữa
     if (!tenant || !tenant.maPhong){
-      const ok = guardRedirectOnce('tenant.html');
+      const ok = guardRedirectOnce(resolveInternalUrl_("tenant.html"));
       if (!ok) ensureLoginActionUI('Bạn chưa đăng nhập (hoặc dữ liệu đăng nhập bị mất). Vui lòng đăng nhập lại.');
       return;
     }
@@ -1502,7 +1618,7 @@
     // Nếu backend đang enforce SID thì phải có SID
     const sid = getSID();
     if (!sid){
-      const ok = guardRedirectOnce('tenant.html');
+      const ok = guardRedirectOnce(resolveInternalUrl_("tenant.html"));
       if (!ok) ensureLoginActionUI('Phiên đăng nhập đã hết hạn (thiếu SID). Vui lòng đăng nhập lại.');
       return;
     }
@@ -1543,17 +1659,74 @@
     document.body.appendChild(script);
   });
 }
+
+
+async function handleLoginSubmit(ev){
+  if (ev) ev.preventDefault();
+  const statusEl = document.getElementById("loginStatus");
+  const btn = document.getElementById("btnLogin");
+  const roomCode = String(document.getElementById("roomCode")?.value || "").trim().toUpperCase();
+  const identity = String(document.getElementById("identity")?.value || "").trim();
+
+  if (!roomCode || !identity){
+    if (statusEl){ statusEl.textContent = "Vui lòng nhập Mã phòng và SĐT/CCCD."; statusEl.className="muted"; }
+    return;
+  }
+
+  if (btn){ btn.disabled = true; btn.textContent = "Đang đăng nhập..."; }
+  if (statusEl){ statusEl.textContent = "Đang xác thực..."; statusEl.className="muted"; }
+
+  try{
+    const res = await callApiWrite("tenantLogin", { roomCode, phoneOrCCCD: identity });
+    if (!res || res.success !== true){
+      throw new Error(res?.message || "Đăng nhập thất bại");
+    }
+    // Expected: res.sid, res.tenant
+    if (res.sid) setSID(res.sid);
+    if (res.tenant) saveTenantToStorage(res.tenant);
+    // Set return-to if missing
+    try{
+      if (!getReturnTo()) localStorage.setItem(YTH_RETURN_TO_KEY, location.href);
+    }catch(e){}
+    // go portal
+    showPortalView_();
+    await fetchData(); // portal function
+  }catch(err){
+    if (statusEl){ statusEl.textContent = "Lỗi: " + (err?.message || err); statusEl.className="muted"; }
+  }finally{
+    if (btn){ btn.disabled = false; btn.textContent = "Đăng nhập"; }
+  }
+}
+
+function initMergedBoot_(){
+  // bind login events if login page exists
+  const form = document.getElementById("loginForm");
+  if (form && !form.__bound){
+    form.addEventListener("submit", handleLoginSubmit);
+    form.__bound = true;
+  }
+  const rb = document.getElementById("roomBadgeLogin");
+  const qs = new URLSearchParams(location.search);
+  const room = String(qs.get("room") || qs.get("roomCode") || "").trim().toUpperCase();
+  if (rb && room) rb.textContent = room;
+
+  // Decide view
+  const view = String(qs.get("view") || "").toLowerCase();
+  const sid = getSID();
+  const tenant = readTenantFromStorage();
+  const hasSession = !!(sid && tenant && (tenant.maPhong || tenant.roomCode || tenant.MaPhong));
+
+  if (view === "login" || !hasSession){
+    showLoginView_(!hasSession ? "Vui lòng đăng nhập." : "");
+  }else{
+    showPortalView_();
+    fetchData();
+  }
+}
+
+// Run after all portal DOMContentLoaded handlers, but safe to run now as well
+document.addEventListener("DOMContentLoaded", initMergedBoot_);
+
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
