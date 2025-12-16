@@ -1677,7 +1677,7 @@ async function handleLoginSubmit(ev){
   if (statusEl){ statusEl.textContent = "Đang xác thực..."; statusEl.className="muted"; }
 
   try{
-    const res = await callApiWrite("tenantLogin", { roomCode, phoneOrCCCD: identity });
+    const res = await callApiWrite("tenantLogin", { roomCode, identity: identity });
     if (!res || res.success !== true){
       throw new Error(res?.message || "Đăng nhập thất bại");
     }
@@ -1730,5 +1730,6 @@ document.addEventListener("DOMContentLoaded", initMergedBoot_);
 </script>
 </body>
 </html>
+
 
 
